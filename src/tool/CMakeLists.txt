@@ -1,0 +1,7 @@
+set(
+   SRC_FILES ${SRC_FILES}
+   ${CMAKE_CURRENT_SOURCE_DIR}/strings.c
+)
+
+set(SRC_FILES ${SRC_FILES} PARENT_SCOPE)
+
