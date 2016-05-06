@@ -8,7 +8,7 @@
 
 ## Quick setup guide
 ```
-$ git clone https://github.com/nsensfel/zero-of-one
+$ git clone https://github.com/nsensfel/zero-of-one.git
 $ cd zero-of-one
 $ mkdir build
 $ cd build
