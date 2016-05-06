@@ -43,7 +43,7 @@ static int initialize
       return -1;
    }
 
-   if (ZoO_parameters_initialize(&(s->param), argc, argv) < 0)
+   if (ZoO_parameters_initialize(&(s->param), argc, argv) < 1)
    {
       ZoO_knowledge_finalize(&(s->knowledge));
 
