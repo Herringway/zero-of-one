@@ -6,6 +6,8 @@
 
 #include "knowledge.h"
 
+/** Basic functions of the ZoO_knowledge structure ****************************/
+
 /* XXX: are we as close to immutable as we want to be? */
 unsigned int const ZoO_knowledge_punctuation_chars_count = 7;
 const ZoO_char const ZoO_knowledge_punctuation_chars[7] =
@@ -33,6 +35,7 @@ const ZoO_char const ZoO_knowledge_forbidden_chars[8]=
       '>'
    };
 
+/* See "knowledge.h". */
 int ZoO_knowledge_find
 (
    const struct ZoO_knowledge k [const restrict static 1],
@@ -54,7 +57,7 @@ int ZoO_knowledge_find
 
    current_min = 0;
 
-   /* overflow-safe: k->words_count >= 1 */
+   /* Safe: (>= k->words_count 1) */
    current_max = (k->words_count - 1);
 
    for (;;)
@@ -124,6 +127,18 @@ static void word_init (struct ZoO_knowledge_word w [const restrict static 1])
    w->backward_links = (ZoO_index *) NULL;
 }
 
+/*
+ * When returning 0:
+ *    All punctuation symbols were added to {k}.
+ * When returning -1:
+ *    The mandatory punctuation symbols have been added to {k}, but some of the
+ *    additional ones did not. This does not prevent ZoO from working, but
+ *    will result in some punctuation symbols to be handled exactly like
+ *    common words.
+ * When returning -2:
+ *    The mandatory punctuation symbols have not added to {k}. ZoO will not be
+ *    able to work.
+ */
 static int add_punctuation_nodes
 (
    struct ZoO_knowledge k [const static 1]
@@ -177,6 +192,7 @@ static int add_punctuation_nodes
    return error;
 }
 
+/* See "knowledge.h" */
 int ZoO_knowledge_initialize (struct ZoO_knowledge k [const static 1])
 {
    k->words_count = 0;
@@ -193,6 +209,10 @@ int ZoO_knowledge_initialize (struct ZoO_knowledge k [const static 1])
    return 0;
 }
 
+/*
+ * Frees all the memory used by {w}, but not {w} itself.
+ * The values of {w}'s members are set to reflect the changes.
+ */
 static void finalize_word
 (
    struct ZoO_knowledge_word w [const restrict static 1]
@@ -237,13 +257,13 @@ static void finalize_word
    w->backward_links_count = 0;
 }
 
+/* See "knowledge.h" */
 void ZoO_knowledge_finalize (struct ZoO_knowledge k [const restrict static 1])
 {
    ZoO_index i;
 
    for (i = 0; i < k->words_count; ++i)
    {
-      /* prevents k [restrict] */
       finalize_word(k->words + i);
    }
 
@@ -264,6 +284,7 @@ void ZoO_knowledge_finalize (struct ZoO_knowledge k [const restrict static 1])
    }
 }
 
+/* See "knowledge.h" */
 int ZoO_knowledge_learn
 (
    struct ZoO_knowledge k [const static 1],
@@ -291,7 +312,7 @@ int ZoO_knowledge_learn
          return -1;
       }
 
-      /* overflow-safe */
+      /* overflow-safe: (< k->words[*result].occurrences ZoO_INDEX_MAX) */
       k->words[*result].occurrences += 1;
 
       return 0;
@@ -310,7 +331,7 @@ int ZoO_knowledge_learn
          (void *) k->words,
          (
             (
-               /* overflow-safe: k->words_count < ZoO_INDEX_MAX */
+               /* overflow-safe: (< k->words_count ZoO_INDEX_MAX) */
                (size_t) (k->words_count + 1)
             )
             * sizeof(struct ZoO_knowledge_word)
@@ -336,7 +357,7 @@ int ZoO_knowledge_learn
          (void *) k->sorted_indices,
          (
             (
-               /* overflow-safe: k->words_count < ZoO_INDEX_MAX */
+               /* overflow-safe: (< k->words_count ZoO_INDEX_MAX) */
                (size_t) (k->words_count + 1)
             )
             * sizeof(ZoO_index)
@@ -359,22 +380,27 @@ int ZoO_knowledge_learn
    k->sorted_indices = new_sorted_indices;
 
    /* We can only move indices right of *result if they exist. */
-   if (*result != k->words_count)
+   if (*result < k->words_count)
    {
       /* TODO: check if correct. */
       memmove
       (
          /*
-          * overflow-safe:
-          *  - k->words_count < ZoO_INDEX_MAX
-          *  - (k->sorted_indices + *result + 1) =< k->words_count
+          * Safe:
+          *  (->
+          *    (and
+          *       (== (length k->sorted_indices) (+ k->words_count 1))
+          *       (< *result k->words_count)
+          *    )
+          *    (< (+ *result 1) (length k->sorted_indices))
+          * )
           */
          (void *) (k->sorted_indices + *result + 1),
-         /* overflow-safe: see above */
+         /* Safe: see above */
          (const void *) (k->sorted_indices + *result),
          (
             (
-               /* overflow-safe: *result < k->words_count */
+               /* Safe: (< *result k->words_count) */
                (size_t) (k->words_count - *result)
             )
             * sizeof(ZoO_index)

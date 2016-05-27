@@ -150,6 +150,43 @@ static int should_reply
    return (param->reply_rate >= (rand() % 100));
 }
 
+static void handle_user_join
+(
+   struct ZoO_state s [const static 1]
+)
+{
+   ZoO_char * line;
+
+   if
+   (
+      (s->param.reply_rate >= (rand() % 100))
+      &&
+      (
+         ZoO_knowledge_extend
+         (
+            &(s->knowledge),
+            (struct ZoO_strings *) NULL,
+            0,
+            &line
+         ) == 0
+      )
+   )
+   {
+      if (line[0] == ' ')
+      {
+         strcpy((s->network.out), (line + 1));
+      }
+      else
+      {
+         strcpy((s->network.out), line);
+      }
+
+      free((void *) line);
+
+      ZoO_network_send(&(s->network));
+   }
+}
+
 static void handle_message
 (
    struct ZoO_state s [const static 1],
@@ -167,7 +204,7 @@ static void handle_message
       (
          string,
          (size_t) msg_size,
-         (s->network.msg + msg_offset),
+         (s->network.in + msg_offset),
          ZoO_knowledge_punctuation_chars_count,
          ZoO_knowledge_punctuation_chars
       ) < 0
@@ -202,11 +239,11 @@ static void handle_message
    {
       if (line[0] == ' ')
       {
-         strcpy((s->network.msg), (line + 1));
+         strcpy((s->network.out), (line + 1));
       }
       else
       {
-         strcpy((s->network.msg), line);
+         strcpy((s->network.out), line);
       }
 
       free((void *) line);
@@ -226,10 +263,11 @@ static void handle_message
    }
 }
 
-static int main_loop  (struct ZoO_state s [const static 1])
+static int main_loop (struct ZoO_state s [const static 1])
 {
    struct ZoO_strings string;
    ssize_t msg_offset, msg_size;
+   enum ZoO_msg_type msg_type;
 
    msg_offset = 0;
    msg_size = 0;
@@ -238,9 +276,27 @@ static int main_loop  (struct ZoO_state s [const static 1])
 
    while (run)
    {
-      if (ZoO_network_receive(&(s->network), &msg_offset, &msg_size) == 0)
+      if
+      (
+         ZoO_network_receive
+         (
+            &(s->network),
+            &msg_offset,
+            &msg_size,
+            &msg_type
+         ) == 0
+      )
       {
-         handle_message(s, &string, msg_offset, msg_size);
+         switch (msg_type)
+         {
+            case ZoO_JOIN:
+               handle_user_join(s);
+               break;
+
+            case ZoO_PRIVMSG:
+               handle_message(s, &string, msg_offset, msg_size);
+               break;
+         }
       }
    }
 

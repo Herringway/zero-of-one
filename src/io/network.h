@@ -17,7 +17,8 @@ int ZoO_network_receive
 (
    struct ZoO_network net [const static 1],
    size_t msg_offset [const restrict static 1],
-   size_t msg_size [const restrict static 1]
+   size_t msg_size [const restrict static 1],
+   enum ZoO_msg_type type [const restrict static 1]
 );
 
 int ZoO_network_send (struct ZoO_network net [const restrict static 1]);

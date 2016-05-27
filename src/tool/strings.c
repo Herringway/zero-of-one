@@ -199,7 +199,7 @@ static int parse_word
 int ZoO_strings_parse
 (
    struct ZoO_strings s [const restrict static 1],
-   size_t const input_size,
+   size_t input_size,
    ZoO_char input [const restrict],
    ZoO_index const punctuations_count,
    const ZoO_char punctuations [const restrict static punctuations_count]

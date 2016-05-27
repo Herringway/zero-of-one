@@ -5,6 +5,8 @@
 
 #include "knowledge.h"
 
+/** Functions to assimilate sentences using a ZoO_knowledge structure *********/
+
 static int link_to
 (
    ZoO_index links_count [const restrict static 1],

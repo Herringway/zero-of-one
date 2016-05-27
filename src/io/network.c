@@ -13,10 +13,10 @@
 
 #include "network.h"
 
-static int reconnect (struct ZoO_network net [const restrict static 1])
+static int re_create_socket (struct ZoO_network net [const restrict static 1])
 {
    struct timeval timeout;
-   int old_errno = errno;
+   const int old_errno = errno;
 
    errno = 0;
    timeout.tv_sec = ZoO_NETWORK_TIMEOUT;
@@ -37,18 +37,10 @@ static int reconnect (struct ZoO_network net [const restrict static 1])
 
    if (net->connection == -1)
    {
-      ZoO_FATAL
-      (
-         "Could not create socket: %s.",
-         strerror(errno)
-      );
+      ZoO_ERROR("Could not create socket: %s.", strerror(errno));
 
-      errno = old_errno;
-
-      return -1;
+      goto RETURN_FAILED;
    }
-
-   errno = 0;
 
    if
    (
@@ -77,12 +69,8 @@ static int reconnect (struct ZoO_network net [const restrict static 1])
    {
       ZoO_ERROR("Could not set timeout on network socket: %s", strerror(errno));
 
-      errno = old_errno;
-
-      return -1;
+      goto RETURN_FAILED;
    }
-
-   errno = old_errno;
 
    ZoO_S_DEBUG(ZoO_DEBUG_NETWORK, "(Re)connecting to network...");
 
@@ -96,73 +84,67 @@ static int reconnect (struct ZoO_network net [const restrict static 1])
       ) != 0
    )
    {
-      ZoO_ERROR
-      (
-         "Unable to connect to the network: %s",
-         strerror(errno)
-      );
+      ZoO_ERROR("Could not establish connection: %s", strerror(errno));
 
-      errno = old_errno;
-
-      return -1;
+      goto RETURN_FAILED;
    }
 
    errno = old_errno;
 
-   snprintf
-   (
-      net->msg,
-      512,
-      "USER %s 8 * :%s\r\n",
-      net->user,
-      net->name
-   );
+   return 0;
 
-   errno = 0;
-
-   if (write(net->connection, net->msg, strlen(net->msg)) < 1)
-   {
-      ZoO_ERROR
-      (
-         "Unable to write to the network: %s",
-         strerror(errno)
-      );
-
-      errno = old_errno;
-
-      return -1;
-   }
-
-   snprintf
-   (
-      net->msg,
-      512,
-      "NICK %s\r\n",
-      net->nick
-   );
-
-   errno = 0;
-
-   if (write(net->connection, net->msg, strlen(net->msg)) < 1)
-   {
-      ZoO_ERROR
-      (
-         "Unable to write to the network: %s",
-         strerror(errno)
-      );
-
-      errno = old_errno;
-
-      return -1;
-   }
-
+RETURN_FAILED:
    errno = old_errno;
+
+   return -1;
+}
+
+static int reconnect (struct ZoO_network net [const restrict static 1])
+{
+   const int old_errno = errno;
+
+   memset(net->in, 0, (sizeof(ZoO_char) * 513));
+   memset(net->out, 0, (sizeof(ZoO_char) * 513));
+   memset(net->buffer, 0, (sizeof(ZoO_char) * 513));
+
+   if (re_create_socket(net) < 0)
+   {
+      return -1;
+   }
+
+   snprintf(net->out, 512, "USER %s 8 * :%s\r\n", net->user, net->name);
+
+   if (write(net->connection, net->out, strlen(net->out)) < 1)
+   {
+      goto RETURN_WRITE_FAILED;
+   }
+
+   snprintf(net->out, 512, "NICK %s\r\n", net->nick);
+
+   if (write(net->connection, net->out, strlen(net->out)) < 1)
+   {
+      goto RETURN_WRITE_FAILED;
+   }
 
    net->buffer_remaining = 0;
    net->buffer_index = 0;
+
    ZoO_S_DEBUG(ZoO_DEBUG_NETWORK, "(Re)connected.");
 
+   errno = old_errno;
+
    return 0;
+
+RETURN_WRITE_FAILED:
+   ZoO_ERROR
+   (
+      "Unable to write to the network: %s",
+      strerror(errno)
+   );
+
+   errno = old_errno;
+
+   return -1;
 }
 
 int ZoO_network_connect
@@ -189,7 +171,9 @@ int ZoO_network_connect
    net->buffer_remaining = 0;
 
    memset(&hints, 0, sizeof(struct addrinfo));
-   memset(net->msg, 0, (sizeof(ZoO_char) * 513));
+   memset(net->in, 0, (sizeof(ZoO_char) * 513));
+   memset(net->out, 0, (sizeof(ZoO_char) * 513));
+   memset(net->buffer, 0, (sizeof(ZoO_char) * 513));
 
    hints.ai_family = AF_INET;
    hints.ai_socktype = SOCK_STREAM;
@@ -222,127 +206,192 @@ int ZoO_network_connect
       return -1;
    }
 
-   errno = 0;
-
+   errno = old_errno;
 
    reconnect(net);
 
    return 0;
 }
 
+static void buffer_msg
+(
+   struct ZoO_network net [const static 1]
+)
+{
+   ssize_t in_count, i;
+
+   if (net->buffer_remaining > 0)
+   {
+      in_count = net->buffer_remaining;
+      net->buffer_remaining = 0;
+
+      goto PARSE_READ;
+   }
+
+READ_MORE:
+   in_count = read(net->connection, net->buffer, 512);
+
+   if (in_count < 0)
+   {
+      ZoO_ERROR("Could not read from network: %s", strerror(errno));
+
+      reconnect(net);
+
+      goto READ_MORE;
+   }
+
+PARSE_READ:
+   for (i = 0; i < in_count; ++i)
+   {
+      net->in[net->buffer_index] = net->buffer[i];
+
+      if
+      (
+         (net->buffer_index > 0)
+         && (net->in[net->buffer_index - 1] == '\r')
+         && (net->in[net->buffer_index] == '\n')
+      )
+      {
+         net->buffer_remaining = (in_count - (i + 1));
+         net->in_length = (net->buffer_index - 1);
+         net->buffer_index = 0;
+
+         if (net->buffer_remaining > 0)
+         {
+            memmove
+            (
+               (void *) net->buffer,
+               (const void *) (net->buffer + (i + 1)),
+               net->buffer_remaining
+            );
+         }
+
+         return;
+      }
+
+      net->buffer_index += 1;
+
+      if (net->buffer_index > 512)
+      {
+         ZoO_S_WARNING("Incoming message is too long. Discarded.");
+
+         net->buffer_index = 0;
+         net->buffer_remaining = 0;
+
+         break;
+      }
+   }
+
+   goto READ_MORE;
+}
+
+void handle_ping (struct ZoO_network net [const restrict static 1])
+{
+   const int old_errno = errno;
+
+   #if ZoO_DEBUG_NETWORK_PING == 1
+      net->in[net->in_length] = '\0';
+
+      ZoO_DEBUG(ZoO_DEBUG_NETWORK, "[NET->in] %s", net->in);
+
+      net->in[net->in_length] = '\r';
+   #endif
+
+   net->in[1] = 'O';
+
+   errno = 0;
+
+   if (write(net->connection, net->in, (net->in_length + 2)) < 1)
+   {
+      ZoO_ERROR("Could not reply to PING request: %s", strerror(errno));
+
+      errno = old_errno;
+
+      while (reconnect(net) < 0)
+      {
+         sleep(5);
+      }
+
+      return;
+   }
+
+   errno = old_errno;
+
+#if ZoO_DEBUG_NETWORK_PING == 1
+   net->in[net->in_length] = '\0';
+
+   ZoO_DEBUG(ZoO_DEBUG_NETWORK, "[NET->out] %s", net->in);
+#endif
+
+}
+
 int ZoO_network_receive
 (
    struct ZoO_network net [const restrict static 1],
    size_t msg_offset [const restrict static 1],
-   size_t msg_size [const restrict static 1]
+   size_t msg_size [const restrict static 1],
+   enum ZoO_msg_type type [const restrict static 1]
 )
 {
-   int old_errno;
-   ssize_t in_count, in_index, msg_index, cmd;
+   const int old_errno = errno;
+   ssize_t cmd, i;
 
-   old_errno = errno;
+READ_NEW_MSG:
+   buffer_msg(net);
 
-   for (;;)
+   net->in[net->in_length + 2] = '\0';
+
+   /* XXX: doesn't that prevent net [restrict]? */
+   if (ZoO_IS_PREFIX("PING", net->in))
    {
-      msg_index = 0;
 
-      errno = 0;
+      handle_ping(net);
 
-      while
-      (
-         (
-            (in_count =
-               read(
-                  net->connection,
-                  (net->buffer + net->buffer_index),
-                  (512 - net->buffer_index)
-               )
-            ) > 0
-         )
-      )
+      goto READ_NEW_MSG;
+   }
+
+   if (net->in_length == 0)
+   {
+      goto READ_NEW_MSG;
+   }
+
+   net->in[net->in_length] = '\0';
+
+   ZoO_DEBUG(ZoO_DEBUG_NETWORK, "[NET->in] %s", net->in);
+
+   if (net->in[0] == ':')
+   {
+      cmd = 0;
+
+      for (i = 1; i < 512; i++)
       {
-         net->buffer_remaining += in_count;
-
-         for
-         (
-            in_index = 0;
-            in_index < net->buffer_remaining;
-            ++in_index
-         )
+         if (net->in[i] == ' ')
          {
-            net->msg[msg_index] = net->buffer[net->buffer_index + in_index];
+            cmd = (i + 1);
 
-            if
-            (
-               (msg_index == 511)
-               ||
-               (
-                  (msg_index > 0)
-                  && (net->msg[msg_index - 1] == '\r')
-                  && (net->msg[msg_index] == '\n')
-               )
-            )
-            {
-               net->msg[msg_index + 1] = '\0';
-
-
-               if (net->buffer_index != net->buffer_remaining)
-               {
-                  memmove
-                  (
-                     net->buffer,
-                     (net->buffer + net->buffer_index),
-                     (size_t) net->buffer_remaining
-                  );
-
-                  net->buffer_index = 0;
-               }
-
-               net->buffer_remaining -= (in_index + 1);
-
-               errno = old_errno;
-
-               goto READ_MSG;
-            }
-
-            ++msg_index;
+            break;
          }
-
-         net->buffer_remaining = 0;
-         net->buffer_index = 0;
-
-         errno = 0;
       }
 
-      ZoO_ERROR
-      (
-         "Something went wrong while trying to read from the network: %s.",
-         strerror(errno)
-      );
-
-      errno = old_errno;
-
-      if (reconnect(net) < 0)
+      if (ZoO_IS_PREFIX("001", (net->in + cmd)))
       {
-         return -1;
-      }
+         snprintf
+         (
+            net->out,
+            512,
+            "JOIN :%s\r\n",
+            net->channel
+         );
 
-      continue;
-
-      READ_MSG:
-
-      ZoO_DEBUG(ZoO_DEBUG_NETWORK, "[NET->in] %s\n", net->msg);
-
-      /* XXX: doesn't that prevent net [restrict]? */
-      if (ZoO_IS_PREFIX("PING", net->msg))
-      {
          errno = 0;
 
-         net->msg[1] = 'O';
-
-         if (write(net->connection, net->msg, strlen(net->msg)) < 1)
+         if (write(net->connection, net->out, strlen(net->out)) < 1)
          {
-            ZoO_ERROR("Could not reply to PING request: %s", strerror(errno));
+            ZoO_ERROR
+            (
+               "Could not send JOIN request: %s",
+               strerror(errno)
+            );
 
             errno = old_errno;
 
@@ -350,87 +399,47 @@ int ZoO_network_receive
             {
                return -1;
             }
-
-            continue;
          }
 
-         ZoO_DEBUG(ZoO_DEBUG_NETWORK, "[NET->out] %s\n", net->msg);
-
          errno = old_errno;
-      }
-      else if (net->msg[0] == ':')
-      {
-         cmd = 0;
 
-         for (in_index = 1; in_index < 512; in_index++)
+         ZoO_DEBUG(ZoO_DEBUG_NETWORK, "[NET->out] %s", net->out);
+
+         goto READ_NEW_MSG;
+      }
+
+      if (ZoO_IS_PREFIX("JOIN", (net->in + cmd)))
+      {
+         *type = ZoO_JOIN;
+
+         return 0;
+      }
+
+      if (ZoO_IS_PREFIX("PRIVMSG", (net->in + cmd)))
+      {
+
+         for (; i < 512; i++)
          {
-            if (net->msg[in_index] == ' ')
+            if (net->in[i] == ':')
             {
-               cmd = (in_index + 1);
+               cmd = (i + 1);
 
                break;
             }
          }
 
-         if (cmd == 0)
-         {
-            continue;
-         }
+         *msg_offset = cmd;
+         *msg_size = (net->in_length - cmd);
 
-         if (ZoO_IS_PREFIX("001", (net->msg + cmd)))
-         {
-            snprintf
-            (
-               net->msg,
-               512,
-               "JOIN :%s\r\n",
-               net->channel
-            );
+         /*net->in[*msg_size - 1] = '\0'; */
 
-            errno = 0;
+         *type = ZoO_PRIVMSG;
 
-            if (write(net->connection, net->msg, strlen(net->msg)) < 1)
-            {
-               ZoO_ERROR
-               (
-                  "Could not send JOIN request: %s",
-                  strerror(errno)
-               );
-
-               errno = old_errno;
-
-               if (reconnect(net) < 0)
-               {
-                  return -1;
-               }
-            }
-
-            ZoO_DEBUG(ZoO_DEBUG_NETWORK, "[NET->out] %s", net->msg);
-
-            continue;
-         }
-
-         if (ZoO_IS_PREFIX("PRIVMSG", (net->msg + cmd)))
-         {
-            for (; in_index < 512; in_index++)
-            {
-               if (net->msg[in_index] == ':')
-               {
-                  cmd = (in_index + 1);
-
-                  break;
-               }
-            }
-
-            *msg_offset = cmd;
-            *msg_size = (msg_index - *msg_offset - 1);
-
-            /*net->msg[*msg_size - 1] = '\0'; */
-
-            return 0;
-         }
+         return 0;
       }
    }
+
+   goto READ_NEW_MSG;
 }
 
 int ZoO_network_send (struct ZoO_network net [const restrict static 1])
@@ -439,16 +448,16 @@ int ZoO_network_send (struct ZoO_network net [const restrict static 1])
 
    snprintf
    (
-      net->buffer,
+      net->in,
       512,
       "PRIVMSG %s :%s\r\n",
       net->channel,
-      net->msg
+      net->out
    );
 
    errno = 0;
 
-   if (write(net->connection, net->buffer, strlen(net->buffer)) < 1)
+   if (write(net->connection, net->in, strlen(net->in)) < 1)
    {
       ZoO_ERROR
       (
@@ -470,7 +479,7 @@ int ZoO_network_send (struct ZoO_network net [const restrict static 1])
 
    errno = old_errno;
 
-   ZoO_DEBUG(ZoO_DEBUG_NETWORK, "[NET->out] %s", net->buffer);
+   ZoO_DEBUG(ZoO_DEBUG_NETWORK, "[NET->out] %s", net->in);
 
    return 0;
 }

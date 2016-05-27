@@ -7,6 +7,17 @@
 
 #include "knowledge.h"
 
+/** Functions to create sentences using a ZoO_knowledge structure *************/
+
+/*
+ * Returns the index of a element in {links} chosen randomly according
+ * to the distribution in {links_occurrences}.
+ * Pre:
+ *    (!= occurrences 0).
+ *    (== (length links_occurrences) (length links)).
+ *    (== (sum links_occurrences) occurrences).
+ *    (can_store ZoO_index (length links)).
+ */
 static ZoO_index pick_an_index
 (
    ZoO_index const occurrences,
@@ -17,29 +28,40 @@ static ZoO_index pick_an_index
    ZoO_index result, accumulator, random_number;
 
    result = 0;
+
+   /*
+    * Safe:
+    * (> (length links_occurrences) 0).
+    */
    accumulator = links_occurrences[0];
+
    random_number = (((ZoO_index) rand()) % occurrences);
 
    while (accumulator < random_number)
    {
-
       /*
-       * Should be safe:
-       * result overflowing <-> sum('links_occurrences') > 'occurrences'
-       * and sum('links_occurrences') == 'occurrences'
+       * Safe:
+       * (->
+       *    (and
+       *       (== accumulator (sum links_occurrences[0:result]))
+       *       (< accumulator random_number)
+       *       (< random_number occurrences)
+       *       (== occurrences (sum links_occurrences))
+       *       (can_store ZoO_index (length links))
+       *       (== (length links_occurrences) (length links))
+       *    )
+       *    (and
+       *       (< result' (length links_occurrences))
+       *       (can_store ZoO_index result')
+       *       (=< accumulator' occurrences)
+       *    )
+       * )
        */
       result += 1;
-
-      /*
-       * Should be safe:
-       *  - sum('links_occurrences') == 'occurrences'.
-       *  - 'occurrences' is safe.
-       *  ----
-       *  'accumulator' is safe.
-       */
       accumulator += links_occurrences[result];
    }
 
+   /* Safe: (< result (length links)) */
    return links[result];
 }
 
@@ -330,7 +352,7 @@ static unsigned char * extend_right
 int ZoO_knowledge_extend
 (
    struct ZoO_knowledge k [const static 1],
-   const struct ZoO_strings string [const static 1],
+   const struct ZoO_strings string [const],
    int const ignore_first_word,
    ZoO_char * result [const static 1]
 )
@@ -339,47 +361,55 @@ int ZoO_knowledge_extend
    size_t sentence_size;
    ZoO_index i, word_id, word_min_score, word_min_id, credits;
 
-   word_found = 0;
    credits = ZoO_MAX_REPLY_WORDS;
 
-   if (ignore_first_word)
+   if (string != (struct ZoO_strings *) NULL)
    {
-      i = 1;
+      word_found = 0;
+
+      if (ignore_first_word)
+      {
+         i = 1;
+      }
+      else
+      {
+         i = 0;
+      }
+
+      for (; i < string->words_count; ++i)
+      {
+         /* prevents k [restrict] */
+         if (ZoO_knowledge_find(k, string->words[i], &word_min_id) == 0)
+         {
+            word_found = 1;
+            word_min_score = k->words[word_min_id].occurrences;
+
+            break;
+         }
+      }
+
+      if (word_found == 0)
+      {
+         word_min_id = (rand() % k->words_count);
+         word_min_score = k->words[word_min_id].occurrences;
+      }
+
+      for (; i < string->words_count; ++i)
+      {
+         if
+         (
+            (ZoO_knowledge_find(k, string->words[i], &word_id) == 0)
+            && (k->words[word_id].occurrences < word_min_score)
+         )
+         {
+            word_min_score = k->words[word_id].occurrences;
+            word_min_id = word_id;
+         }
+      }
    }
    else
    {
-      i = 0;
-   }
-
-   for (; i < string->words_count; ++i)
-   {
-      /* prevents k [restrict] */
-      if (ZoO_knowledge_find(k, string->words[i], &word_min_id) == 0)
-      {
-         word_found = 1;
-         word_min_score = k->words[word_min_id].occurrences;
-
-         break;
-      }
-   }
-
-   if (word_found == 0)
-   {
       word_min_id = (rand() % k->words_count);
-      word_min_score = k->words[word_min_id].occurrences;
-   }
-
-   for (; i < string->words_count; ++i)
-   {
-      if
-      (
-         (ZoO_knowledge_find(k, string->words[i], &word_id) == 0)
-         && (k->words[word_id].occurrences < word_min_score)
-      )
-      {
-         word_min_score = k->words[word_id].occurrences;
-         word_min_id = word_id;
-      }
    }
 
    /* 3: 2 spaces + '\0' */
