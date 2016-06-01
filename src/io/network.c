@@ -107,6 +107,9 @@ static int reconnect (struct ZoO_network net [const restrict static 1])
    memset(net->out, 0, (sizeof(ZoO_char) * 513));
    memset(net->buffer, 0, (sizeof(ZoO_char) * 513));
 
+   net->buffer_index = 0;
+   net->buffer_remaining = 0;
+
    if (re_create_socket(net) < 0)
    {
       return -1;
@@ -231,11 +234,19 @@ static void buffer_msg
 READ_MORE:
    in_count = read(net->connection, net->buffer, 512);
 
-   if (in_count < 0)
+   if (in_count <= 0)
    {
       ZoO_ERROR("Could not read from network: %s", strerror(errno));
 
-      reconnect(net);
+      while (reconnect(net) < 0)
+      {
+         ZoO_S_DEBUG
+         (
+            ZoO_DEBUG_NETWORK,
+            "Attempting new connection in 5s."
+         );
+         sleep(5);
+      }
 
       goto READ_MORE;
    }
@@ -289,6 +300,16 @@ void handle_ping (struct ZoO_network net [const restrict static 1])
 {
    const int old_errno = errno;
 
+   #if ZoO_RANDOMLY_IGNORE_PING == 1
+   if ((rand() % 10) < 3)
+   {
+      ZoO_S_DEBUG(ZoO_DEBUG_NETWORK, "Ping request ignored.");
+
+      return;
+   }
+
+   #endif
+
    #if ZoO_DEBUG_NETWORK_PING == 1
       net->in[net->in_length] = '\0';
 
@@ -309,6 +330,11 @@ void handle_ping (struct ZoO_network net [const restrict static 1])
 
       while (reconnect(net) < 0)
       {
+         ZoO_S_DEBUG
+         (
+            ZoO_DEBUG_NETWORK,
+            "Attempting new connection in 5s."
+         );
          sleep(5);
       }
 
@@ -436,6 +462,19 @@ READ_NEW_MSG:
          *type = ZoO_PRIVMSG;
 
          return 0;
+      }
+   }
+
+   if (ZoO_IS_PREFIX("ERROR", (net->in + cmd)))
+   {
+      while (reconnect(net) < 0)
+      {
+         ZoO_S_DEBUG
+         (
+            ZoO_DEBUG_NETWORK,
+            "Attempting new connection in 5s."
+         );
+         sleep(5);
       }
    }
 
