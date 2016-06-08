@@ -14,7 +14,8 @@ static void load_default_parameters
    struct ZoO_parameters param [const restrict static 1]
 )
 {
-   param->data_filename       = ZoO_DEFAULT_DATA_FILENAME;
+   param->data_filename        = ZoO_DEFAULT_DATA_FILENAME;
+   param->new_data_filename    = (char *) NULL;
 
    param->irc_server_addr     = ZoO_DEFAULT_IRC_SERVER_ADDR;
    param->irc_server_port     = ZoO_DEFAULT_IRC_SERVER_PORT;
@@ -39,6 +40,9 @@ static void print_help (const char exec [const restrict static 1])
       "   [--data-filename | -df] FILENAME\n"
       "      Learn content from FILENAME before connecting.\n"
       "      Default: %s.\n"
+      "   [--new-data-filename | -ndf] FILENAME\n"
+      "      Store new data learned in FILENAME.\n"
+      "      Default: value of the --data-filename param.\n"
       "   [--irc-server-addr | -isa] IRC_SERVER_ADDR\n"
       "      Connect to this server address.\n"
       "      Default: %s.\n"
@@ -179,6 +183,28 @@ int ZoO_parameters_initialize
             parse_string_arg
             (
                &(param->data_filename),
+               i,
+               argv,
+               argc
+            ) < 0
+         )
+         {
+            return -1;
+         }
+      }
+      else if
+      (
+         (strcmp(argv[i], "--new-data-filename") == 0)
+         || (strcmp(argv[i], "-ndf") == 0)
+      )
+      {
+         i += 1;
+
+         if
+         (
+            parse_string_arg
+            (
+               &(param->new_data_filename),
                i,
                argv,
                argc
@@ -349,6 +375,11 @@ int ZoO_parameters_initialize
 
    param->aliases_count = (argc - i);
    param->aliases = (argv + i);
+
+   if (param->new_data_filename == (char *) NULL)
+   {
+      param->new_data_filename = param->data_filename;
+   }
 
    return 1;
 }

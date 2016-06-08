@@ -4,6 +4,7 @@
 struct ZoO_parameters
 {
    const char * restrict data_filename;
+   const char * restrict new_data_filename;
 
    const char * restrict irc_server_addr;
    const char * restrict irc_server_port;

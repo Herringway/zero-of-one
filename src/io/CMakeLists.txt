@@ -3,6 +3,7 @@ set(
    ${CMAKE_CURRENT_SOURCE_DIR}/parameters.c
    ${CMAKE_CURRENT_SOURCE_DIR}/network.c
    ${CMAKE_CURRENT_SOURCE_DIR}/data_input.c
+   ${CMAKE_CURRENT_SOURCE_DIR}/data_output.c
 )
 set(SRC_FILES ${SRC_FILES} PARENT_SCOPE)
 

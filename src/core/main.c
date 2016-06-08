@@ -9,8 +9,8 @@
 #include "../io/error.h"
 #include "../io/parameters.h"
 #include "../io/data_input.h"
+#include "../io/data_output.h"
 #include "../io/network.h"
-
 
 #include "knowledge.h"
 
@@ -152,15 +152,52 @@ static int should_reply
 
 static void handle_user_join
 (
-   struct ZoO_state s [const static 1]
+   struct ZoO_state s [const static 1],
+   struct ZoO_strings string [const restrict static 1],
+   ssize_t const msg_offset,
+   ssize_t const msg_size
 )
 {
    ZoO_char * line;
+   ZoO_index loc;
+
+   if (s->param.reply_rate < (rand() % 100))
+   {
+      return;
+   }
 
    if
    (
-      (s->param.reply_rate >= (rand() % 100))
-      &&
+      ZoO_strings_parse
+      (
+         string,
+         (size_t) msg_size,
+         (s->network.in + msg_offset),
+         ZoO_knowledge_punctuation_chars_count,
+         ZoO_knowledge_punctuation_chars
+      ) < 0
+   )
+   {
+      ZoO_S_DEBUG(ZoO_DEBUG_PROGRAM_FLOW, "Could not dissect join username.");
+
+      return;
+   }
+
+   if
+   (
+      (
+      ZoO_knowledge_find
+         (
+            &(s->knowledge),
+            string->words[0],
+            &loc
+         ) < 0
+      )
+      || (s->knowledge.words[loc].backward_links_count <= 3)
+      || (s->knowledge.words[loc].forward_links_count <= 3)
+   )
+   {
+      if
       (
          ZoO_knowledge_extend
          (
@@ -170,20 +207,47 @@ static void handle_user_join
             &line
          ) == 0
       )
-   )
+      {
+         if (line[0] == ' ')
+         {
+            strcpy((s->network.out), (line + 1));
+         }
+         else
+         {
+            strcpy((s->network.out), line);
+         }
+
+         free((void *) line);
+
+         ZoO_network_send(&(s->network));
+      }
+   }
+   else
    {
-      if (line[0] == ' ')
+      if
+      (
+         ZoO_knowledge_extend
+         (
+            &(s->knowledge),
+            string,
+            0,
+            &line
+         ) == 0
+      )
       {
-         strcpy((s->network.out), (line + 1));
-      }
-      else
-      {
-         strcpy((s->network.out), line);
-      }
+         if (line[0] == ' ')
+         {
+            strcpy((s->network.out), (line + 1));
+         }
+         else
+         {
+            strcpy((s->network.out), line);
+         }
 
-      free((void *) line);
+         free((void *) line);
 
-      ZoO_network_send(&(s->network));
+         ZoO_network_send(&(s->network));
+      }
    }
 }
 
@@ -192,6 +256,9 @@ static void handle_message
    struct ZoO_state s [const static 1],
    struct ZoO_strings string [const restrict static 1],
    ssize_t const msg_offset,
+   /* FIXME: somehow we end up using (msg_size + 1), meaning there's a mixup
+    *        between size and length.
+    */
    ssize_t const msg_size
 )
 {
@@ -221,6 +288,20 @@ static void handle_message
    }
 
    reply = should_reply(&(s->param), string, &learn);
+
+   if (learn)
+   {
+      /*
+       * It would be best to do that after replying, but by then we no longer
+       * have the string in 's->network.in'.
+       */
+      (void) ZoO_data_output_write_line
+      (
+         s->param.new_data_filename,
+         (s->network.in + msg_offset),
+         (size_t) (msg_size + 1)
+      );
+   }
 
    if
    (
@@ -290,7 +371,7 @@ static int main_loop (struct ZoO_state s [const static 1])
          switch (msg_type)
          {
             case ZoO_JOIN:
-               handle_user_join(s);
+               handle_user_join(s, &string, msg_offset, msg_size);
                break;
 
             case ZoO_PRIVMSG:

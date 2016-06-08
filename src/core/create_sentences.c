@@ -307,12 +307,6 @@ static unsigned char * extend_right
       switch (w->special)
       {
          case ZoO_WORD_REMOVES_LEFT_SPACE:
-            printf
-            (
-               "current sentence:'%s', pointing at '%c'.\n",
-               current_sentence,
-               current_sentence[*sentence_size - addition_size - 2]
-            );
             current_sentence[*sentence_size - addition_size - 2] = '\0';
 
          case ZoO_WORD_HAS_NO_EFFECT:

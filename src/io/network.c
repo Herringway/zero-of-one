@@ -436,6 +436,21 @@ READ_NEW_MSG:
 
       if (ZoO_IS_PREFIX("JOIN", (net->in + cmd)))
       {
+         for (i = 1; (i < 512) && (net->in[i] != '!'); ++i)
+         {
+         }
+
+         if ((i == 512) || (i == 1))
+         {
+            ZoO_ERROR("Could not find JOIN username: %s", net->in);
+
+            goto READ_NEW_MSG;
+         }
+
+         *msg_offset = 1;
+         *msg_size = (i - 1);
+         net->in[i] = '\0';
+
          *type = ZoO_JOIN;
 
          return 0;
