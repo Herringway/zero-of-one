@@ -18,11 +18,10 @@
  *    (== (sum links_occurrences) occurrences).
  *    (can_store ZoO_index (length links)).
  */
-static ZoO_index pick_an_index
+static ZoO_index pick_index
 (
    ZoO_index const occurrences,
-   const ZoO_index links_occurrences [const restrict static 1],
-   const ZoO_index links [const restrict static 1]
+   const ZoO_index links_occurrences [const restrict static 1]
 )
 {
    ZoO_index result, accumulator, random_number;
@@ -62,13 +61,13 @@ static ZoO_index pick_an_index
    }
 
    /* Safe: (< result (length links)) */
-   return links[result];
+   return result;
 }
 
 static unsigned char * extend_left
 (
    struct ZoO_knowledge k [const restrict static 1],
-   ZoO_index word_id,
+   ZoO_index sequence [const restrict static ZoO_MARKOV_ORDER],
    ZoO_char current_sentence [static 1],
    size_t sentence_size [const restrict static 1],
    ZoO_index credits [const static 1]
@@ -77,17 +76,7 @@ static unsigned char * extend_left
    size_t addition_size;
    struct ZoO_knowledge_word * w;
    ZoO_char * next_sentence;
-
-   w = (k->words + word_id);
-
-   if
-   (
-      (w->special == ZoO_WORD_STARTS_SENTENCE)
-      || (w->occurrences == 0)
-   )
-   {
-      return current_sentence;
-   }
+   ZoO_index j;
 
    /* prevents current_sentence [restrict] */
    next_sentence = current_sentence;
@@ -100,15 +89,8 @@ static unsigned char * extend_left
       }
 
       *credits -= 1;
-      word_id =
-         pick_an_index
-         (
-            w->occurrences,
-            w->backward_links_occurrences,
-            w->backward_links
-         );
 
-      w = (k->words + word_id);
+      w = (k->words + sequence[ZoO_MARKOV_ORDER - 1]);
 
       switch (w->special)
       {
@@ -205,13 +187,51 @@ static unsigned char * extend_left
 
       /* prevents current_sentence [const] */
       current_sentence = next_sentence;
+
+      memmove
+      (
+         (void *) (sequence + 1),
+         (const void *) sequence,
+         /* Accepts 0. */
+         (sizeof(ZoO_index) * (ZoO_MARKOV_ORDER - 1))
+      );
+
+      if
+      (
+         ZoO_knowledge_find_link
+         (
+            w->backward_links_count,
+            w->backward_links,
+            (sequence + 1),
+            &j
+         )
+         < 0
+      )
+      {
+         ZoO_S_ERROR("Unexpectedly, no backtracking link was found.");
+
+         break;
+      }
+
+      sequence[0] =
+         w->backward_links[j].targets
+         [
+            pick_index
+            (
+               w->backward_links[j].occurrences,
+               w->backward_links[j].targets_occurrences
+            )
+         ];
+
+      /* prevents current_sentence [const] */
+      current_sentence = next_sentence;
    }
 }
 
 static unsigned char * extend_right
 (
    struct ZoO_knowledge k [const restrict static 1],
-   ZoO_index word_id,
+   ZoO_index sequence [const restrict static ZoO_MARKOV_ORDER],
    ZoO_char current_sentence [static 1],
    size_t sentence_size [const restrict static 1],
    ZoO_index credits [const static 1]
@@ -220,17 +240,7 @@ static unsigned char * extend_right
    size_t addition_size;
    struct ZoO_knowledge_word * w;
    ZoO_char * next_sentence;
-
-   w = (k->words + word_id);
-
-   if
-   (
-      (w->special == ZoO_WORD_ENDS_SENTENCE)
-      || (w->occurrences == 0)
-   )
-   {
-      return current_sentence;
-   }
+   ZoO_index j;
 
    /* prevents current_sentence [restrict] */
    next_sentence = current_sentence;
@@ -244,15 +254,7 @@ static unsigned char * extend_right
 
       *credits -= 1;
 
-      word_id =
-         pick_an_index
-         (
-            w->occurrences,
-            w->forward_links_occurrences,
-            w->forward_links
-         );
-
-      w = (k->words + word_id);
+      w = (k->words + sequence[0]);
 
       switch (w->special)
       {
@@ -340,6 +342,189 @@ static unsigned char * extend_right
 
       /* prevents current_sentence [const] */
       current_sentence = next_sentence;
+
+      memmove
+      (
+         (void *) sequence,
+         (const void *) (sequence + 1),
+         /* Accepts 0. */
+         (sizeof(ZoO_index) * (ZoO_MARKOV_ORDER - 1))
+      );
+
+      if
+      (
+         ZoO_knowledge_find_link
+         (
+            w->forward_links_count,
+            w->forward_links,
+            sequence,
+            &j
+         )
+         < 0
+      )
+      {
+         ZoO_S_ERROR("Unexpectedly, no forward link was found.");
+
+         break;
+      }
+
+      sequence[ZoO_MARKOV_ORDER - 1] =
+         w->forward_links[j].targets
+         [
+            pick_index
+            (
+               w->forward_links[j].occurrences,
+               w->forward_links[j].targets_occurrences
+            )
+         ];
+   }
+}
+
+static ZoO_index select_first_word
+(
+   struct ZoO_knowledge k [const static 1],
+   const struct ZoO_strings string [const],
+   int const ignore_first_word
+)
+{
+   ZoO_index i, word_id, word_min_score, word_min_id;
+   ZoO_index word_found;
+
+   if (string == (struct ZoO_strings *) NULL)
+   {
+      return word_min_id = (rand() % k->words_count);
+   }
+
+   if (ignore_first_word)
+   {
+      i = 1;
+   }
+   else
+   {
+      i = 0;
+   }
+
+   word_found = 0;
+
+   for (; i < string->words_count; ++i)
+   {
+      /* prevents k [restrict] */
+      if (ZoO_knowledge_find(k, string->words[i], &word_min_id) == 0)
+      {
+         word_found = 1;
+         word_min_score = k->words[word_min_id].occurrences;
+
+         break;
+      }
+   }
+
+   if (word_found == 0)
+   {
+      return word_min_id = (rand() % k->words_count);
+   }
+
+   for (; i < string->words_count; ++i)
+   {
+      if
+      (
+         (ZoO_knowledge_find(k, string->words[i], &word_id) == 0)
+         && (k->words[word_id].occurrences < word_min_score)
+      )
+      {
+         word_min_score = k->words[word_id].occurrences;
+         word_min_id = word_id;
+      }
+   }
+
+   return word_min_id;
+}
+
+static void init_sequence
+(
+   struct ZoO_knowledge k [const static 1],
+   const struct ZoO_strings string [const],
+   int const ignore_first_word,
+   ZoO_index sequence [const static (ZoO_MARKOV_ORDER * 2) + 1]
+)
+{
+   ZoO_index i, j, accumulator, random_number;
+   struct ZoO_knowledge_word * fiw;
+
+   sequence[ZoO_MARKOV_ORDER] = select_first_word(k, string, ignore_first_word);
+
+   fiw = (k->words + sequence[ZoO_MARKOV_ORDER]);
+
+   for (i = 0; i < ZoO_MARKOV_ORDER; ++i)
+   {
+      sequence[ZoO_MARKOV_ORDER - i - 1] = ZoO_WORD_START_OF_LINE;
+      sequence[ZoO_MARKOV_ORDER + i + 1] = ZoO_WORD_END_OF_LINE;
+   }
+/*
+   i = 0;
+   accumulator = 0;
+
+   random_number = (((ZoO_index) rand()) % fiw->occurrences);
+
+   while (accumulator < random_number)
+   {
+      i += 1;
+      accumulator += fiw->forward_links[i].occurrences;
+   }
+*/
+   if (fiw->forward_links_count == 0)
+   {
+      ZoO_S_FATAL("First word has no forward links.");
+   }
+
+   i = (((ZoO_index) rand()) % fiw->forward_links_count);
+
+   memcpy
+   (
+      (void *) (sequence + ZoO_MARKOV_ORDER + 1),
+      fiw->forward_links[i].sequence,
+      sizeof(ZoO_index) * (ZoO_MARKOV_ORDER - 1)
+   );
+
+   sequence[ZoO_MARKOV_ORDER * 2] =
+      fiw->forward_links[i].targets
+      [
+         pick_index
+         (
+            fiw->forward_links[i].occurrences,
+            fiw->forward_links[i].targets_occurrences
+         )
+      ];
+
+   for (i = 1; i <= ZoO_MARKOV_ORDER; ++i)
+   {
+      fiw = (k->words + sequence[(ZoO_MARKOV_ORDER * 2) - i]);
+
+      if
+      (
+         ZoO_knowledge_find_link
+         (
+            fiw->backward_links_count,
+            fiw->backward_links,
+            sequence + (ZoO_MARKOV_ORDER - i + 1),
+            &j
+         )
+         < 0
+      )
+      {
+         ZoO_S_ERROR("Unexpectedly, no back link was found.");
+
+         break;
+      }
+
+      sequence[ZoO_MARKOV_ORDER - i] =
+         fiw->backward_links[j].targets
+         [
+            pick_index
+            (
+               fiw->backward_links[j].occurrences,
+               fiw->backward_links[j].targets_occurrences
+            )
+         ];
    }
 }
 
@@ -353,82 +538,37 @@ int ZoO_knowledge_extend
 {
    int word_found;
    size_t sentence_size;
-   ZoO_index i, word_id, word_min_score, word_min_id, credits;
+   ZoO_index sequence[(ZoO_MARKOV_ORDER * 2) + 1];
+   ZoO_index first_word, credits;
 
    credits = ZoO_MAX_REPLY_WORDS;
 
-   if (string != (struct ZoO_strings *) NULL)
-   {
-      word_found = 0;
-
-      if (ignore_first_word)
-      {
-         i = 1;
-      }
-      else
-      {
-         i = 0;
-      }
-
-      for (; i < string->words_count; ++i)
-      {
-         /* prevents k [restrict] */
-         if (ZoO_knowledge_find(k, string->words[i], &word_min_id) == 0)
-         {
-            word_found = 1;
-            word_min_score = k->words[word_min_id].occurrences;
-
-            break;
-         }
-      }
-
-      if (word_found == 0)
-      {
-         word_min_id = (rand() % k->words_count);
-         word_min_score = k->words[word_min_id].occurrences;
-      }
-
-      for (; i < string->words_count; ++i)
-      {
-         if
-         (
-            (ZoO_knowledge_find(k, string->words[i], &word_id) == 0)
-            && (k->words[word_id].occurrences < word_min_score)
-         )
-         {
-            word_min_score = k->words[word_id].occurrences;
-            word_min_id = word_id;
-         }
-      }
-   }
-   else
-   {
-      word_min_id = (rand() % k->words_count);
-   }
+   init_sequence(k, string, ignore_first_word, sequence);
+   first_word = sequence[ZoO_MARKOV_ORDER];
 
    /* 3: 2 spaces + '\0' */
    /* FIXME: not overflow-safe */
-   switch (k->words[word_min_id].special)
+   switch (k->words[first_word].special)
    {
       case ZoO_WORD_REMOVES_LEFT_SPACE:
       case ZoO_WORD_REMOVES_RIGHT_SPACE:
          /* word + ' ' + '\0' */
-         sentence_size = (strlen(k->words[word_min_id].word) + 2);
+         sentence_size = (strlen(k->words[first_word].word) + 2);
          break;
 
       case ZoO_WORD_HAS_NO_EFFECT:
          /* word + ' ' * 2 + '\0' */
-         sentence_size = (strlen(k->words[word_min_id].word) + 3);
+         sentence_size = (strlen(k->words[first_word].word) + 3);
          break;
 
       default:
          ZoO_WARNING
          (
             "'%s' was unexpectedly selected as pillar.",
-            k->words[word_min_id].word
+            k->words[first_word].word
          );
          /* word + '[' + ']' + ' ' * 2 + '\0' */
-         sentence_size = (strlen(k->words[word_min_id].word) + 5);
+         sentence_size = (strlen(k->words[first_word].word) + 5);
          break;
    }
 
@@ -441,7 +581,7 @@ int ZoO_knowledge_extend
       return -2;
    }
 
-   switch (k->words[word_min_id].special)
+   switch (k->words[first_word].special)
    {
       case ZoO_WORD_REMOVES_LEFT_SPACE:
          snprintf
@@ -449,7 +589,7 @@ int ZoO_knowledge_extend
             *result,
             sentence_size,
             ZoO_CHAR_STRING_SYMBOL " ",
-            k->words[word_min_id].word
+            k->words[first_word].word
          );
          break;
 
@@ -459,7 +599,7 @@ int ZoO_knowledge_extend
             *result,
             sentence_size,
             " " ZoO_CHAR_STRING_SYMBOL,
-            k->words[word_min_id].word
+            k->words[first_word].word
          );
          break;
 
@@ -469,7 +609,7 @@ int ZoO_knowledge_extend
             *result,
             sentence_size,
             " " ZoO_CHAR_STRING_SYMBOL " ",
-            k->words[word_min_id].word
+            k->words[first_word].word
          );
          break;
 
@@ -479,27 +619,36 @@ int ZoO_knowledge_extend
             *result,
             sentence_size,
             " [" ZoO_CHAR_STRING_SYMBOL "] ",
-            k->words[word_min_id].word
+            k->words[first_word].word
          );
          break;
    }
 
-   if ((word_min_score == 0) || (credits == 0))
-   {
-      return 0;
-   }
-
-   --credits;
-
    /* prevents result [restrict] */
-   *result = extend_left(k, word_min_id, *result, &sentence_size, &credits);
+   *result =
+      extend_right
+      (
+         k,
+         (sequence + ZoO_MARKOV_ORDER + 1),
+         *result,
+         &sentence_size,
+         &credits
+      );
 
    if (*result == (ZoO_char *) NULL)
    {
       return -2;
    }
 
-   *result = extend_right(k, word_min_id, *result, &sentence_size, &credits);
+   *result =
+      extend_left
+      (
+         k,
+         sequence,
+         *result,
+         &sentence_size,
+         &credits
+      );
 
    if (*result == (ZoO_char *) NULL)
    {

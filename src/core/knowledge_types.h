@@ -6,6 +6,14 @@
 #define ZoO_WORD_START_OF_LINE 0
 #define ZoO_WORD_END_OF_LINE   1
 
+#if ZoO_MARKOV_ORDER == 1
+   #define ZoO_SEQUENCE_SIZE 1
+#else
+   #define ZoO_SEQUENCE_SIZE ZoO_MARKOV_ORDER - 1
+#endif
+
+#define ZoO_S_LINK_SIZE (ZoO_SEQUENCE_SIZE + 1)
+
 /* XXX: are we as close to immutable as we want to be? */
 extern unsigned int const ZoO_knowledge_punctuation_chars_count;
 extern const ZoO_char const ZoO_knowledge_punctuation_chars[7];
@@ -22,6 +30,15 @@ enum ZoO_knowledge_special_effect
    ZoO_WORD_REMOVES_RIGHT_SPACE
 };
 
+struct ZoO_knowledge_link
+{
+   ZoO_index sequence[ZoO_SEQUENCE_SIZE];
+   ZoO_index occurrences;
+   ZoO_index targets_count;
+   ZoO_index * targets_occurrences;
+   ZoO_index * targets;
+};
+
 struct ZoO_knowledge_word
 {
    size_t word_size;
@@ -30,11 +47,10 @@ struct ZoO_knowledge_word
    ZoO_index occurrences;
    ZoO_index forward_links_count;
    ZoO_index backward_links_count;
-   ZoO_index * forward_links_occurrences;
-   ZoO_index * backward_links_occurrences;
-   ZoO_index * forward_links;
-   ZoO_index * backward_links;
+   struct ZoO_knowledge_link * forward_links;
+   struct ZoO_knowledge_link * backward_links;
 };
+
 
 struct ZoO_knowledge
 {

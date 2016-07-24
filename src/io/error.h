@@ -23,6 +23,8 @@
    #define ZoO_DEBUG_LEARNING       (0 || ZoO_DEBUG_ALL)
 #endif
 
+#define ZoO_DEBUG_NETWORK  1
+
 #ifndef ZoO_DEBUG_NETWORK
    #define ZoO_DEBUG_NETWORK        (0 || ZoO_DEBUG_ALL)
 #endif

@@ -75,4 +75,22 @@ int ZoO_knowledge_extend
    ZoO_char * result [const static 1]
 );
 
+int ZoO_knowledge_find_link
+(
+   ZoO_index const links_count,
+   struct ZoO_knowledge_link links [const],
+   ZoO_index const sequence [const restrict static ZoO_SEQUENCE_SIZE],
+   ZoO_index result [const restrict static 1]
+);
+
+/* Create it if it's not found. */
+int ZoO_knowledge_get_link
+(
+   ZoO_index links_count [const],
+   struct ZoO_knowledge_link * links [const],
+   ZoO_index const sequence [const restrict static ZoO_S_LINK_SIZE],
+   ZoO_index result [const restrict static 1]
+);
+
+
 #endif

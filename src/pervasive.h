@@ -39,6 +39,10 @@
    #define ZoO_DEFAULT_REPLY_RATE         8
 #endif
 
+#ifndef ZoO_MARKOV_ORDER
+   #define ZoO_MARKOV_ORDER               2
+#endif
+
 typedef unsigned int ZoO_index;
 #define ZoO_INDEX_MAX UINT_MAX
 

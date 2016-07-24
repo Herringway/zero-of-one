@@ -7,126 +7,180 @@
 
 /** Functions to assimilate sentences using a ZoO_knowledge structure *********/
 
-static int link_to
+
+static int add_sequence
 (
-   ZoO_index links_count [const restrict static 1],
-   ZoO_index * links_occurrences [const restrict static 1],
-   ZoO_index * links [const restrict static 1],
-   ZoO_index const target
+   ZoO_index links_count [const],
+   struct ZoO_knowledge_link * links [const],
+   ZoO_index const sequence [const restrict static ZoO_MARKOV_ORDER],
+   ZoO_index const target_i,
+   ZoO_index const offset
 )
 {
-   ZoO_index i, * new_p;
+   ZoO_index link_index, i;
+   struct ZoO_knowledge_link * link;
+   ZoO_index * new_p;
 
-   for (i = 0; i < *links_count; ++i)
+   if (ZoO_knowledge_get_link(links_count, links, (sequence + offset), &link_index) < 0)
    {
-      if ((*links)[i] == target)
+      return -1;
+   }
+
+   link = (*links + link_index);
+   link->occurrences += 1;
+
+   for (i = 0; i < link->targets_count; ++i)
+   {
+      if (link->targets[i] == sequence[target_i])
       {
-         if ((*links_occurrences)[i] == ZoO_INDEX_MAX)
-         {
-            ZoO_S_WARNING
-            (
-               "Maximum link occurrences count has been reached."
-            );
-
-            return -1;
-         }
-
-         (*links_occurrences)[i] += 1;
+         link->targets_occurrences[i] += 1;
 
          return 0;
       }
    }
 
-   if (*links_count == ZoO_INDEX_MAX)
-   {
-      ZoO_S_WARNING("Maximum links count has been reached.");
-
-      return -1;
-   }
+   link->targets_count += 1;
 
    new_p =
       (ZoO_index *) realloc
       (
-         *links_occurrences,
-         (
-            (
-               /* Safe: *links_count < ZoO_INDEX_MAX */
-               (size_t) (*links_count + 1)
-            )
-            * sizeof(ZoO_index)
-         )
+         (void *) link->targets,
+         (sizeof(ZoO_index) * link->targets_count)
       );
 
    if (new_p == (ZoO_index *) NULL)
    {
-      ZoO_S_ERROR("Could not reallocate a link occurrences list.");
+      link->targets_count -= 1;
 
+      /* TODO: err. */
       return -1;
    }
 
-   new_p[*links_count] = 1;
-
-   *links_occurrences = new_p;
+   link->targets = new_p;
+   link->targets[link->targets_count - 1] = sequence[target_i];
 
    new_p =
       (ZoO_index *) realloc
       (
-         *links,
-         (
-            (
-               /* Safe: *links_count < ZoO_INDEX_MAX */
-               (size_t) (*links_count + 1)
-            ) * sizeof(ZoO_index)
-         )
+         (void *) link->targets_occurrences,
+         (sizeof(ZoO_index) * link->targets_count)
       );
 
    if (new_p == (ZoO_index *) NULL)
    {
-      ZoO_S_ERROR("Could not reallocate a link list.");
+      link->targets_count -= 1;
 
+      /* TODO: err. */
       return -1;
    }
 
-   new_p[*links_count] = target;
-
-   *links = new_p;
-
-   *links_count += 1;
+   link->targets_occurrences = new_p;
+   link->targets_occurrences[link->targets_count - 1] = 1;
 
    return 0;
 }
 
-static int link_words
+static int add_word_occurrence
 (
    struct ZoO_knowledge k [const restrict static 1],
-   ZoO_index const a,
-   ZoO_index const b
+   ZoO_index const sequence [const static ((ZoO_MARKOV_ORDER * 2) + 1)]
 )
 {
+   ZoO_index w;
    int error;
 
+   w = sequence[ZoO_MARKOV_ORDER];
+
    error =
-      link_to
+      add_sequence
       (
-         &(k->words[a].forward_links_count),
-         &(k->words[a].forward_links_occurrences),
-         &(k->words[a].forward_links),
-         b
+         &(k->words[w].forward_links_count),
+         &(k->words[w].forward_links),
+         sequence + (ZoO_MARKOV_ORDER + 1),
+         (ZoO_MARKOV_ORDER - 1),
+         0
       );
 
    error =
       (
-         link_to
+         add_sequence
          (
-            &(k->words[b].backward_links_count),
-            &(k->words[b].backward_links_occurrences),
-            &(k->words[b].backward_links),
-            a
+            &(k->words[w].backward_links_count),
+            &(k->words[w].backward_links),
+            sequence,
+            0,
+            1
          )
          | error
       );
 
    return error;
+}
+
+static int should_assimilate
+(
+   struct ZoO_strings string [const restrict static 1],
+   ZoO_index const aliases_count,
+   const char * restrict aliases [const restrict static aliases_count]
+)
+{
+   ZoO_index i;
+
+   /* Don't assimilate empty strings. */
+   if (string->words_count == 0)
+   {
+      return 0;
+   }
+
+   /* Don't assimilate things that start with our name. */
+   for (i = 0; i < aliases_count; ++i)
+   {
+      if (ZoO_IS_PREFIX(aliases[i], string->words[0]))
+      {
+         return 0;
+      }
+   }
+
+   return 1;
+}
+
+static int init_sequence
+(
+   struct ZoO_knowledge k [const static 1],
+   struct ZoO_strings string [const restrict static 1],
+   ZoO_index sequence [const restrict static ((ZoO_MARKOV_ORDER * 2) + 1)]
+)
+{
+   ZoO_index i;
+
+   sequence[0] = ZoO_WORD_START_OF_LINE;
+
+   for (i = 0; i < ZoO_MARKOV_ORDER; ++i)
+   {
+      sequence[ZoO_MARKOV_ORDER - i] = ZoO_WORD_START_OF_LINE;
+
+      if (i < string->words_count)
+      {
+         if
+         (
+            ZoO_knowledge_learn
+            (
+               k,
+               string->words[i],
+               (sequence + (ZoO_MARKOV_ORDER + i + 1))
+            ) < 0
+         )
+         {
+            return -1;
+         }
+      }
+      else
+      {
+         sequence[ZoO_MARKOV_ORDER + i + 1] = ZoO_WORD_END_OF_LINE;
+      }
+   }
+
+   return 0;
 }
 
 int ZoO_knowledge_assimilate
@@ -138,74 +192,69 @@ int ZoO_knowledge_assimilate
 )
 {
    int error;
-   ZoO_index curr_word, next_word;
-   ZoO_index curr_word_id, next_word_id;
+   ZoO_index sequence[(ZoO_MARKOV_ORDER * 2) + 1];
+   ZoO_index next_word, new_word, new_word_id;
 
-   curr_word = 0;
-
-   if (string->words_count == 0)
+   if (!should_assimilate(string, aliases_count, aliases))
    {
       return 0;
    }
 
-   for (curr_word = 0; curr_word < aliases_count; ++curr_word)
-   {
-      if (ZoO_IS_PREFIX(aliases[curr_word], string->words[0]))
-      {
-         return 0;
-      }
-   }
-
-   curr_word = 0;
-
-   if (ZoO_knowledge_learn(k, string->words[curr_word], &curr_word_id) < 0)
+   if (init_sequence(k, string, sequence) < 0)
    {
       return -1;
    }
 
-   if (link_words(k, ZoO_WORD_START_OF_LINE, curr_word_id) < 0)
+   if (add_word_occurrence(k, sequence) < 0)
    {
       error = -1;
 
-      ZoO_WARNING
-      (
-         "Could not indicate that '"
-         ZoO_CHAR_STRING_SYMBOL
-         "' was the first word of the sentence.",
-         string->words[0]
-      );
-   }
+      /* There's a pun... */
+      ZoO_S_WARNING("Could not add a link between words.");
 
-   next_word = 1;
+      return -1;
+   }
 
    error = 0;
 
-   while (next_word < string->words_count)
+   next_word = 0;
+   new_word = ZoO_MARKOV_ORDER;
+
+   while (next_word <= string->words_count)
    {
-      /* prevents words [restrict], k [restrict] */
-      if (ZoO_knowledge_learn(k, string->words[next_word], &next_word_id) < 0)
+      if (new_word < string->words_count)
       {
-         return -1;
+         /* prevents words [restrict], k [restrict] */
+         if (ZoO_knowledge_learn(k, string->words[new_word], &new_word_id) < 0)
+         {
+            return -1;
+         }
+      }
+      else
+      {
+         new_word_id = ZoO_WORD_END_OF_LINE;
       }
 
-      if (link_words(k, curr_word_id, next_word_id) < 0)
+      memmove
+      (
+         (void *) sequence,
+         (const void *) (sequence + 1),
+         /* Accepts 0. */
+         (sizeof(ZoO_index) * (ZoO_MARKOV_ORDER * 2))
+      );
+
+      sequence[ZoO_MARKOV_ORDER * 2] = new_word_id;
+
+      if (add_word_occurrence(k, sequence) < 0)
       {
          error = -1;
 
-         ZoO_WARNING
-         (
-            "Could not add a link between words '"
-            ZoO_CHAR_STRING_SYMBOL
-            "' and '"
-            ZoO_CHAR_STRING_SYMBOL
-            "'.",
-            string->words[curr_word],
-            string->words[next_word]
-         );
+         /* There's a pun... */
+         ZoO_S_WARNING("Could not add a link between words.");
+
+         return -1;
       }
 
-      curr_word = next_word;
-      curr_word_id = next_word_id;
       /*
        * Safe:
        *  - next_word < words_count
@@ -214,19 +263,7 @@ int ZoO_knowledge_assimilate
        *  next_word < ZoO_INDEX_MAX
        */
       next_word += 1;
-   }
-
-   if (link_words(k, curr_word_id, ZoO_WORD_END_OF_LINE) < 0)
-   {
-      error = -1;
-
-      ZoO_WARNING
-      (
-         "Could not indicate that '"
-         ZoO_CHAR_STRING_SYMBOL
-         "' was the last word of the sentence.",
-         string->words[curr_word_id]
-      );
+      new_word += 1;
    }
 
    return error;

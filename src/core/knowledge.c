@@ -3,6 +3,7 @@
 #include <stdint.h> /* defines SIZE_MAX */
 
 #include "../io/error.h"
+#include "../tool/sorted_list.h"
 
 #include "knowledge.h"
 
@@ -35,6 +36,28 @@ const ZoO_char const ZoO_knowledge_forbidden_chars[8]=
       '>'
    };
 
+static int cmp_word
+(
+   const void * const a,
+   const void * const b,
+   const void * const other
+)
+{
+   ZoO_char const * word;
+   ZoO_index const * sorted_index;
+   struct ZoO_knowledge const * k;
+
+   word = (ZoO_char const *) a;
+   sorted_index = (ZoO_index const *) b;
+   k = (struct ZoO_knowledge *) other;
+
+   return strcmp
+   (
+      (const char *) word,
+      (const char *) k->words[*sorted_index].word
+   );
+}
+
 /* See "knowledge.h". */
 int ZoO_knowledge_find
 (
@@ -43,74 +66,31 @@ int ZoO_knowledge_find
    ZoO_index result [const restrict static 1]
 )
 {
-   int cmp;
-   ZoO_index i, current_min, current_max;
+   ZoO_index r;
 
-   /* This is a binary search. */
-
-   if (k->words_count < 1)
+   if
+   (
+      ZoO_sorted_list_index_of
+      (
+         k->words_count,
+         (void const *) k->sorted_indices,
+         (void const *) word,
+         sizeof(ZoO_index),
+         cmp_word,
+         (void const *) k,
+         &r
+      )
+      == 0
+   )
    {
-      *result = 0;
+      *result = k->sorted_indices[r];
 
-      return -1;
+      return 0;
    }
 
-   current_min = 0;
+   *result = r;
 
-   /* Safe: (>= k->words_count 1) */
-   current_max = (k->words_count - 1);
-
-   for (;;)
-   {
-      /* FIXME: overflow-safe? */
-      i = ((current_min + current_max) / 2);
-
-      if (i == k->words_count)
-      {
-         *result = k->words_count;
-
-         return -1;
-      }
-
-      cmp =
-         /* XXX: Assumed to be compatible with ZoO_char */
-         strcmp
-         (
-            (char *) word,
-            (const char *) k->words[k->sorted_indices[i]].word
-         );
-
-      if (cmp > 0)
-      {
-         if ((current_min > current_max))
-         {
-            *result = (i + 1);
-
-            return -1;
-         }
-
-         /* FIXME: overflow-safe? */
-         current_min = (i + 1);
-      }
-      else if (cmp < 0)
-      {
-         if ((current_min > current_max) || (i == 0))
-         {
-            *result = i;
-
-            return -1;
-         }
-
-         /* overflow-safe */
-         current_max = (i - 1);
-      }
-      else
-      {
-         *result = k->sorted_indices[i];
-
-         return 0;
-      }
-   }
+   return -1;
 }
 
 static void word_init (struct ZoO_knowledge_word w [const restrict static 1])
@@ -121,10 +101,8 @@ static void word_init (struct ZoO_knowledge_word w [const restrict static 1])
    w->occurrences = 1;
    w->forward_links_count  = 0;
    w->backward_links_count = 0;
-   w->forward_links_occurrences  = (ZoO_index *) NULL;
-   w->backward_links_occurrences = (ZoO_index *) NULL;
-   w->forward_links  = (ZoO_index *) NULL;
-   w->backward_links = (ZoO_index *) NULL;
+   w->forward_links  = (struct ZoO_knowledge_link *) NULL;
+   w->backward_links = (struct ZoO_knowledge_link *) NULL;
 }
 
 /*
@@ -209,6 +187,21 @@ int ZoO_knowledge_initialize (struct ZoO_knowledge k [const static 1])
    return 0;
 }
 
+static void finalize_links
+(
+   ZoO_index const count,
+   struct ZoO_knowledge_link links [const restrict static count]
+)
+{
+   ZoO_index i;
+
+   for (i = 0; i < count; ++i)
+   {
+      free((void *) links[i].targets_occurrences);
+      free((void *) links[i].targets);
+   }
+}
+
 /*
  * Frees all the memory used by {w}, but not {w} itself.
  * The values of {w}'s members are set to reflect the changes.
@@ -225,32 +218,22 @@ static void finalize_word
       w->word = (ZoO_char *) NULL;
    }
 
-   if (w->forward_links_occurrences != (ZoO_index *) NULL)
+   if (w->forward_links != (struct ZoO_knowledge_link *) NULL)
    {
-      free((void *) w->forward_links_occurrences);
+      finalize_links(w->forward_links_count, w->forward_links);
 
-      w->forward_links_occurrences = (ZoO_index *) NULL;
-   }
-
-   if (w->backward_links_occurrences != (ZoO_index *) NULL)
-   {
-      free((void *) w->backward_links_occurrences);
-
-      w->backward_links_occurrences = (ZoO_index *) NULL;
-   }
-
-   if (w->forward_links != (ZoO_index *) NULL)
-   {
       free((void *) w->forward_links);
 
-      w->forward_links = (ZoO_index *) NULL;
+      w->forward_links = (struct ZoO_knowledge_link *) NULL;
    }
 
-   if (w->backward_links != (ZoO_index *) NULL)
+   if (w->backward_links != (struct ZoO_knowledge_link *) NULL)
    {
+      finalize_links(w->backward_links_count, w->backward_links);
+
       free((void *) w->backward_links);
 
-      w->backward_links = (ZoO_index *) NULL;
+      w->backward_links = (struct ZoO_knowledge_link *) NULL;
    }
 
    w->forward_links_count  = 0;
