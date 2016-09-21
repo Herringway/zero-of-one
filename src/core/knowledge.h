@@ -71,7 +71,8 @@ int ZoO_knowledge_extend
 (
    struct ZoO_knowledge k [const static 1],
    const struct ZoO_strings string [const],
-   int const ignore_first_word,
+   ZoO_index const aliases_count,
+   const char * restrict aliases [const restrict static aliases_count],
    ZoO_char * result [const static 1]
 );
 

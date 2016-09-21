@@ -384,10 +384,11 @@ static ZoO_index select_first_word
 (
    struct ZoO_knowledge k [const static 1],
    const struct ZoO_strings string [const],
-   int const ignore_first_word
+   ZoO_index const aliases_count,
+   const char * restrict aliases [const restrict static aliases_count]
 )
 {
-   ZoO_index i, word_id, word_min_score, word_min_id;
+   ZoO_index i, j, word_id, word_min_score, word_min_id;
    ZoO_index word_found;
 
    if (string == (struct ZoO_strings *) NULL)
@@ -395,19 +396,18 @@ static ZoO_index select_first_word
       return word_min_id = (rand() % k->words_count);
    }
 
-   if (ignore_first_word)
-   {
-      i = 1;
-   }
-   else
-   {
-      i = 0;
-   }
-
    word_found = 0;
 
-   for (; i < string->words_count; ++i)
+   for (i = 0; i < string->words_count; ++i)
    {
+      for (j = 0; j < aliases_count; ++j)
+      {
+         if (ZoO_IS_PREFIX(aliases[j], string->words[i]))
+         {
+            goto NEXT_WORD;
+         }
+      }
+
       /* prevents k [restrict] */
       if (ZoO_knowledge_find(k, string->words[i], &word_min_id) == 0)
       {
@@ -416,6 +416,8 @@ static ZoO_index select_first_word
 
          break;
       }
+
+      NEXT_WORD:;
    }
 
    if (word_found == 0)
@@ -425,6 +427,14 @@ static ZoO_index select_first_word
 
    for (; i < string->words_count; ++i)
    {
+      for (j = 0; j < aliases_count; ++j)
+      {
+         if (ZoO_IS_PREFIX(aliases[j], string->words[i]))
+         {
+            goto NEXT_WORD_BIS;
+         }
+      }
+
       if
       (
          (ZoO_knowledge_find(k, string->words[i], &word_id) == 0)
@@ -434,6 +444,8 @@ static ZoO_index select_first_word
          word_min_score = k->words[word_id].occurrences;
          word_min_id = word_id;
       }
+
+      NEXT_WORD_BIS:;
    }
 
    return word_min_id;
@@ -443,14 +455,21 @@ static void init_sequence
 (
    struct ZoO_knowledge k [const static 1],
    const struct ZoO_strings string [const],
-   int const ignore_first_word,
+   ZoO_index const aliases_count,
+   const char * restrict aliases [const restrict static aliases_count],
    ZoO_index sequence [const static (ZoO_MARKOV_ORDER * 2) + 1]
 )
 {
    ZoO_index i, j, accumulator, random_number;
    struct ZoO_knowledge_word * fiw;
 
-   sequence[ZoO_MARKOV_ORDER] = select_first_word(k, string, ignore_first_word);
+   sequence[ZoO_MARKOV_ORDER] =
+      select_first_word(
+         k,
+         string,
+         aliases_count,
+         aliases
+      );
 
    fiw = (k->words + sequence[ZoO_MARKOV_ORDER]);
 
@@ -459,25 +478,31 @@ static void init_sequence
       sequence[ZoO_MARKOV_ORDER - i - 1] = ZoO_WORD_START_OF_LINE;
       sequence[ZoO_MARKOV_ORDER + i + 1] = ZoO_WORD_END_OF_LINE;
    }
-/*
+
+   if (fiw->forward_links_count == 0)
+   {
+      ZoO_S_FATAL("First word has no forward links.");
+
+      return;
+   }
+
+   /* Chooses a likely forward link for the pillar. */
    i = 0;
-   accumulator = 0;
+   accumulator = fiw->forward_links[0].occurrences;
 
    random_number = (((ZoO_index) rand()) % fiw->occurrences);
 
    while (accumulator < random_number)
    {
-      i += 1;
       accumulator += fiw->forward_links[i].occurrences;
-   }
-*/
-   if (fiw->forward_links_count == 0)
-   {
-      ZoO_S_FATAL("First word has no forward links.");
+      i += 1;
    }
 
-   i = (((ZoO_index) rand()) % fiw->forward_links_count);
+/*   i = (((ZoO_index) rand()) % fiw->forward_links_count); */
 
+   /* Copies the forward link data into the sequence. */
+   /* This adds (ZoO_MARKOV_ORDER - 1) words, as the ZoO_MARKOV_ORDERth word */
+   /* is chosen aftewards. */
    memcpy
    (
       (void *) (sequence + ZoO_MARKOV_ORDER + 1),
@@ -485,6 +510,7 @@ static void init_sequence
       sizeof(ZoO_index) * (ZoO_MARKOV_ORDER - 1)
    );
 
+   /* selects the last word */
    sequence[ZoO_MARKOV_ORDER * 2] =
       fiw->forward_links[i].targets
       [
@@ -495,28 +521,47 @@ static void init_sequence
          )
       ];
 
-   for (i = 1; i <= ZoO_MARKOV_ORDER; ++i)
+   /* FIXME: Not clear enough. */
+   /* Now that we have the right side of the sequence, we are going to */
+   /* build the left one, one word at a time. */
+   for (i = 0; i < ZoO_MARKOV_ORDER; ++i)
    {
-      fiw = (k->words + sequence[(ZoO_MARKOV_ORDER * 2) - i]);
+      /* temporary pillar (starts on the right side, minus one so we don't */
+      fiw = (k->words + sequence[(ZoO_MARKOV_ORDER * 2) - i - 1]);
 
       if
       (
+         /* finds the backward link corresponding to the words left of the */
+         /* temporary pillar. */
          ZoO_knowledge_find_link
          (
             fiw->backward_links_count,
             fiw->backward_links,
-            sequence + (ZoO_MARKOV_ORDER - i + 1),
+            sequence + (ZoO_MARKOV_ORDER - i),
             &j
          )
          < 0
       )
       {
-         ZoO_S_ERROR("Unexpectedly, no back link was found.");
+         ZoO_ERROR
+         (
+            "Unexpectedly, no back link was found at i=%u, expected to find"
+            "a backlink with %s, from %s.",
+            i,
+            k->words[sequence[(ZoO_MARKOV_ORDER - i)]].word,
+            fiw->word
+         );
+         ZoO_S_ERROR("Sequence was:");
+
+         for (j = 0; j <= (ZoO_MARKOV_ORDER * 2); ++j)
+         {
+            ZoO_ERROR("[%u] %s", j, k->words[sequence[j]].word);
+         }
 
          break;
       }
 
-      sequence[ZoO_MARKOV_ORDER - i] =
+      sequence[ZoO_MARKOV_ORDER - i - 1] =
          fiw->backward_links[j].targets
          [
             pick_index
@@ -532,7 +577,8 @@ int ZoO_knowledge_extend
 (
    struct ZoO_knowledge k [const static 1],
    const struct ZoO_strings string [const],
-   int const ignore_first_word,
+   ZoO_index const aliases_count,
+   const char * restrict aliases [const restrict static aliases_count],
    ZoO_char * result [const static 1]
 )
 {
@@ -543,7 +589,8 @@ int ZoO_knowledge_extend
 
    credits = ZoO_MAX_REPLY_WORDS;
 
-   init_sequence(k, string, ignore_first_word, sequence);
+   init_sequence(k, string, aliases_count, aliases, sequence);
+
    first_word = sequence[ZoO_MARKOV_ORDER];
 
    /* 3: 2 spaces + '\0' */

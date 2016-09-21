@@ -204,6 +204,7 @@ static void handle_user_join
             &(s->knowledge),
             (struct ZoO_strings *) NULL,
             0,
+            (const char **) NULL,
             &line
          ) == 0
       )
@@ -231,6 +232,7 @@ static void handle_user_join
             &(s->knowledge),
             string,
             0,
+            (const char **) NULL,
             &line
          ) == 0
       )
@@ -312,7 +314,8 @@ static void handle_message
          (
             &(s->knowledge),
             string,
-            !learn,
+            s->param.aliases_count,
+            s->param.aliases,
             &line
          ) == 0
       )

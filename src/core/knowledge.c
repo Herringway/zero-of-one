@@ -10,8 +10,8 @@
 /** Basic functions of the ZoO_knowledge structure ****************************/
 
 /* XXX: are we as close to immutable as we want to be? */
-unsigned int const ZoO_knowledge_punctuation_chars_count = 7;
-const ZoO_char const ZoO_knowledge_punctuation_chars[7] =
+unsigned int const ZoO_knowledge_punctuation_chars_count = 8;
+const ZoO_char const ZoO_knowledge_punctuation_chars[8] =
    {
       '!',
       ',',
@@ -19,7 +19,8 @@ const ZoO_char const ZoO_knowledge_punctuation_chars[7] =
       ':',
       ';',
       '?',
-      '~'
+      '~',
+      '\001'
    };
 
 /* XXX: are we as close to immutable as we want to be? */

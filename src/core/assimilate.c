@@ -21,7 +21,16 @@ static int add_sequence
    struct ZoO_knowledge_link * link;
    ZoO_index * new_p;
 
-   if (ZoO_knowledge_get_link(links_count, links, (sequence + offset), &link_index) < 0)
+   if
+   (
+      ZoO_knowledge_get_link
+      (
+         links_count,
+         links,
+         (sequence + offset),
+         &link_index
+      ) < 0
+   )
    {
       return -1;
    }
@@ -153,21 +162,22 @@ static int init_sequence
 {
    ZoO_index i;
 
-   sequence[0] = ZoO_WORD_START_OF_LINE;
+   /* We are going to link this sequence to ZoO_WORD_START_OF_LINE */
+   sequence[ZoO_MARKOV_ORDER] = ZoO_WORD_START_OF_LINE;
 
-   for (i = 0; i < ZoO_MARKOV_ORDER; ++i)
+   for (i = 1; i <= ZoO_MARKOV_ORDER; ++i)
    {
       sequence[ZoO_MARKOV_ORDER - i] = ZoO_WORD_START_OF_LINE;
 
-      if (i < string->words_count)
+      if (i <= string->words_count)
       {
          if
          (
             ZoO_knowledge_learn
             (
                k,
-               string->words[i],
-               (sequence + (ZoO_MARKOV_ORDER + i + 1))
+               string->words[i - 1],
+               (sequence + (ZoO_MARKOV_ORDER + i))
             ) < 0
          )
          {
@@ -176,7 +186,7 @@ static int init_sequence
       }
       else
       {
-         sequence[ZoO_MARKOV_ORDER + i + 1] = ZoO_WORD_END_OF_LINE;
+         sequence[ZoO_MARKOV_ORDER + i] = ZoO_WORD_END_OF_LINE;
       }
    }
 
@@ -220,7 +230,7 @@ int ZoO_knowledge_assimilate
    next_word = 0;
    new_word = ZoO_MARKOV_ORDER;
 
-   while (next_word <= string->words_count)
+   while (next_word <= (string->words_count + ZoO_MARKOV_ORDER))
    {
       if (new_word < string->words_count)
       {

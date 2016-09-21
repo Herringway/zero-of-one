@@ -14,11 +14,11 @@ static int cmp_seq_link
 )
 {
    ZoO_index j;
-   ZoO_index * sequence;
-   struct ZoO_knowledge_link * link;
+   const ZoO_index * sequence;
+   const struct ZoO_knowledge_link * link;
 
-   sequence = (ZoO_index *) a;
-   link = (struct ZoO_knowledge_link *) b;
+   sequence = (const ZoO_index *) a;
+   link = (const struct ZoO_knowledge_link *) b;
 
    for (j = 0; j < ZoO_SEQUENCE_SIZE; ++j)
    {

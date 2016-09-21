@@ -40,7 +40,7 @@
 #endif
 
 #ifndef ZoO_MARKOV_ORDER
-   #define ZoO_MARKOV_ORDER               2
+   #define ZoO_MARKOV_ORDER               3
 #endif
 
 typedef unsigned int ZoO_index;

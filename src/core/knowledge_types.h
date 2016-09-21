@@ -16,7 +16,7 @@
 
 /* XXX: are we as close to immutable as we want to be? */
 extern unsigned int const ZoO_knowledge_punctuation_chars_count;
-extern const ZoO_char const ZoO_knowledge_punctuation_chars[7];
+extern const ZoO_char const ZoO_knowledge_punctuation_chars[8];
 extern unsigned int const ZoO_knowledge_forbidden_chars_count;
 extern const ZoO_char const ZoO_knowledge_forbidden_chars[8];
 
