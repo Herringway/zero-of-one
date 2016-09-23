@@ -224,6 +224,26 @@ int ZoO_strings_parse
 
    w_start = i;
 
+   if (input[i] == '\001')
+   {
+      /* This is an CTCP command. */
+      /* We'll remove the trailing '\001' so that only the first word */
+      /* indicates the need for CTCP (uppercase) syntax. */
+
+      if ((input_size >= 1) && (input[input_size - 1] == '\001'))
+      {
+         input[input_size - 1] = ' ';
+      }
+      else
+      {
+         ZoO_WARNING
+         (
+            "CTCP sequence '%s' did not end with a \\001 character.",
+            input
+         );
+      }
+   }
+
    for (; i < input_size; ++i)
    {
       if (input[i] == ' ')
@@ -265,7 +285,7 @@ int ZoO_strings_parse
          s,
          punctuations_count,
          punctuations,
-         /* overflow-safe: w_start < i */
+         /* overflow-safe: w_start =< i */
          (i - w_start),
          (input + w_start)
       ) < 0

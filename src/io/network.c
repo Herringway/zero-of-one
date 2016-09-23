@@ -500,14 +500,36 @@ int ZoO_network_send (struct ZoO_network net [const restrict static 1])
 {
    int const old_errno = errno;
 
-   snprintf
-   (
-      net->in,
-      512,
-      "PRIVMSG %s :%s\r\n",
-      net->channel,
-      net->out
-   );
+   if (ZoO_IS_PREFIX("\001action", net->out))
+   {
+
+      net->out[1] = 'A';
+      net->out[2] = 'C';
+      net->out[3] = 'T';
+      net->out[4] = 'I';
+      net->out[5] = 'O';
+      net->out[6] = 'N';
+
+      snprintf
+      (
+         net->in,
+         512,
+         "PRIVMSG %s :%s\001\r\n",
+         net->channel,
+         net->out
+      );
+   }
+   else
+   {
+      snprintf
+      (
+         net->in,
+         512,
+         "PRIVMSG %s :%s\r\n",
+         net->channel,
+         net->out
+      );
+   }
 
    errno = 0;
 
