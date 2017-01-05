@@ -1,4 +1,4 @@
-cmake_minimum_required(VERSION 2.8 FATAL_ERROR)
+cmake_minimum_required(VERSION 3.0 FATAL_ERROR)
 
 project("Zero of One")
 
@@ -21,3 +21,6 @@ set_property(TARGET zero_of_one PROPERTY C_STANDARD 99)
 set_property(TARGET zero_of_one PROPERTY C_STANDARD_REQUIRED ON)
 #find_package(Threads)
 #target_link_libraries(cborg ${CMAKE_THREAD_LIBS_INIT})
+
+## OPTION HANDLING #############################################################
+# TODO

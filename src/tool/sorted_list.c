@@ -33,6 +33,7 @@ int ZoO_sorted_list_index_of
    for (;;)
    {
       /* FIXME: overflow-safe? */
+      /* No: (and (> current_min (/ Max 2)) (> current_max (/ Max 2))) */
       i = ((current_min + current_max) / 2);
 
       if (i == list_length)
