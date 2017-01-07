@@ -1,0 +1,9 @@
+#ifndef _ZoO_CORE_SEQUENCE_TYPES_H_
+#define _ZoO_CORE_SEQUENCE_TYPES_H_
+
+#define ZoO_START_OF_SEQUENCE_ID 0
+#define ZoO_END_OF_SEQUENCE_ID   1
+
+#define ZoO_RESERVED_IDS_COUNT   2
+
+#endif

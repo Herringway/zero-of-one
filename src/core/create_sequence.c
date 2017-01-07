@@ -6,8 +6,9 @@
 #include "../io/error.h"
 
 #include "../core/index.h"
+#include "../core/knowledge.h"
 
-#include "knowledge.h"
+#include "sequence.h"
 
 /*
  * Returns a randomly chosen index pointing to a element in {weights}.
@@ -100,7 +101,7 @@ static int get_new_size
 /*
  * Adds an id to the left of the sequence.
  * This requires the reallocation of {sequence}. The freeing of the previous
- * memory space is handled. If an error happened, {sequence} remain untouched.
+ * memory space is handled. If an error happened, {*sequence} remains untouched.
  * Returns:
  *    0 on success.
  *    -1 iff adding the word would cause an overflow.
@@ -164,13 +165,14 @@ static int left_append
  * Adds an id to the left of the sequence, according to what is known as likely
  * to fit there.
  * This requires the reallocation of {sequence}. The freeing of the previous
- * memory space is handled. If an error happened, {sequence} remain untouched.
+ * memory space is handled. If an error happened, {*sequence} remains untouched.
  * Returns:
  *    0 on success.
  *    -1 iff nothing fitting was found.
  *    -2 iff the addition of that id failed.
  * Pre:
  *    (initialized {sequence})
+ *    (initialized {k})
  *    (initialized {*sequence[0..(MARKOV_ORDER - 1)]})
  */
 static int extend_left
@@ -221,6 +223,27 @@ static int extend_left
    return 0;
 }
 
+/*
+ * Continuously adds ids to the left of the sequence, according to what is known
+ * as likely to fit there. If {credits} is NULL, it will stop upon reaching
+ * the id indicating the start of a sequence, otherwise it will also limit to
+ * {*credits} words added (including the one indicating the start of a
+ * sequence).
+ * This requires the reallocation of {sequence}. The freeing of the previous
+ * memory space is handled. If an error happened, {sequence} remains unfreed.
+ * Returns:
+ *    0 on success.
+ *    -1 iff we did not manage to have ZoO_START_OF_SEQUENCE_ID as a starting
+ *       point. This cannot be caused by lack of {*credits}, but rather by a
+ *       memory allocation problem or a more important issue in {k}. Indeed, it
+ *       could mean we do not know any word preceding {*sequence[0]}, not even
+ *       ZoO_START_OF_SEQUENCE_ID.
+ * Pre:
+ *    (initialized {sequence})
+ *    (initialized {sequence_size})
+ *    (initialized {k})
+ *    (initialized {*sequence[0..(MARKOV_ORDER - 1)]})
+ */
 static int complete_left_part_of_sequence
 (
    ZoO_index * sequence [restrict static 1],
@@ -351,6 +374,20 @@ static int right_append
    return 0;
 }
 
+/*
+ * Adds an id to the right of the sequence, according to what is known as likely
+ * to fit there.
+ * This requires the reallocation of {sequence}. The freeing of the previous
+ * memory space is handled. If an error happened, {*sequence} remains untouched.
+ * Returns:
+ *    0 on success.
+ *    -1 iff nothing fitting was found.
+ *    -2 iff the addition of that id failed.
+ * Pre:
+ *    (initialized {sequence})
+ *    (initialized {k})
+ *    (initialized {*sequence[0..(MARKOV_ORDER - 1)]})
+ */
 static int extend_right
 (
    ZoO_index * sequence [const restrict static 1],
@@ -403,6 +440,27 @@ static int extend_right
    return 0;
 }
 
+/*
+ * Continuously adds ids to the right of the sequence, according to what is
+ * known as likely to fit there. If {credits} is NULL, it will stop upon
+ * reaching the id indicating the end of a sequence, otherwise it will also
+ * limit to {*credits} words added (including the one indicating the end of a
+ * sequence).
+ * This requires the reallocation of {sequence}. The freeing of the previous
+ * memory space is handled. If an error happened, {sequence} remain untouched.
+ * Returns:
+ *    0 on success.
+ *    -1 iff we did not manage to have ZoO_END_OF_SEQUENCE_ID as a stopping
+ *       point. This cannot be caused by lack of {*credits}, but rather by a
+ *       memory allocation problem or a more important issue in {k}. Indeed, it
+ *       could mean we do not know any word following {*sequence[0]}, not even
+ *       ZoO_END_OF_SEQUENCE_ID.
+ * Pre:
+ *    (initialized {sequence})
+ *    (initialized {*sequence_size})
+ *    (initialized {k})
+ *    (initialized {*sequence[0..(MARKOV_ORDER - 1)]})
+ */
 static int complete_right_part_of_sequence
 (
    ZoO_index * sequence [const restrict static 1],
@@ -481,6 +539,16 @@ static int complete_right_part_of_sequence
 /** INITIALIZING SEQUENCE *****************************************************/
 /******************************************************************************/
 
+/*
+ * Allocates the memory required to store the initial sequence.
+ * Returns:
+ *    0 on success.
+ *    -1 if this would require more memory than can indicate a size_t variable.
+ *    -2 if the allocation failed.
+ * Post:
+ *    (initialized {*sequence})
+ *    (initialized {*sequence_size})
+ */
 static int allocate_initial_sequence
 (
    ZoO_index * sequence [const restrict static 1],
@@ -520,6 +588,22 @@ static int allocate_initial_sequence
    return 0;
 }
 
+/*
+ * Initializes an pre-allocated sequence by filling it with {initial_word}
+ * followed by a sequence of ({markov_order} - 1) words that is known to have
+ * followed {initial_word} at least once. This sequence is chosen depending on
+ * how often {k} indicates it has followed {initial_word}. Note that if
+ * {markov_order} is 1, there is no sequence added, simply {initial_word}.
+ * Returns:
+ *    0 on success.
+ *    -1 if no such sequence was found.
+ * Pre:
+ *    (size (= {sequence} {markov_order}))
+ *    (initialized {k})
+ *    (> markov_order 0)
+ * Post:
+ *    (initialized {sequence[0..(markov_order - 1)]})
+ */
 static int initialize_sequence
 (
    ZoO_index sequence [const restrict static 1],
@@ -557,7 +641,7 @@ static int initialize_sequence
          "Unable to find any sequence that would precede the initial word."
       );
 
-      return -3;
+      return -1;
    }
 
    chosen_sequence =
@@ -582,6 +666,7 @@ static int initialize_sequence
 /** EXPORTED ******************************************************************/
 /******************************************************************************/
 
+/* See "sequence.h" */
 int ZoO_create_sequence_from
 (
    const ZoO_index initial_word,
