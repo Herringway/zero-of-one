@@ -43,8 +43,6 @@
    #define ZoO_MARKOV_ORDER               3
 #endif
 
-typedef unsigned int ZoO_index;
-#define ZoO_INDEX_MAX UINT_MAX
 
 /* ZoO_char = UTF-8 char */
 typedef char ZoO_char;

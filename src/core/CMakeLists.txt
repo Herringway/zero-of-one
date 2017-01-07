@@ -3,7 +3,7 @@ set(
    ${CMAKE_CURRENT_SOURCE_DIR}/main.c
    ${CMAKE_CURRENT_SOURCE_DIR}/knowledge.c
    ${CMAKE_CURRENT_SOURCE_DIR}/assimilate.c
-   ${CMAKE_CURRENT_SOURCE_DIR}/create_sentences.c
+   ${CMAKE_CURRENT_SOURCE_DIR}/create_sequence.c
    ${CMAKE_CURRENT_SOURCE_DIR}/sequence.c
 )
 
