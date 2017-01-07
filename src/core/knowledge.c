@@ -9,56 +9,6 @@
 
 /** Basic functions of the ZoO_knowledge structure ****************************/
 
-/* XXX: are we as close to immutable as we want to be? */
-unsigned int const ZoO_knowledge_punctuation_chars_count = 8;
-const ZoO_char const ZoO_knowledge_punctuation_chars[8] =
-   {
-      '!',
-      ',',
-      '.',
-      ':',
-      ';',
-      '?',
-      '~',
-      '\001'
-   };
-
-/* XXX: are we as close to immutable as we want to be? */
-unsigned int const ZoO_knowledge_forbidden_chars_count = 8;
-const ZoO_char const ZoO_knowledge_forbidden_chars[8]=
-   {
-      '(',
-      ')',
-      '[',
-      ']',
-      '{',
-      '}',
-      '<',
-      '>'
-   };
-
-static int cmp_word
-(
-   const void * const a,
-   const void * const b,
-   const void * const other
-)
-{
-   ZoO_char const * word;
-   ZoO_index const * sorted_index;
-   struct ZoO_knowledge const * k;
-
-   word = (ZoO_char const *) a;
-   sorted_index = (ZoO_index const *) b;
-   k = (struct ZoO_knowledge *) other;
-
-   return strcmp
-   (
-      (const char *) word,
-      (const char *) k->words[*sorted_index].word
-   );
-}
-
 /* See "knowledge.h". */
 int ZoO_knowledge_find
 (

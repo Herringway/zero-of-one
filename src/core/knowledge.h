@@ -1,7 +1,8 @@
 #ifndef _ZoO_CORE_KNOWLEDGE_H_
 #define _ZoO_CORE_KNOWLEDGE_H_
 
-#include "../tool/strings_types.h"
+#include "../core/char_types.h"
+#include "../core/index_types.h"
 
 #include "knowledge_types.h"
 
@@ -24,22 +25,6 @@ int ZoO_knowledge_initialize (struct ZoO_knowledge k [const static 1]);
  */
 void ZoO_knowledge_finalize (struct ZoO_knowledge k [const static 1]);
 
-/*
- * When returning 0:
- *    {word} is in {k}.
- *    {word} is located at {k->words[*result]}.
- *
- * When returning -1:
- *    {word} is not in {k}.
- *    {*result} is where {word} was expected to be found in
- *    {k->sorted_indices}.
- */
-int ZoO_knowledge_find
-(
-   const struct ZoO_knowledge k [const restrict static 1],
-   const ZoO_char word [const restrict static 1],
-   ZoO_index result [const restrict static 1]
-);
 
 /*
  * When returning 0:
@@ -59,39 +44,58 @@ int ZoO_knowledge_learn
    ZoO_index result [const restrict static 1]
 );
 
-int ZoO_knowledge_assimilate
+int ZoO_knowledge_learn_sequence
 (
    struct ZoO_knowledge k [const static 1],
-   struct ZoO_strings string [const restrict static 1],
-   ZoO_index const aliases_count,
-   const char * restrict aliases [const restrict static aliases_count]
+   const ZoO_index sequence [const restrict],
+   const ZoO_index sequence_length
 );
 
-int ZoO_knowledge_extend
+int ZoO_knowledge_get_following_sequences
 (
-   struct ZoO_knowledge k [const static 1],
-   const struct ZoO_strings string [const],
-   ZoO_index const aliases_count,
-   const char * restrict aliases [const restrict static aliases_count],
-   ZoO_char * result [const static 1]
+   const struct ZoO_knowledge k [const static 1],
+   const ZoO_index initial_word,
+   const ZoO_index * const restrict * following_sequences [const restrict static 1],
+   const ZoO_index * following_sequences_weights [const restrict static 1],
+   const ZoO_index following_sequences_weights_sum [const static 1]
 );
 
-int ZoO_knowledge_find_link
+/*
+ * When returning 0:
+ *    {word} is in {k}.
+ *    {word} is located at {k->words[*result]}.
+ *
+ * When returning -1:
+ *    {word} is not in {k}.
+ *    {*result} is where {word} was expected to be found in
+ *    {k->sorted_indices}.
+ */
+int ZoO_knowledge_find_word_id
 (
-   ZoO_index const links_count,
-   struct ZoO_knowledge_link links [const],
-   ZoO_index const sequence [const restrict static ZoO_SEQUENCE_SIZE],
+   const struct ZoO_knowledge k [const restrict static 1],
+   const ZoO_char word [const restrict static 1],
    ZoO_index result [const restrict static 1]
 );
 
-/* Create it if it's not found. */
-int ZoO_knowledge_get_link
+int ZoO_knowledge_find_preceding_words
 (
-   ZoO_index links_count [const],
-   struct ZoO_knowledge_link * links [const],
-   ZoO_index const sequence [const restrict static ZoO_S_LINK_SIZE],
-   ZoO_index result [const restrict static 1]
+   const struct ZoO_knowledge k [const static 1],
+   const ZoO_index sequence [const restrict],
+   const ZoO_index markov_order,
+   const ZoO_index * restrict preceding_words [const restrict static 1],
+   const ZoO_index * restrict preceding_words_weights [const restrict static 1],
+   ZoO_index preceding_words_weights_sum [const restrict static 1]
 );
 
+int ZoO_knowledge_find_following_words
+(
+   const struct ZoO_knowledge k [const static 1],
+   const ZoO_index sequence [const restrict],
+   const ZoO_index sequence_length,
+   const ZoO_index markov_order,
+   const ZoO_index * restrict following_words [const restrict static 1],
+   const ZoO_index * restrict following_words_weights [const restrict static 1],
+   ZoO_index following_words_weights_sum [const restrict static 1]
+);
 
 #endif

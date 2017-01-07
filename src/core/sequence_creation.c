@@ -41,59 +41,6 @@ static ZoO_index weighted_random_pick
    return result;
 }
 
-/*
- * FIXME: This does not belong here.
- * Calculates the size the sentence will have upon addition of the word, taking
- * into account {effect}.
- * Returns:
- *    0 on success.
- *    -1 iff adding the word would overflow {sentence_size}.
- * Post:
- *    (initialized new_size)
- */
-static int get_new_size
-(
-   const size_t word_size,
-   const size_t sentence_size,
-   const enum ZoO_knowledge_special_effect effect,
-   size_t new_size [const restrict static 1]
-)
-{
-   size_t added_size;
-
-   switch (effect)
-   {
-      case ZoO_WORD_HAS_NO_EFFECT:
-         /* word also contains an '\0', which we will replace by a ' ' */
-         added_size = word_size;
-         break;
-
-      case ZoO_WORD_ENDS_SENTENCE:
-      case ZoO_WORD_STARTS_SENTENCE:
-         added_size = 0;
-         break;
-
-      case ZoO_WORD_REMOVES_LEFT_SPACE:
-      case ZoO_WORD_REMOVES_RIGHT_SPACE:
-         /* word also contains an '\0', which we will remove. */
-         added_size = (word_size - 1);
-         break;
-   }
-
-   if ((SIZE_MAX - word_size) > sentence_size)
-   {
-      /* New size Would overflow. */
-      *new_size = sentence_size;
-
-      return -1;
-   }
-
-   /* Safe: (=< SIZE_MAX (+ sentence_size added_size)) */
-   *new_size = (sentence_size + added_size);
-
-   return 0;
-}
-
 /******************************************************************************/
 /** ADDING ELEMENTS TO THE LEFT ***********************************************/
 /******************************************************************************/
@@ -173,12 +120,14 @@ static int left_append
  * Pre:
  *    (initialized {sequence})
  *    (initialized {k})
- *    (initialized {*sequence[0..(MARKOV_ORDER - 1)]})
+ *    (> {markov_order} 0)
+ *    (initialized {*sequence[0..({markov_order} - 1)]})
  */
 static int extend_left
 (
    ZoO_index * sequence [const restrict static 1],
    const size_t sequence_size,
+   const ZoO_index markov_order,
    const struct ZoO_knowledge k [const restrict static 1]
 )
 {
@@ -188,10 +137,11 @@ static int extend_left
 
    if
    (
-      ZoO_knowledge_get_preceding_words
+      ZoO_knowledge_find_preceding_words
       (
          k,
          *sequence,
+         markov_order,
          &preceding_words,
          &preceding_words_weights,
          &preceding_words_weights_sum
@@ -242,12 +192,14 @@ static int extend_left
  *    (initialized {sequence})
  *    (initialized {sequence_size})
  *    (initialized {k})
+ *    (> {markov_order} 0)
  *    (initialized {*sequence[0..(MARKOV_ORDER - 1)]})
  */
 static int complete_left_part_of_sequence
 (
    ZoO_index * sequence [restrict static 1],
    size_t sequence_size [const restrict static 1],
+   const ZoO_index markov_order,
    ZoO_index credits [const restrict],
    const struct ZoO_knowledge k [const restrict static 1]
 )
@@ -256,7 +208,7 @@ static int complete_left_part_of_sequence
    {
       if ((credits == (ZoO_index *) NULL) || (*credits > 0))
       {
-         if (extend_left(sequence, *sequence_size, k) < 0)
+         if (extend_left(sequence, *sequence_size, markov_order, k) < 0)
          {
             /* We are sure *sequence[0] is defined. */
             if (*sequence[0] == ZoO_START_OF_SEQUENCE_ID)
@@ -386,12 +338,14 @@ static int right_append
  * Pre:
  *    (initialized {sequence})
  *    (initialized {k})
+ *    (> {markov_order} 0)
  *    (initialized {*sequence[0..(MARKOV_ORDER - 1)]})
  */
 static int extend_right
 (
    ZoO_index * sequence [const restrict static 1],
    const size_t sequence_size,
+   const ZoO_index markov_order,
    const ZoO_index sequence_length,
    const struct ZoO_knowledge k [const restrict static 1]
 )
@@ -403,11 +357,12 @@ static int extend_right
 
    if
    (
-      ZoO_knowledge_get_following_words
+      ZoO_knowledge_find_following_words
       (
          k,
          *sequence,
          sequence_length,
+         markov_order,
          &following_words,
          &following_words_weights,
          &following_words_weights_sum
@@ -459,12 +414,14 @@ static int extend_right
  *    (initialized {sequence})
  *    (initialized {*sequence_size})
  *    (initialized {k})
+ *    (> {markov_order} 0)
  *    (initialized {*sequence[0..(MARKOV_ORDER - 1)]})
  */
 static int complete_right_part_of_sequence
 (
    ZoO_index * sequence [const restrict static 1],
    size_t sequence_size [const restrict static 1],
+   const ZoO_index markov_order,
    ZoO_index credits [const restrict],
    const struct ZoO_knowledge k [const restrict static 1]
 )
@@ -477,7 +434,17 @@ static int complete_right_part_of_sequence
    {
       if ((credits == (ZoO_index *) NULL) || (*credits > 0))
       {
-         if (extend_right(sequence, *sequence_size, sequence_length, k) < 0)
+         if
+         (
+            extend_right
+            (
+               sequence,
+               *sequence_size,
+               markov_order,
+               sequence_length,
+               k
+            ) < 0
+         )
          {
             /* Safe: (> sequence_length 1) */
             if (*sequence[(sequence_length - 1)] == ZoO_END_OF_SEQUENCE_ID)
@@ -570,7 +537,7 @@ static int allocate_initial_sequence
       return -1;
    }
 
-   *sequence_size = ((size_t) markov_order) * sizeof(ZoO_index);
+   *sequence_size = (((size_t) markov_order) * sizeof(ZoO_index));
    *sequence = (ZoO_index *) malloc(*sequence_size);
 
    if (*sequence == (void *) NULL)
@@ -612,8 +579,8 @@ static int initialize_sequence
    const struct ZoO_knowledge k [const static 1]
 )
 {
-   const ZoO_index * const restrict * restrict following_sequences;
-   const ZoO_index * restrict following_sequences_weights;
+   const ZoO_index * const restrict * following_sequences;
+   const ZoO_index * following_sequences_weights;
    ZoO_index following_sequences_weights_sum;
    ZoO_index chosen_sequence;
 
@@ -656,7 +623,7 @@ static int initialize_sequence
    (
       (void *) (sequence + 1),
       (const void *) (following_sequences + chosen_sequence),
-      (((size_t) markov_order) - 1) * sizeof(ZoO_index)
+      ((((size_t) markov_order) - 1) * sizeof(ZoO_index))
    );
 
    return 0;
@@ -667,7 +634,7 @@ static int initialize_sequence
 /******************************************************************************/
 
 /* See "sequence.h" */
-int ZoO_create_sequence_from
+int ZoO_sequence_create_from
 (
    const ZoO_index initial_word,
    ZoO_index credits [const restrict],
@@ -696,6 +663,7 @@ int ZoO_create_sequence_from
       (
          sequence,
          sequence_size,
+         markov_order,
          credits,
          k
       ) < 0
@@ -713,6 +681,7 @@ int ZoO_create_sequence_from
       (
          sequence,
          sequence_size,
+         markov_order,
          credits,
          k
       ) < 0

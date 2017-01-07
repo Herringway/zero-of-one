@@ -1,129 +1,75 @@
 #include <stdlib.h>
 #include <string.h>
 
-#include "../io/error.h"
-#include "../tool/sorted_list.h"
+#include "../core/index.h"
 
-#include "knowledge.h"
+#include "sequence.h"
 
-static int cmp_seq_link
+/* See "sequence.h" */
+int ZoO_sequence_cmp
 (
-   const void * const a,
-   const void * const b,
-   const void * const other
+   const ZoO_index sequence_a [const],
+   const ZoO_index sequence_a_length,
+   const ZoO_index sequence_b [const],
+   const ZoO_index sequence_b_length
 )
 {
-   ZoO_index j;
-   const ZoO_index * sequence;
-   const struct ZoO_knowledge_link * link;
+   ZoO_index min_length;
+   ZoO_index i;
 
-   sequence = (const ZoO_index *) a;
-   link = (const struct ZoO_knowledge_link *) b;
-
-   for (j = 0; j < ZoO_SEQUENCE_SIZE; ++j)
+   if (sequence_a_length < sequence_b_length)
    {
-      if (sequence[j] < link->sequence[j])
+      min_length = sequence_a_length;
+   }
+   else
+   {
+      min_length = sequence_b_length;
+   }
+
+   for (i = 0; i < min_length; ++i)
+   {
+      if (sequence_a[i] < sequence_b[i])
       {
          return -1;
       }
-      else if (sequence[j] > link->sequence[j])
+      else if (sequence_b[i] > sequence_b[i])
+      {
+         return 1;
+      }
+      else if
+      (
+         (sequence_a[i] == ZoO_END_OF_SEQUENCE_ID)
+         && (sequence_b[i] == ZoO_END_OF_SEQUENCE_ID)
+      )
+      {
+         return 0;
+      }
+   }
+
+   if (sequence_a_length < sequence_b_length)
+   {
+      if (sequence_b[i] == ZoO_END_OF_SEQUENCE_ID)
+      {
+         return 0;
+      }
+      else
+      {
+         return -1;
+      }
+   }
+   else if (sequence_a_length > sequence_b_length)
+   {
+      if (sequence_a[i] == ZoO_END_OF_SEQUENCE_ID)
+      {
+         return 0;
+      }
+      else
       {
          return 1;
       }
    }
-
-   return 0;
-}
-
-int ZoO_knowledge_find_link
-(
-   ZoO_index const links_count,
-   struct ZoO_knowledge_link links [const],
-   ZoO_index const sequence [const restrict static ZoO_SEQUENCE_SIZE],
-   ZoO_index result [const restrict static 1]
-)
-{
-   return
-      ZoO_sorted_list_index_of
-      (
-         links_count,
-         (void const *) links,
-         (void const *) sequence,
-         sizeof(struct ZoO_knowledge_link),
-         cmp_seq_link,
-         (void const *) NULL,
-         result
-      );
-}
-
-int ZoO_knowledge_get_link
-(
-   ZoO_index links_count [const],
-   struct ZoO_knowledge_link * links [const],
-   ZoO_index const sequence [const restrict static ZoO_SEQUENCE_SIZE],
-   ZoO_index result [const restrict static 1]
-)
-{
-   struct ZoO_knowledge_link * new_p;
-
-   if
-   (
-      ZoO_sorted_list_index_of
-      (
-         *links_count,
-         (void const *) *links,
-         (void const *) sequence,
-         sizeof(struct ZoO_knowledge_link),
-         cmp_seq_link,
-         (void const *) NULL,
-         result
-      ) == 0
-   )
+   else
    {
       return 0;
    }
-
-   *links_count += 1;
-
-   new_p =
-      (struct ZoO_knowledge_link *) realloc
-      (
-         (void *) *links,
-         (sizeof(struct ZoO_knowledge_link) * (*links_count))
-      );
-
-   if (new_p == (struct ZoO_knowledge_link *) NULL)
-   {
-      *links_count -= 1;
-
-      return -1;
-   }
-
-   if (*result < (*links_count - 1))
-   {
-      memmove(
-         (void *) (new_p + *result + 1),
-         (const void *) (new_p + *result),
-         (sizeof(struct ZoO_knowledge_link) * (*links_count - 1 - *result))
-      );
-   }
-
-   *links = new_p;
-
-   new_p += *result;
-
-   memcpy
-   (
-      (void *) new_p->sequence,
-      (void const *) sequence,
-      /* can be zero */
-      (sizeof(ZoO_index) * ZoO_SEQUENCE_SIZE)
-   );
-
-   new_p->occurrences = 0;
-   new_p->targets_count = 0;
-   new_p->targets_occurrences = (ZoO_index *) NULL;
-   new_p->targets = (ZoO_index *) NULL;
-
-   return 0;
 }

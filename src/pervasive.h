@@ -39,16 +39,6 @@
    #define ZoO_DEFAULT_REPLY_RATE         8
 #endif
 
-#ifndef ZoO_MARKOV_ORDER
-   #define ZoO_MARKOV_ORDER               3
-#endif
-
-
-/* ZoO_char = UTF-8 char */
-typedef char ZoO_char;
-/* Functions that can handle UTF-8 'char' will use this symbol. */
-#define ZoO_CHAR_STRING_SYMBOL "%s"
-
 #define ZoO__TO_STRING(x) #x
 #define ZoO_TO_STRING(x) ZoO__TO_STRING(x)
 #define ZoO_ISOLATE(a) do {a} while (0)

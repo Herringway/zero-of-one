@@ -2,7 +2,7 @@
 #define _ZoO_CORE_SEQUENCE_H_
 
 #include "../core/index_types.h"
-#include "../core/knownledge_types.h"
+#include "../core/knowledge_types.h"
 
 #include "sequence_types.h"
 
@@ -27,7 +27,7 @@
  *    (knows {k} {initial_word})
  *    (initialized {k})
  */
-int ZoO_create_sequence_from
+int ZoO_sequence_create_from
 (
    const ZoO_index initial_word,
    ZoO_index credits [const restrict],
@@ -35,6 +35,25 @@ int ZoO_create_sequence_from
    const ZoO_index markov_order,
    ZoO_index * sequence [const restrict static 1],
    size_t sequence_size [const restrict static 1]
+);
+
+/*
+ * Compares two sequences.
+ * ZoO_END_OF_SEQUENCE marks the ending of a sequence, regardless of indicated
+ * sequence length, meaning that [10][ZoO_END_OF_SEQUENCE][9] and
+ * [10][ZoO_END_OF_SEQUENCE][8] are considered equal. Sequences do not have to
+ * contain ZoO_END_OF_SEQUENCE.
+ * Return:
+ *    1 iff {sequence_a} should be considered being more than {sequence_b}
+ *    0 iff {sequence_a} should be considered being equal to {sequence_b}
+ *    -1 iff {sequence_a} should be considered being less than {sequence_b}
+ */
+int ZoO_sequence_cmp
+(
+   const ZoO_index sequence_a [const],
+   const ZoO_index sequence_a_length,
+   const ZoO_index sequence_b [const],
+   const ZoO_index sequence_b_length
 );
 
 #endif
