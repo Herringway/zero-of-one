@@ -579,10 +579,10 @@ static int initialize_sequence
    const struct ZoO_knowledge k [const static 1]
 )
 {
-   const ZoO_index * const restrict * following_sequences;
-   const ZoO_index * following_sequences_weights;
+   const ZoO_index * restrict following_sequences_ref;
+   const ZoO_index * restrict chosen_sequence;
+   const ZoO_index * restrict following_sequences_weights;
    ZoO_index following_sequences_weights_sum;
-   ZoO_index chosen_sequence;
 
    sequence[0] = initial_word;
 
@@ -593,11 +593,11 @@ static int initialize_sequence
 
    if
    (
-      ZoO_knowledge_get_following_sequences
+      ZoO_knowledge_get_following_sequences_ref
       (
          k,
          initial_word,
-         &following_sequences,
+         &following_sequences_ref,
          &following_sequences_weights,
          &following_sequences_weights_sum
       ) < 0
@@ -611,18 +611,26 @@ static int initialize_sequence
       return -1;
    }
 
-   chosen_sequence =
-      weighted_random_pick
-      (
-         following_sequences_weights,
-         following_sequences_weights_sum
-      );
+   /* following_sequences_ref contains only valid references. */
+   (void) ZoO_knowledge_get_sequence
+   (
+      k,
+      following_sequences_ref
+      [
+         weighted_random_pick
+         (
+            following_sequences_weights,
+            following_sequences_weights_sum
+         )
+      ],
+      &chosen_sequence
+   );
 
    /* Safe if 'allocate_initial_sequence' succeeded. */
    memcpy
    (
       (void *) (sequence + 1),
-      (const void *) (following_sequences + chosen_sequence),
+      (const void *) chosen_sequence,
       ((((size_t) markov_order) - 1) * sizeof(ZoO_index))
    );
 

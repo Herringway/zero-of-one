@@ -84,11 +84,12 @@ int ZoO_knowledge_find_preceding_words
 {
    /* This is a binary search */
    int cmp;
-   ZoO_index i, current_min, current_max;
-   ZoO_index candidate_id;
+   ZoO_index i, current_min, current_max, local_sequence;
+   const ZoO_index * restrict candidate;
    const ZoO_index markov_sequence_length = (markov_order - 1);
+   const ZoO_index word = sequence[markov_sequence_length];
 
-   if (sequence[markov_sequence_length] >= k->words_length)
+   if (word >= k->words_length)
    {
       ZoO_S_ERROR
       (
@@ -102,30 +103,22 @@ int ZoO_knowledge_find_preceding_words
       return -1;
    }
 
-   *preceding_words_weights_sum =
-      k->words[sequence[markov_sequence_length]].occurrences;
 
    if (markov_order == 1)
    {
       /* Special case: empty sequences. */
-      *preceding_words =
-         (const ZoO_index *) k->words
-         [
-            sequence[markov_sequence_length]
-         ].preceded.targets;
+      *preceding_words = (const ZoO_index *) k->words[word].preceded.targets;
 
       *preceding_words_weights =
-         (const ZoO_index *) k->words
-         [
-            sequence[markov_sequence_length]
-         ].preceded.targets_occurrences;
+         (const ZoO_index *) k->words[word].preceded.targets_occurrences;
+
+      *preceding_words_weights_sum = k->words[word].occurrences;
 
       return 0;
    }
 
    /* Handles the case where the list is empty ********************************/
-   current_max =
-      k->words[sequence[markov_sequence_length]].preceded.sequences_length;
+   current_max = k->words[word].preceded.sequences_ref_length;
 
    if (current_max == 0)
    {
@@ -150,12 +143,21 @@ int ZoO_knowledge_find_preceding_words
    {
       i = (current_min + ((current_max - current_min) / 2));
 
+      local_sequence = k->words[word].preceded.sequences_ref_sorted[i];
+
+      (void) ZoO_knowledge_get_sequence
+      (
+         k,
+         k->words[word].preceded.sequences_ref[local_sequence],
+         &candidate
+      );
+
       cmp =
          ZoO_sequence_cmp
          (
             sequence,
             markov_sequence_length,
-            k->words[sequence[markov_sequence_length]].preceded.sequences[i],
+            candidate,
             markov_sequence_length
          );
 
@@ -187,17 +189,13 @@ int ZoO_knowledge_find_preceding_words
       }
       else
       {
-         *preceding_words =
-            k->words
-            [
-               sequence[markov_sequence_length]
-            ].preceded.targets[i];
+         *preceding_words = k->words[word].preceded.targets[local_sequence];
 
          *preceding_words_weights =
-            k->words
-            [
-               sequence[markov_sequence_length]
-            ].preceded.targets_occurrences[i];
+            k->words[word].preceded.targets_occurrences[local_sequence];
+
+         *preceding_words_weights_sum =
+            k->words[word].preceded.occurrences[local_sequence];
 
          return 0;
       }
@@ -217,13 +215,14 @@ int ZoO_knowledge_find_following_words
 {
    /* This is a binary search */
    int cmp;
-   ZoO_index i, current_min, current_max;
-   ZoO_index candidate_id;
+   ZoO_index i, current_min, current_max, local_sequence;
+   const ZoO_index * restrict candidate;
    const ZoO_index markov_sequence_length = (markov_order - 1);
-   const ZoO_index word_of_interest =
-      (sequence_length - markov_sequence_length) - 1;
+   const ZoO_index sequence_offset =
+      ((sequence_length - markov_sequence_length) - 1);
+   const ZoO_index word = sequence[sequence_offset];
 
-   if (sequence[word_of_interest] >= k->words_length)
+   if (word >= k->words_length)
    {
       ZoO_S_ERROR
       (
@@ -237,29 +236,21 @@ int ZoO_knowledge_find_following_words
       return -1;
    }
 
-   *following_words_weights_sum =
-      k->words[sequence[word_of_interest]].occurrences;
-
    if (markov_order == 1)
    {
       /* Special case: empty sequences. */
-      *following_words =
-         (const ZoO_index *) k->words
-         [
-            sequence[word_of_interest]
-         ].preceded.targets;
+      *following_words = (const ZoO_index *) k->words[word].preceded.targets;
 
       *following_words_weights =
-         (const ZoO_index *) k->words
-         [
-            sequence[word_of_interest]
-         ].preceded.targets_occurrences;
+         (const ZoO_index *) k->words[word].preceded.targets_occurrences;
+
+      *following_words_weights_sum = k->words[word].occurrences;
 
       return 0;
    }
 
    /* Handles the case where the list is empty ********************************/
-   current_max = k->words[sequence[word_of_interest]].preceded.sequences_length;
+   current_max = k->words[word].preceded.sequences_ref_length;
 
    if (current_max == 0)
    {
@@ -284,12 +275,21 @@ int ZoO_knowledge_find_following_words
    {
       i = (current_min + ((current_max - current_min) / 2));
 
+      local_sequence = k->words[word].followed.sequences_ref_sorted[i];
+
+      (void) ZoO_knowledge_get_sequence
+      (
+         k,
+         k->words[word].followed.sequences_ref[local_sequence],
+         &candidate
+      );
+
       cmp =
          ZoO_sequence_cmp
          (
-            (sequence + word_of_interest),
+            (sequence + sequence_offset),
             markov_sequence_length,
-            k->words[sequence[word_of_interest]].followed.sequences[i],
+            candidate,
             markov_sequence_length
          );
 
@@ -321,17 +321,13 @@ int ZoO_knowledge_find_following_words
       }
       else
       {
-         *following_words =
-            k->words
-            [
-               sequence[markov_sequence_length]
-            ].followed.targets[i];
+         *following_words = k->words[word].followed.targets[local_sequence];
 
          *following_words_weights =
-            k->words
-            [
-               sequence[markov_sequence_length]
-            ].followed.targets_occurrences[i];
+            k->words[word].followed.targets_occurrences[local_sequence];
+
+         *following_words_weights_sum =
+            k->words[word].followed.occurrences[local_sequence];
 
          return 0;
       }

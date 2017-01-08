@@ -6,24 +6,9 @@
 
 #include "knowledge_types.h"
 
-/*
- * Initializes all of {k}'s members to sane values.
- *
- * When returning 0:
- *    Initial punctuation nodes (including the mandatory "START OF LINE" and
- *    "END OF LINE" ones) have successfully been added to {k}.
- *
- * When return -1:
- *    Something went wrong, leading to {k} not being safe for use.
- *    {k} has been finalized.
- */
-int ZoO_knowledge_initialize (struct ZoO_knowledge k [const static 1]);
+void ZoO_knowledge_initialize (struct ZoO_knowledge k [const restrict static 1]);
 
-/*
- * Frees all the memory used by {k}, but not {k} itself.
- * The values of {k}'s members are set to reflect the changes.
- */
-void ZoO_knowledge_finalize (struct ZoO_knowledge k [const static 1]);
+void ZoO_knowledge_finalize (struct ZoO_knowledge k [const restrict static 1]);
 
 
 /*
@@ -51,13 +36,28 @@ int ZoO_knowledge_learn_sequence
    const ZoO_index sequence_length
 );
 
-int ZoO_knowledge_get_following_sequences
+int ZoO_knowledge_get_following_sequences_ref
 (
    const struct ZoO_knowledge k [const static 1],
    const ZoO_index initial_word,
-   const ZoO_index * const restrict * following_sequences [const restrict static 1],
-   const ZoO_index * following_sequences_weights [const restrict static 1],
-   const ZoO_index following_sequences_weights_sum [const static 1]
+   const ZoO_index * restrict following_sequences_ref [const restrict static 1],
+   const ZoO_index * restrict following_sequences_weights [const restrict static 1],
+   ZoO_index following_sequences_weights_sum [const static 1]
+);
+
+int ZoO_knowledge_get_sequence
+(
+   const struct ZoO_knowledge k [const static 1],
+   const ZoO_index sequences_ref,
+   const ZoO_index * restrict sequence [const restrict static 1]
+);
+
+int ZoO_knowledge_get_word
+(
+   const struct ZoO_knowledge k [const static 1],
+   const ZoO_index word_ref,
+   const ZoO_char * word [const restrict static 1],
+   size_t word_size [const restrict static 1]
 );
 
 /*

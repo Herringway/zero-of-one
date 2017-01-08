@@ -6,9 +6,9 @@
 
 struct ZoO_knowledge_sequence_collection
 {
-   ZoO_index ** sequences;
-   ZoO_index sequences_length;
-   ZoO_index * sequences_sorted;
+   ZoO_index * sequences_ref;
+   ZoO_index sequences_ref_length;
+   ZoO_index * sequences_ref_sorted;
    ZoO_index * occurrences;
    ZoO_index ** targets;
    ZoO_index * targets_length;
@@ -17,7 +17,7 @@ struct ZoO_knowledge_sequence_collection
 
 struct ZoO_knowledge_word
 {
-   ZoO_char * word;
+   const ZoO_char * word;
    size_t word_size;
    ZoO_index occurrences;
    struct ZoO_knowledge_sequence_collection followed;
@@ -29,6 +29,9 @@ struct ZoO_knowledge
    struct ZoO_knowledge_word * words;
    ZoO_index words_length;
    ZoO_index * words_sorted;
+   ZoO_index ** sequences;
+   ZoO_index sequences_length;
+   ZoO_index * sequences_sorted;
 };
 
 #endif
