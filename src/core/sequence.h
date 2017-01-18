@@ -1,10 +1,20 @@
 #ifndef _ZoO_CORE_SEQUENCE_H_
 #define _ZoO_CORE_SEQUENCE_H_
 
+#include "../core/char_types.h"
 #include "../core/index_types.h"
-#include "../core/knowledge_types.h"
+#include "../knowledge/knowledge_types.h"
 
 #include "sequence_types.h"
+
+int ZoO_sequence_from_undercase_string
+(
+   const ZoO_char string [const restrict],
+   const ZoO_index string_length,
+   struct ZoO_knowledge k [const restrict static 1],
+   ZoO_index * sequence [const restrict static 1],
+   ZoO_index sequence_length [const restrict static 1]
+);
 
 /*
  * Creates a sequence containing {initial_word}. The remaining elements of
@@ -42,7 +52,13 @@ int ZoO_sequence_create_from
  * ZoO_END_OF_SEQUENCE marks the ending of a sequence, regardless of indicated
  * sequence length, meaning that [10][ZoO_END_OF_SEQUENCE][9] and
  * [10][ZoO_END_OF_SEQUENCE][8] are considered equal. Sequences do not have to
- * contain ZoO_END_OF_SEQUENCE.
+ * contain ZoO_END_OF_SEQUENCE. [10][ZoO_END_OF_SEQUENCE] and [10] are
+ * considered different, [10][ZoO_END_OF_SEQUENCE]
+ * and [10][ZoO_END_OF_SEQUENCE][ZoO_END_OF_SEQUENCE] are considered equal.
+ * Same logic is applyied for ZoO_START_OF_SEQUENCE:
+ * [START_OF_SEQUENCE][10] is not [10], but
+ * [START_OF_SEQUENCE][START_OF_SEQUENCE][10] and [START_OF_SEQUENCE][10] are
+ * the same.
  * Return:
  *    1 iff {sequence_a} should be considered being more than {sequence_b}
  *    0 iff {sequence_a} should be considered being equal to {sequence_b}

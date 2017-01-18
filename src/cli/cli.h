@@ -1,15 +1,10 @@
-#ifndef _ZoO_IO_ERROR_H_
-#define _ZoO_IO_ERROR_H_
+#ifndef _ZoO_CLI_CLI_H_
+#define _ZoO_CLI_CLI_H_
 
 #include <stdio.h>
 
 #include "../pervasive.h"
 
-#define ZoO_DEBUG_ALL 1
-
-#ifndef ZoO_DEBUG_ALL
-   #define ZoO_DEBUG_ALL 0
-#endif
 
 #ifndef ZoO_DEBUG_PROGRAM_FLOW
    #define ZoO_DEBUG_PROGRAM_FLOW   (0 || ZoO_DEBUG_ALL)
@@ -23,7 +18,9 @@
    #define ZoO_DEBUG_LEARNING       (0 || ZoO_DEBUG_ALL)
 #endif
 
-#define ZoO_DEBUG_NETWORK  1
+#ifndef ZoO_DEBUG_NETWORK
+   #define ZoO_DEBUG_NETWORK  1
+#endif
 
 #ifndef ZoO_DEBUG_NETWORK
    #define ZoO_DEBUG_NETWORK        (0 || ZoO_DEBUG_ALL)

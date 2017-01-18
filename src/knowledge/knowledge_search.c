@@ -4,7 +4,7 @@
 #include "../core/index.h"
 #include "../core/sequence.h"
 
-#include "../io/error.h"
+#include "../cli/cli.h"
 
 #include "knowledge.h"
 
@@ -13,6 +13,7 @@ int ZoO_knowledge_find_word_id
 (
    const struct ZoO_knowledge k [const restrict static 1],
    const ZoO_char word [const restrict static 1],
+   const size_t word_size,
    ZoO_index result [const restrict static 1]
 )
 {
@@ -39,7 +40,7 @@ int ZoO_knowledge_find_word_id
    {
       i = (current_min + ((current_max - current_min) / 2));
 
-      cmp = ZoO_word_cmp(word, k->words[k->words_sorted[i]].word);
+      cmp = ZoO_word_cmp(word, word_size, k->words[k->words_sorted[i]].word);
 
       if (cmp > 0)
       {
@@ -65,7 +66,7 @@ int ZoO_knowledge_find_word_id
       }
       else
       {
-         *result = i;
+         *result = k->words_sorted[i];
 
          return 0;
       }

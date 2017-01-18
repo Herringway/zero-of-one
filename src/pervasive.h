@@ -3,40 +3,18 @@
 
 #include <limits.h>
 
+#define ZoO_DEBUG_ALL 1
+
+#ifndef ZoO_DEBUG_ALL
+   #define ZoO_DEBUG_ALL 0
+#endif
+
 #ifndef ZoO_NETWORK_TIMEOUT
    #define ZoO_NETWORK_TIMEOUT            200
 #endif
 
 #ifndef ZoO_MAX_REPLY_WORDS
    #define ZoO_MAX_REPLY_WORDS            64
-#endif
-
-#ifndef ZoO_DEFAULT_DATA_FILENAME
-   #define ZoO_DEFAULT_DATA_FILENAME      "./memory.txt"
-#endif
-
-#ifndef ZoO_DEFAULT_IRC_SERVER_ADDR
-   #define ZoO_DEFAULT_IRC_SERVER_ADDR    "irc.foonetic.net"
-#endif
-
-#ifndef ZoO_DEFAULT_IRC_SERVER_PORT
-   #define ZoO_DEFAULT_IRC_SERVER_PORT    "6667"
-#endif
-
-#ifndef ZoO_DEFAULT_IRC_SERVER_CHANNEL
-   #define ZoO_DEFAULT_IRC_SERVER_CHANNEL "#theborghivemind"
-#endif
-
-#ifndef ZoO_DEFAULT_IRC_USERNAME
-   #define ZoO_DEFAULT_IRC_USERNAME       "zeroofone"
-#endif
-
-#ifndef ZoO_DEFAULT_IRC_REALNAME
-   #define ZoO_DEFAULT_IRC_REALNAME       "Zero of One (bot)"
-#endif
-
-#ifndef ZoO_DEFAULT_REPLY_RATE
-   #define ZoO_DEFAULT_REPLY_RATE         8
 #endif
 
 #define ZoO__TO_STRING(x) #x

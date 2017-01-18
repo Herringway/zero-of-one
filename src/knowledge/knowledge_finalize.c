@@ -2,11 +2,11 @@
 #include <string.h>
 #include <stdint.h> /* defines SIZE_MAX */
 
-#include "../io/error.h"
+#include "../cli/cli.h"
 
 #include "knowledge.h"
 
-void knowledge_sequence_collection_finalize
+static void knowledge_sequence_collection_finalize
 (
    struct ZoO_knowledge_sequence_collection c [const restrict static 1]
 )
@@ -54,7 +54,7 @@ void knowledge_sequence_collection_finalize
    }
 }
 
-void knowledge_word_finalize
+static void knowledge_word_finalize
 (
    struct ZoO_knowledge_word w [const restrict static 1]
 )
@@ -73,6 +73,7 @@ void knowledge_word_finalize
    knowledge_sequence_collection_finalize(&(w->preceded));
 }
 
+/* See: "knowledge.h" */
 void ZoO_knowledge_finalize (struct ZoO_knowledge k [const restrict static 1])
 {
    ZoO_index i;

@@ -19,6 +19,11 @@
  *    (> weights_sum 0).
  *    (= (sum weights) weights_sum).
  */
+/*@
+ @ requires (weights_sum > 0);
+ @ requires \valid(weights);
+ @ requires (\sum(0, (\length(weights) - 1), weights) = weights_sum);
+@*/
 static ZoO_index weighted_random_pick
 (
    const ZoO_index weights [const restrict static 1],
@@ -29,12 +34,12 @@ static ZoO_index weighted_random_pick
 
    accumulator = 0;
 
-   /* Safe: Included in [0, weights_sum]. */
    random_number = ZoO_index_random_up_to(weights_sum);
+   /*@ ensures (0 <= random_number <= weights_sum); @*/
 
    for (result = 0; accumulator < random_number; ++result)
    {
-      /* Safe: (= (sum weights) weights_sum) */
+      /*@ requires (\sum(0, (\length(weights) - 1), weights) = weights_sum); @*/
       accumulator += weights[result];
    }
 

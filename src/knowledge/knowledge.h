@@ -1,5 +1,5 @@
-#ifndef _ZoO_CORE_KNOWLEDGE_H_
-#define _ZoO_CORE_KNOWLEDGE_H_
+#ifndef _ZoO_KNOWLEDGE_KNOWLEDGE_H_
+#define _ZoO_KNOWLEDGE_KNOWLEDGE_H_
 
 #include "../core/char_types.h"
 #include "../core/index_types.h"
@@ -10,11 +10,9 @@ void ZoO_knowledge_initialize (struct ZoO_knowledge k [const restrict static 1])
 
 void ZoO_knowledge_finalize (struct ZoO_knowledge k [const restrict static 1]);
 
-
 /*
  * When returning 0:
- *    {word} was either added to {k} or its representation in {k} has its
- *    occurrences count increased.
+ *    {word} was added to {k}, or was already there.
  *    {*result} indicates where {word} is in {k->words}.
  *
  * When returning -1:
@@ -22,18 +20,28 @@ void ZoO_knowledge_finalize (struct ZoO_knowledge k [const restrict static 1]);
  *    {k} remains semantically unchanged.
  *    {*result} may or may not have been altered.
  */
-int ZoO_knowledge_learn
+int ZoO_knowledge_learn_word
 (
    struct ZoO_knowledge k [const static 1],
    const ZoO_char word [const restrict static 1],
+   const ZoO_index word_length,
    ZoO_index result [const restrict static 1]
 );
 
 int ZoO_knowledge_learn_sequence
 (
-   struct ZoO_knowledge k [const static 1],
-   const ZoO_index sequence [const restrict],
-   const ZoO_index sequence_length
+   struct ZoO_knowledge k [const restrict static 1],
+   const ZoO_index sequence [const restrict static 1],
+   const ZoO_index sequence_length,
+   const ZoO_index markov_order
+);
+
+int ZoO_knowledge_learn_markov_sequence
+(
+   struct ZoO_knowledge k [const restrict static 1],
+   const ZoO_index sequence [const restrict static 1],
+   const ZoO_index sequence_length,
+   const ZoO_index markov_order
 );
 
 int ZoO_knowledge_get_following_sequences_ref
@@ -74,6 +82,7 @@ int ZoO_knowledge_find_word_id
 (
    const struct ZoO_knowledge k [const restrict static 1],
    const ZoO_char word [const restrict static 1],
+   const size_t word_size,
    ZoO_index result [const restrict static 1]
 );
 

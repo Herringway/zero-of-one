@@ -3,7 +3,8 @@
 
 #define ZoO_START_OF_SEQUENCE_ID 0
 #define ZoO_END_OF_SEQUENCE_ID   1
+#define ZoO_ACTION_SEQUENCE_ID   2
 
-#define ZoO_RESERVED_IDS_COUNT   2
+#define ZoO_RESERVED_IDS_COUNT   3
 
 #endif

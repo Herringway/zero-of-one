@@ -1,5 +1,5 @@
-#ifndef _ZoO_CORE_KNOWLEDGE_TYPES_H_
-#define _ZoO_CORE_KNOWLEDGE_TYPES_H_
+#ifndef _ZoO_KNOWLEDGE_KNOWLEDGE_TYPES_H_
+#define _ZoO_KNOWLEDGE_KNOWLEDGE_TYPES_H_
 
 #include "../core/index_types.h"
 #include "../core/char_types.h"
@@ -32,6 +32,7 @@ struct ZoO_knowledge
    ZoO_index ** sequences;
    ZoO_index sequences_length;
    ZoO_index * sequences_sorted;
+   ZoO_index sequences_length;
 };
 
 #endif

@@ -3,6 +3,17 @@
 
 #include "index_types.h"
 
+/*
+ * Returns a random ZoO_index.
+ */
+ZoO_index ZoO_index_random (void);
+
+/*
+ * Returns a random ZoO_index, included in [0, limit]
+ */
+/*@
+ @ ensures (\result <= limit);
+ @*/
 ZoO_index ZoO_index_random_up_to (const ZoO_index limit);
 
 #endif
