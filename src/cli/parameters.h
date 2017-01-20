@@ -1,11 +1,16 @@
-#ifndef _ZoO_IO_PARAMETERS_H_
-#define _ZoO_IO_PARAMETERS_H_
+#ifndef _ZoO_CLI_PARAMETERS_H_
+#define _ZoO_CLI_PARAMETERS_H_
 
 #include "parameters_types.h"
 
-int ZoO_parameters_initialize
+char * ZoO_parameters_get_session_name
 (
-   struct ZoO_parameters param [const static 1],
+   const struct ZoO_parameters param [const restrict static 1]
+);
+
+enum ZoO_invocation_objective ZoO_parameters_initialize
+(
+   struct ZoO_parameters param [const restrict static 1],
    int const argc,
    const char * argv [const static argc]
 );

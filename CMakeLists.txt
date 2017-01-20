@@ -1,6 +1,6 @@
 cmake_minimum_required(VERSION 3.0 FATAL_ERROR)
 
-project("Zero of One")
+project("Zero of One - server")
 
 include(FindPkgConfig)
 
@@ -16,9 +16,9 @@ endif()
 
 # ${SRC_FILES} is recursively defined in the subdirectories.
 # Each subdirectory only adds the source files that are present at its level.
-add_executable(zero_of_one ${SRC_FILES})
-set_property(TARGET zero_of_one PROPERTY C_STANDARD 99)
-set_property(TARGET zero_of_one PROPERTY C_STANDARD_REQUIRED ON)
+add_executable(zero_of_one_server ${SRC_FILES})
+set_property(TARGET zero_of_one_server PROPERTY C_STANDARD 99)
+set_property(TARGET zero_of_one_server PROPERTY C_STANDARD_REQUIRED ON)
 #find_package(Threads)
 #target_link_libraries(cborg ${CMAKE_THREAD_LIBS_INIT})
 

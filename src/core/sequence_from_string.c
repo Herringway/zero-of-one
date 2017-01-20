@@ -6,7 +6,7 @@
 #include "../core/char.h"
 #include "../core/index.h"
 
-#include "../cli/cli.h"
+#include "../pipe/pipe.h"
 
 #include "../knowledge/knowledge.h"
 
@@ -16,7 +16,8 @@ static int add_word_id_to_sequence
 (
    const ZoO_index word_id,
    ZoO_index * sequence [const restrict static 1],
-   ZoO_index sequence_length [const restrict static 1]
+   ZoO_index sequence_length [const restrict static 1],
+   const struct ZoO_pipe io [const restrict static 1]
 )
 {
    ZoO_index * new_sequence;
@@ -32,7 +33,7 @@ static int add_word_id_to_sequence
 
    if (new_sequence == (ZoO_index *) NULL)
    {
-      ZoO_S_ERROR("Unable to reallocate a sequence to add word ids to it.");
+      ZoO_S_ERROR(io, "Unable to reallocate a sequence to add word ids to it.");
 
       return -1;
    }
@@ -43,13 +44,19 @@ static int add_word_id_to_sequence
 /******************************************************************************/
 /** HANDLING PUNCTUATION ******************************************************/
 /******************************************************************************/
+
+/*
+ * Semaphore:
+ *    Takes then releases access for {k}.
+ */
 static int add_punctuation_to_sequence
 (
    const ZoO_char string [const restrict static 1],
    const ZoO_char punctuation,
    ZoO_index * sequence [const restrict static 1],
    ZoO_index sequence_length [const restrict static 1],
-   const struct ZoO_knowledge k [const restrict static 1]
+   const struct ZoO_knowledge k [const restrict static 1],
+   const struct ZoO_pipe io [const restrict static 1]
 )
 {
    ZoO_index word_id;
@@ -58,10 +65,15 @@ static int add_punctuation_to_sequence
    as_word[0] = punctuation;
    as_word[1] = '\0';
 
-   if (ZoO_knowledge_find_word_id(k, as_word, 2, &word_id) < 0)
+   (void) ZoO_knowledge_lock_access(k, io);
+
+   if (ZoO_knowledge_find_word_id(k, as_word, 2, &word_id, io) < 0)
    {
+      (void) ZoO_knowledge_unlock_access(k, io);
+
       ZoO_PROG_ERROR
       (
+         io,
          "'%s' was defined as a punctuation, was found in a string, yet is not"
          " defined in the knowledge database.",
          as_word
@@ -70,7 +82,9 @@ static int add_punctuation_to_sequence
       return -1;
    }
 
-   if (add_word_id_to_sequence(word_id, sequence, sequence_length) < 0)
+   (void) ZoO_knowledge_unlock_access(k, io);
+
+   if (add_word_id_to_sequence(word_id, sequence, sequence_length, io) < 0)
    {
       return -1;
    }
@@ -91,6 +105,11 @@ static int word_is_punctuation_terminated
 /******************************************************************************/
 /** HANDLING WORDS ************************************************************/
 /******************************************************************************/
+
+/*
+ * Semaphore:
+ *    Takes then releases access for {k}.
+ */
 static int add_word_to_sequence
 (
    const ZoO_char string [const restrict static 1],
@@ -98,7 +117,8 @@ static int add_word_to_sequence
    const ZoO_index word_length,
    ZoO_index * sequence [const restrict static 1],
    ZoO_index sequence_length [const restrict static 1],
-   struct ZoO_knowledge k [const restrict static 1]
+   struct ZoO_knowledge k [const restrict static 1],
+   const struct ZoO_pipe io [const restrict static 1]
 )
 {
    ZoO_index word_id;
@@ -109,6 +129,8 @@ static int add_word_to_sequence
       return 0;
    }
 
+   (void) ZoO_knowledge_lock_access(k, io);
+
    if
    (
       ZoO_knowledge_learn_word
@@ -116,14 +138,19 @@ static int add_word_to_sequence
          k,
          (string + word_start),
          word_length,
-         &word_id
+         &word_id,
+         io
       ) < 0
    )
    {
+      (void) ZoO_knowledge_unlock_access(k, io);
+
       return -1;
    }
 
-   if (add_word_id_to_sequence(word_id, sequence, sequence_length) < 0)
+   (void) ZoO_knowledge_unlock_access(k, io);
+
+   if (add_word_id_to_sequence(word_id, sequence, sequence_length, io) < 0)
    {
       return -1;
    }
@@ -138,7 +165,8 @@ static int add_finding_to_sequence
    const ZoO_index word_length,
    ZoO_index * sequence [const restrict static 1],
    ZoO_index sequence_length [const restrict static 1],
-   struct ZoO_knowledge k [const restrict static 1]
+   struct ZoO_knowledge k [const restrict static 1],
+   const struct ZoO_pipe io [const restrict static 1]
 )
 {
    ZoO_index punctuation;
@@ -161,7 +189,8 @@ static int add_finding_to_sequence
          (word_length - punctuation),
          sequence,
          sequence_length,
-         k
+         k,
+         io
       ) < 0
    )
    {
@@ -179,7 +208,8 @@ static int add_finding_to_sequence
             string[word_start + word_length - 1],
             sequence,
             sequence_length,
-            k
+            k,
+            io
          ) < 0
       )
    )
@@ -232,14 +262,17 @@ static int find_word
 
 /******************************************************************************/
 /** EXPORTED ******************************************************************/
-/******************************************************************************/
+/******************************************************************************/a
+
+/* See: "sequence.h" */
 int ZoO_sequence_from_undercase_string
 (
    const ZoO_char string [const restrict],
    const ZoO_index string_length,
    struct ZoO_knowledge k [const restrict static 1],
    ZoO_index * sequence [const restrict static 1],
-   ZoO_index sequence_length [const restrict static 1]
+   ZoO_index sequence_length [const restrict static 1],
+   const struct ZoO_pipe io [const restrict static 1]
 )
 {
    ZoO_index word_start, word_length;
@@ -256,7 +289,8 @@ int ZoO_sequence_from_undercase_string
       (
          ZoO_START_OF_SEQUENCE_ID,
          sequence,
-         sequence_length
+         sequence_length,
+         io
       ) < 0
    )
    {
@@ -279,7 +313,8 @@ int ZoO_sequence_from_undercase_string
             word_length,
             sequence,
             sequence_length,
-            k
+            k,
+            io
          ) < 0
       )
       {
@@ -299,7 +334,8 @@ int ZoO_sequence_from_undercase_string
       (
          ZoO_END_OF_SEQUENCE_ID,
          sequence,
-         sequence_length
+         sequence_length,
+         io
       ) < 0
    )
    {

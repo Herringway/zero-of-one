@@ -2,7 +2,7 @@
 #include <string.h>
 #include <stdint.h> /* defines SIZE_MAX */
 
-#include "../cli/cli.h"
+#include "../pipe/pipe.h"
 
 #include "knowledge.h"
 
@@ -43,7 +43,8 @@ static void initialize_word
 static ZoO_char * copy_word
 (
    const ZoO_char original [const restrict static 1],
-   const ZoO_index original_length
+   const ZoO_index original_length,
+   const struct ZoO_pipe io [const restrict static 1]
 )
 {
    ZoO_char * result;
@@ -58,7 +59,7 @@ static ZoO_char * copy_word
 
    if (result == (ZoO_char *) NULL)
    {
-      ZoO_S_ERROR("Unable to allocate memory to store new word.");
+      ZoO_S_ERROR(io, "Unable to allocate memory to store new word.");
 
       return (ZoO_char *) NULL;
    }
@@ -77,7 +78,8 @@ static ZoO_char * copy_word
 
 static int reallocate_words_list
 (
-   struct ZoO_knowledge k [const restrict static 1]
+   struct ZoO_knowledge k [const restrict static 1],
+   const struct ZoO_pipe io [const restrict static 1]
 )
 {
    struct ZoO_knowledge_word * new_words;
@@ -89,6 +91,7 @@ static int reallocate_words_list
    {
       ZoO_S_ERROR
       (
+         io,
          "Unable to store the size of the words list, as it would overflow"
          "size_t variables."
       );
@@ -107,6 +110,7 @@ static int reallocate_words_list
    {
       ZoO_S_ERROR
       (
+         io,
          "Unable to allocate the memory required for the new words list."
       );
 
@@ -120,7 +124,8 @@ static int reallocate_words_list
 
 static int reallocate_words_sorted_list
 (
-   struct ZoO_knowledge k [const restrict static 1]
+   struct ZoO_knowledge k [const restrict static 1],
+   const struct ZoO_pipe io [const restrict static 1]
 )
 {
    ZoO_index * new_words_sorted;
@@ -153,6 +158,7 @@ static int reallocate_words_sorted_list
    {
       ZoO_S_ERROR
       (
+         io,
          "Unable to allocate the memory required for the new sorted words list."
       );
 
@@ -192,7 +198,8 @@ static int add_word
    const ZoO_char word [const restrict static 1],
    const ZoO_index word_length,
    const ZoO_index word_id,
-   const ZoO_index sorted_word_id
+   const ZoO_index sorted_word_id,
+   const struct ZoO_pipe io [const restrict static 1]
 )
 {
    ZoO_char * stored_word;
@@ -201,6 +208,7 @@ static int add_word
    {
       ZoO_S_ERROR
       (
+         io,
          "Unable to add word: the variable that stores the number of known "
          "words would overflow."
       );
@@ -208,7 +216,7 @@ static int add_word
       return -1;
    }
 
-   stored_word = copy_word(word, word_length);
+   stored_word = copy_word(word, word_length, io);
 
    if (stored_word == (ZoO_char *) NULL)
    {
@@ -217,7 +225,7 @@ static int add_word
 
    k->words_length += 1;
 
-   if (reallocate_words_list(k) < 0)
+   if (reallocate_words_list(k, io) < 0)
    {
       k->words_length -= 1;
 
@@ -229,7 +237,7 @@ static int add_word
    k->words[word_id].word = stored_word;
    k->words[word_id].word_size = ((word_length + 1) * sizeof(ZoO_char));
 
-   if (reallocate_words_sorted_list(k) < 0)
+   if (reallocate_words_sorted_list(k, io) < 0)
    {
       k->words_length -= 1;
 
@@ -250,7 +258,8 @@ int ZoO_knowledge_learn_word
    struct ZoO_knowledge k [const restrict static 1],
    const ZoO_char word [const restrict static 1],
    const ZoO_index word_length,
-   ZoO_index word_id [const restrict static 1]
+   ZoO_index word_id [const restrict static 1],
+   const struct ZoO_pipe io [const restrict static 1]
 )
 {
    ZoO_index sorted_id;
@@ -262,7 +271,8 @@ int ZoO_knowledge_learn_word
          k,
          word,
          (word_length * sizeof(ZoO_char)),
-         word_id
+         word_id,
+         io
       ) == 0
    )
    {
@@ -272,5 +282,5 @@ int ZoO_knowledge_learn_word
    sorted_id = *word_id;
    *word_id = k->words_length;
 
-   return add_word(k, word, word_length, *word_id, sorted_id);
+   return add_word(k, word, word_length, *word_id, sorted_id, io);
 }

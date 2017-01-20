@@ -1,0 +1,40 @@
+Create 2 POSIX named pipes:
+   - REQ_PIPE, used to send requests.
+   - REPLY_PIPE, used to get replies to the requests.
+
+Open the pipes:
+   - REQ_PIPE as write_only.
+   - REPLY_PIPE as read_only.
+
+Open the POSIX named message queue in write_only mode.
+Send a message to this queue with the following format:
+   {
+      'C',
+      char req_pipe_name[255],
+      char reply_pipe_name[255]
+   }
+
+Read from the reply pipe name, with a timeout. When the server has handled
+your connection request, you will receive "ZoO_protocol_version X\n",
+with X a positive integer indicating the version of the protocol. If you do
+not support this protocol, proceed to destroying all the pipes, otherwise you
+are now able to send requests.
+Disconnecting is done by destroying the pipes. This goes both way: if you did
+not initiate the destroying, assume that the server went offline.
+
+Once connected, send your request on REQ_PIPE using the "CMD STRING\n" format,
+in which:
+   - CMD is one of:
+      - "L" -> Learn STRING, do not reply, do not add to storage.
+      - "LS" -> Learn STRING, do not reply, add to storage.
+      - "LSR" -> Learn STRING, reply, add to storage.
+      - "R" -> Do not learn STRING, reply, do not add to storage.
+   - STRING must not contain the '\n' character.
+
+The reply will come from REPLY_PIPE, using the "TYPE STRING\n" format, in which:
+	- TYPE is one of:
+		- "E" -> STRING contains an error message.
+		- "D" -> STRING contains the requested data.
+      - "C" -> All replies related to the request have been sent.
+At most one "D" reply per request, exactly one "C" reply per request, any
+number of "E" replies per request.

@@ -3,10 +3,11 @@
 #include <string.h>
 #include <stdint.h> /* defines SIZE_MAX */
 
-#include "../io/error.h"
-
 #include "../core/index.h"
-#include "../core/knowledge.h"
+
+#include "../pipe/pipe.h"
+
+#include "../knowledge/knowledge.h"
 
 #include "sequence.h"
 
@@ -66,7 +67,8 @@ static int left_append
 (
    const ZoO_index word_id,
    ZoO_index * sequence [const restrict],
-   const size_t sequence_size
+   const size_t sequence_size,
+   const struct ZoO_pipe io [const restrict static 1]
 )
 {
    ZoO_index * new_sequence;
@@ -75,6 +77,7 @@ static int left_append
    {
       ZoO_S_ERROR
       (
+         io,
          "Left side append aborted, as the new sequence's size would overflow."
       );
 
@@ -87,6 +90,7 @@ static int left_append
    {
       ZoO_S_ERROR
       (
+         io,
          "Left side append aborted, as memory for the new sequence could not be"
          " allocated."
       );
@@ -118,6 +122,8 @@ static int left_append
  * to fit there.
  * This requires the reallocation of {sequence}. The freeing of the previous
  * memory space is handled. If an error happened, {*sequence} remains untouched.
+ * Semaphore:
+ *    Takes then releases access for {k}.
  * Returns:
  *    0 on success.
  *    -1 iff nothing fitting was found.
@@ -133,12 +139,15 @@ static int extend_left
    ZoO_index * sequence [const restrict static 1],
    const size_t sequence_size,
    const ZoO_index markov_order,
-   const struct ZoO_knowledge k [const restrict static 1]
+   const struct ZoO_knowledge k [const restrict static 1],
+   const struct ZoO_pipe io [const restrict static 1]
 )
 {
    const ZoO_index * restrict preceding_words;
    const ZoO_index * restrict preceding_words_weights;
    ZoO_index preceding_words_weights_sum;
+
+   (void) ZoO_knowledge_lock_access(k, io);
 
    if
    (
@@ -149,10 +158,13 @@ static int extend_left
          markov_order,
          &preceding_words,
          &preceding_words_weights,
-         &preceding_words_weights_sum
+         &preceding_words_weights_sum,
+         io
       ) < 0
    )
    {
+      (void) ZoO_knowledge_unlock_access(k, io);
+
       return -1;
    }
 
@@ -168,12 +180,17 @@ static int extend_left
             preceding_words_weights_sum
          ),
          sequence,
-         sequence_size
+         sequence_size,
+         io
       ) < 0
    )
    {
+      (void) ZoO_knowledge_unlock_access(k, io);
+
       return -3;
    }
+
+   (void) ZoO_knowledge_unlock_access(k, io);
 
    return 0;
 }
@@ -206,14 +223,15 @@ static int complete_left_part_of_sequence
    size_t sequence_size [const restrict static 1],
    const ZoO_index markov_order,
    ZoO_index credits [const restrict],
-   const struct ZoO_knowledge k [const restrict static 1]
+   const struct ZoO_knowledge k [const restrict static 1],
+   const struct ZoO_pipe io [const restrict static 1]
 )
 {
    for (;;)
    {
       if ((credits == (ZoO_index *) NULL) || (*credits > 0))
       {
-         if (extend_left(sequence, *sequence_size, markov_order, k) < 0)
+         if (extend_left(sequence, *sequence_size, markov_order, k, io) < 0)
          {
             /* We are sure *sequence[0] is defined. */
             if (*sequence[0] == ZoO_START_OF_SEQUENCE_ID)
@@ -255,6 +273,7 @@ static int complete_left_part_of_sequence
          case ZoO_END_OF_SEQUENCE_ID:
             ZoO_S_WARNING
             (
+               io,
                "END OF LINE was added at the left part of an sequence."
             );
 
@@ -291,7 +310,8 @@ static int right_append
    ZoO_index * sequence [const restrict],
    const ZoO_index word_id,
    const size_t sequence_size,
-   const ZoO_index sequence_length
+   const ZoO_index sequence_length,
+   const struct ZoO_pipe io [const restrict static 1]
 )
 {
    ZoO_index * new_sequence;
@@ -300,6 +320,7 @@ static int right_append
    {
       ZoO_S_ERROR
       (
+         io,
          "Right side append aborted, as the new sequence's size would overflow."
       );
 
@@ -317,6 +338,7 @@ static int right_append
    {
       ZoO_S_ERROR
       (
+         io,
          "Right side append aborted, as memory for the new sequence could not "
          "be allocated."
       );
@@ -336,6 +358,8 @@ static int right_append
  * to fit there.
  * This requires the reallocation of {sequence}. The freeing of the previous
  * memory space is handled. If an error happened, {*sequence} remains untouched.
+ * Semaphore:
+ *    Takes then releases access for {k}.
  * Returns:
  *    0 on success.
  *    -1 iff nothing fitting was found.
@@ -352,13 +376,16 @@ static int extend_right
    const size_t sequence_size,
    const ZoO_index markov_order,
    const ZoO_index sequence_length,
-   const struct ZoO_knowledge k [const restrict static 1]
+   const struct ZoO_knowledge k [const restrict static 1],
+   const struct ZoO_pipe io [const restrict static 1]
 )
 {
    const ZoO_index * restrict following_words;
    const ZoO_index * restrict following_words_weights;
 
    ZoO_index following_words_weights_sum;
+
+   (void) ZoO_knowledge_lock_access(k, io);
 
    if
    (
@@ -374,6 +401,8 @@ static int extend_right
       ) < 0
    )
    {
+      (void) ZoO_knowledge_unlock_access(k, io);
+
       return -1;
    }
 
@@ -390,12 +419,17 @@ static int extend_right
             following_words_weights_sum
          ),
          sequence_size,
-         sequence_length
+         sequence_length,
+         io
       ) < 0
    )
    {
+      (void) ZoO_knowledge_unlock_access(k, io);
+
       return -3;
    }
+
+   (void) ZoO_knowledge_unlock_access(k, io);
 
    return 0;
 }
@@ -428,7 +462,8 @@ static int complete_right_part_of_sequence
    size_t sequence_size [const restrict static 1],
    const ZoO_index markov_order,
    ZoO_index credits [const restrict],
-   const struct ZoO_knowledge k [const restrict static 1]
+   const struct ZoO_knowledge k [const restrict static 1],
+   const struct ZoO_pipe io [const restrict static 1]
 )
 {
    ZoO_index sequence_length;
@@ -447,7 +482,8 @@ static int complete_right_part_of_sequence
                *sequence_size,
                markov_order,
                sequence_length,
-               k
+               k,
+               io
             ) < 0
          )
          {
@@ -492,6 +528,7 @@ static int complete_right_part_of_sequence
          case ZoO_START_OF_SEQUENCE_ID:
             ZoO_S_WARNING
             (
+               io,
                "END OF LINE was added at the right part of an sequence."
             );
 
@@ -525,13 +562,15 @@ static int allocate_initial_sequence
 (
    ZoO_index * sequence [const restrict static 1],
    size_t sequence_size [const restrict static 1],
-   const ZoO_index markov_order
+   const ZoO_index markov_order,
+   const struct ZoO_pipe io [const restrict static 1]
 )
 {
    if ((SIZE_MAX / sizeof(ZoO_index)) > ((size_t) markov_order))
    {
       ZoO_S_ERROR
       (
+         io,
          "Unable to store size of the initial sequence in a size_t variable."
          "Either reduce the size of a ZoO_index or the markovian order."
       );
@@ -551,6 +590,7 @@ static int allocate_initial_sequence
 
       ZoO_S_ERROR
       (
+         io,
          "Unable to allocate the memory required for an new sequence."
       );
 
@@ -581,7 +621,8 @@ static int initialize_sequence
    ZoO_index sequence [const restrict static 1],
    const ZoO_index initial_word,
    const ZoO_index markov_order,
-   const struct ZoO_knowledge k [const static 1]
+   const struct ZoO_knowledge k [const static 1],
+   const struct ZoO_pipe io [const restrict static 1]
 )
 {
    const ZoO_index * restrict following_sequences_ref;
@@ -596,6 +637,9 @@ static int initialize_sequence
       return 0;
    }
 
+   /* TODO */
+   (void) ZoO_knowledge_lock_access(k, io);
+
    if
    (
       ZoO_knowledge_get_following_sequences_ref
@@ -604,12 +648,16 @@ static int initialize_sequence
          initial_word,
          &following_sequences_ref,
          &following_sequences_weights,
-         &following_sequences_weights_sum
+         &following_sequences_weights_sum,
+         io
       ) < 0
    )
    {
+      (void) ZoO_knowledge_unlock_access(k, io);
+
       ZoO_S_ERROR
       (
+         io,
          "Unable to find any sequence that would precede the initial word."
       );
 
@@ -628,7 +676,8 @@ static int initialize_sequence
             following_sequences_weights_sum
          )
       ],
-      &chosen_sequence
+      &chosen_sequence,
+      io
    );
 
    /* Safe if 'allocate_initial_sequence' succeeded. */
@@ -638,6 +687,8 @@ static int initialize_sequence
       (const void *) chosen_sequence,
       ((((size_t) markov_order) - 1) * sizeof(ZoO_index))
    );
+
+   (void) ZoO_knowledge_unlock_access(k, io);
 
    return 0;
 }
@@ -654,15 +705,16 @@ int ZoO_sequence_create_from
    const struct ZoO_knowledge k [const restrict static 1],
    const ZoO_index markov_order,
    ZoO_index * sequence [const restrict static 1],
-   size_t sequence_size [const restrict static 1]
+   size_t sequence_size [const restrict static 1],
+   const struct ZoO_pipe io [const restrict static 1]
 )
 {
-   if (allocate_initial_sequence(sequence, sequence_size, markov_order) < 0)
+   if (allocate_initial_sequence(sequence, sequence_size, markov_order, io) < 0)
    {
       return -1;
    }
 
-   if (initialize_sequence(*sequence, initial_word, markov_order, k) < 0)
+   if (initialize_sequence(*sequence, initial_word, markov_order, k, io) < 0)
    {
       free((void *) *sequence);
       *sequence_size = 0;
@@ -678,7 +730,8 @@ int ZoO_sequence_create_from
          sequence_size,
          markov_order,
          credits,
-         k
+         k,
+         io
       ) < 0
    )
    {
@@ -696,7 +749,8 @@ int ZoO_sequence_create_from
          sequence_size,
          markov_order,
          credits,
-         k
+         k,
+         io
       ) < 0
    )
    {
@@ -709,7 +763,7 @@ int ZoO_sequence_create_from
    if ((*sequence_size / sizeof(ZoO_index)) < 3)
    {
       /* 2 elements, for start and stop. */
-      ZoO_S_ERROR("Created sequence was empty.");
+      ZoO_S_ERROR(io, "Created sequence was empty.");
 
       free((void *) *sequence);
       *sequence_size = 0;

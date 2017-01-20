@@ -2,7 +2,7 @@
 #include <string.h>
 #include <stdint.h> /* defines SIZE_MAX */
 
-#include "../cli/cli.h"
+#include "../pipe/pipe.h"
 
 #include "knowledge.h"
 
@@ -18,4 +18,21 @@ void ZoO_knowledge_initialize (struct ZoO_knowledge k [const static 1])
    k->sequences = (ZoO_index **) NULL;
    k->sequences_length = 0;
    k->sequences_sorted = (ZoO_index *) NULL;
+}
+
+int ZoO_knowledge_lock_access
+(
+   struct ZoO_knowledge k [const restrict static 1],
+   const struct ZoO_pipe io [const restrict static 1]
+)
+{
+   return 0;
+}
+
+void ZoO_knowledge_unlock_access
+(
+   struct ZoO_knowledge k [const restrict static 1],
+   const struct ZoO_pipe io [const restrict static 1]
+)
+{
 }

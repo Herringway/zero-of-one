@@ -3,6 +3,9 @@
 
 #include "../core/char_types.h"
 #include "../core/index_types.h"
+
+#include "../pipe/pipe.h"
+
 #include "../knowledge/knowledge_types.h"
 
 #include "sequence_types.h"
@@ -13,7 +16,8 @@ int ZoO_sequence_from_undercase_string
    const ZoO_index string_length,
    struct ZoO_knowledge k [const restrict static 1],
    ZoO_index * sequence [const restrict static 1],
-   ZoO_index sequence_length [const restrict static 1]
+   ZoO_index sequence_length [const restrict static 1],
+   const struct ZoO_pipe io [const restrict static 1]
 );
 
 /*
@@ -44,7 +48,8 @@ int ZoO_sequence_create_from
    const struct ZoO_knowledge k [const restrict static 1],
    const ZoO_index markov_order,
    ZoO_index * sequence [const restrict static 1],
-   size_t sequence_size [const restrict static 1]
+   size_t sequence_size [const restrict static 1],
+   const struct ZoO_pipe io [const restrict static 1]
 );
 
 /*

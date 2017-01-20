@@ -4,7 +4,7 @@
 #include "../core/index.h"
 #include "../core/sequence.h"
 
-#include "../cli/cli.h"
+#include "../pipe/pipe.h"
 
 #include "knowledge.h"
 
@@ -80,7 +80,8 @@ int ZoO_knowledge_find_preceding_words
    const ZoO_index markov_order, /* Pre: (> 0) */
    const ZoO_index * restrict preceding_words [const restrict static 1],
    const ZoO_index * restrict preceding_words_weights [const restrict static 1],
-   ZoO_index preceding_words_weights_sum [const restrict static 1]
+   ZoO_index preceding_words_weights_sum [const restrict static 1],
+   const struct ZoO_pipe io [const restrict static 1]
 )
 {
    /* This is a binary search */
@@ -94,6 +95,7 @@ int ZoO_knowledge_find_preceding_words
    {
       ZoO_S_ERROR
       (
+         io,
          "Attempting to find the preceding words of an unknown word."
       );
 
@@ -129,6 +131,7 @@ int ZoO_knowledge_find_preceding_words
 
       ZoO_S_ERROR
       (
+         io,
          "Attempting to find the preceding words of a sequence that never had "
          "any."
       );
@@ -150,7 +153,8 @@ int ZoO_knowledge_find_preceding_words
       (
          k,
          k->words[word].preceded.sequences_ref[local_sequence],
-         &candidate
+         &candidate,
+         io
       );
 
       cmp =
@@ -211,7 +215,8 @@ int ZoO_knowledge_find_following_words
    const ZoO_index markov_order,
    const ZoO_index * restrict following_words [const restrict static 1],
    const ZoO_index * restrict following_words_weights [const restrict static 1],
-   ZoO_index following_words_weights_sum [const restrict static 1]
+   ZoO_index following_words_weights_sum [const restrict static 1],
+   const struct ZoO_pipe io [const restrict static 1]
 )
 {
    /* This is a binary search */
@@ -261,6 +266,7 @@ int ZoO_knowledge_find_following_words
 
       ZoO_S_WARNING
       (
+         io,
          "Attempting to find the following words of a sequence that never had "
          "any."
       );
@@ -282,7 +288,8 @@ int ZoO_knowledge_find_following_words
       (
          k,
          k->words[word].followed.sequences_ref[local_sequence],
-         &candidate
+         &candidate,
+         io
       );
 
       cmp =

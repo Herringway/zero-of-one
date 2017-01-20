@@ -4,321 +4,87 @@
 
 #include "../core/sequence.h"
 
-#include "../cli/cli.h"
+#include "../pipe/pipe.h"
 
 #include "knowledge.h"
 
 /******************************************************************************/
-/** INITIALIZE ****************************************************************/
+/** LEARN FOLLOWING SEQUENCE **************************************************/
 /******************************************************************************/
-static void set_nth_sequence
-(
-   struct ZoO_knowledge k [const restrict static 1],
-   const ZoO_index sorted_sequence_id,
-   const ZoO_index sequence_id
-)
-{
-   /* Safe: (> k->sequences_length 1) */
-   if (sorted_sequence_id < (k->sequences_length - 1))
-   {
-      memmove
-      (
-         /* Safe: (=< (+ sorted_sequence_id 1) k->sequences_length) */
-         (void *) (k->sequences_sorted + (sorted_sequence_id + 1)),
-         (const void *) (k->sequences_sorted + sorted_sequence_id),
-         ((k->sequences_length - 1) - sorted_sequence_id)
-      );
-   }
-
-   k->sequences_sorted[sorted_sequence_id] = sequence_id;
-}
-
-/******************************************************************************/
-/** ALLOCATING MEMORY *********************************************************/
-/******************************************************************************/
-static int reallocate_sequences_list
-(
-   struct ZoO_knowledge k [const restrict static 1]
-)
-{
-   ZoO_index ** new_sequences;
-
-   if ((SIZE_MAX / sizeof(ZoO_index *)) > (size_t) k->sequences_length)
-   {
-      ZoO_S_ERROR
-      (
-         "Unable to store the size of the sequences list, as it would overflow"
-         "size_t variables."
-      );
-
-      return -1;
-   }
-
-   new_sequences =
-      (ZoO_index **) realloc
-      (
-         (void *) k->sequences,
-         (((size_t) k->sequences_length) * sizeof(ZoO_index *))
-      );
-
-   if (new_sequences == (ZoO_index **) NULL)
-   {
-      ZoO_S_ERROR
-      (
-         "Unable to allocate the memory required for the new sequence list."
-      );
-
-      return -1;
-   }
-
-   k->sequences = new_sequences;
-
-   return 0;
-}
-
-static int reallocate_sequences_sorted_list
-(
-   struct ZoO_knowledge k [const restrict static 1]
-)
-{
-   ZoO_index * new_sequences_sorted;
-
-   if ((SIZE_MAX / sizeof(ZoO_index)) > (size_t) k->sequences_length)
-   {
-      ZoO_S_ERROR
-      (
-         "Unable to store the size of the sorted sequences list, as it would"
-         " overflow size_t variables."
-      );
-
-      return -1;
-   }
-
-   new_sequences_sorted =
-      (ZoO_index *) realloc
-      (
-         (void *) k->sequences_sorted,
-         ((size_t) k->sequences_length) * sizeof(ZoO_index)
-      );
-
-   if (new_sequences_sorted == (ZoO_index *) NULL)
-   {
-      ZoO_S_ERROR
-      (
-         "Unable to allocate the memory required for the new sorted sequences"
-         " list."
-      );
-
-      return -1;
-   }
-
-   k->sequences_sorted = new_sequences_sorted;
-
-   return 0;
-}
-
-/* Pre: (=< ZoO_INDEX_MAX SIZE_MAX) */
-static ZoO_index * copy_sequence
-(
-   const ZoO_index base [const restrict static 1],
-   const ZoO_index base_length,
-   const ZoO_index markov_order
-)
-{
-   ZoO_index * result;
-
-   result = (ZoO_index *) calloc((size_t) base_length, sizeof(ZoO_index));
-
-   if (result == (ZoO_index *) NULL)
-   {
-      ZoO_S_ERROR
-      (
-         "Unable to allocate the memory required to store a new sequence."
-      );
-
-      return (ZoO_index *) NULL;
-   }
-
-   memcpy
-   (
-      (void *) result,
-      (const void *) base,
-      (((size_t) base_length) * sizeof(ZoO_index))
-   );
-
-   return result;
-}
-
-static int add_sequence
+static int add_following_sequence
 (
    struct ZoO_knowledge k [const restrict static 1],
    const ZoO_index sequence [const restrict static 1],
+   const ZoO_index index,
    const ZoO_index sequence_length,
-   const ZoO_index markov_order, /* Pre (> markov_order 1) */
-   const ZoO_index sequence_id,
-   const ZoO_index sorted_sequence_id
-)
-{
-   ZoO_index * stored_sequence;
-
-   if (k->sequences_length == ZoO_INDEX_MAX)
-   {
-      ZoO_S_ERROR
-      (
-         "Unable to add sequence: the variable that stores the number of known "
-         "sequences would overflow."
-      );
-
-      return -1;
-   }
-
-   stored_sequence = copy_sequence(sequence, sequence_length, markov_order);
-
-   if (stored_sequence == (ZoO_index *) NULL)
-   {
-      return -1;
-   }
-
-   k->sequences_length += 1;
-
-   if (reallocate_sequences_list(k) < 0)
-   {
-      k->sequences_length -= 1;
-
-      return -1;
-   }
-
-   k->sequences[sequence_id] = stored_sequence;
-
-   if (reallocate_sequences_sorted_list(k) < 0)
-   {
-      k->sequences_length -= 1;
-
-      return -1;
-   }
-
-   set_nth_sequence(k, sorted_sequence_id, sequence_id);
-
-   return -1;
-}
+   const ZoO_index markov_order,
+   const struct ZoO_pipe io [const restrict static 1]
+);
 
 /******************************************************************************/
-/** SEARCH ********************************************************************/
+/** LEARN PRECEDING SEQUENCE **************************************************/
 /******************************************************************************/
-
-static int find_sequence
+static int add_preceding_sequence
 (
-   const struct ZoO_knowledge k [const static 1],
+   struct ZoO_knowledge k [const restrict static 1],
    const ZoO_index sequence [const restrict static 1],
+   const ZoO_index index,
    const ZoO_index sequence_length,
-   const ZoO_index markov_order, /* Pre: (> 1) */
-   ZoO_index sequence_id [const restrict static 1]
+   const ZoO_index markov_order,
+   const struct ZoO_pipe io [const restrict static 1]
 )
 {
-   /* This is a binary search */
-   int cmp;
-   ZoO_index i, current_min, current_max;
-   const ZoO_index markov_sequence_length = (markov_order - 1);
-
-   /* Handles the case where the list is empty ********************************/
-   current_max = k->sequences_length;
-
-   if (current_max == 0)
-   {
-      *sequence_id = 0;
-
-      return -1;
-   }
-   /***************************************************************************/
-
-   current_min = 0;
-   current_max -= 1;
-
-   for (;;)
-   {
-      i = (current_min + ((current_max - current_min) / 2));
-
-      cmp =
-         ZoO_sequence_cmp
-         (
-            k->sequences[k->sequences_sorted[i]],
-            markov_sequence_length,
-            sequence,
-            sequence_length
-         );
-
-      if (cmp > 0)
-      {
-         current_min = (i + 1);
-
-         if (current_min > current_max)
-         {
-            *sequence_id = current_min;
-
-            return -1;
-         }
-      }
-      else if (cmp < 0)
-      {
-         if ((current_min > current_max) || (i == 0))
-         {
-            *sequence_id = i;
-
-            return -1;
-         }
-
-         current_max = (i - 1);
-      }
-      else
-      {
-         *sequence_id = k->sequences_sorted[i];
-
-         return 0;
-      }
-   }
 }
 
 /******************************************************************************/
 /** EXPORTED ******************************************************************/
 /******************************************************************************/
 
-int ZoO_knowledge_learn_markov_sequence
+int ZoO_knowledge_learn_sequence
 (
    struct ZoO_knowledge k [const restrict static 1],
    const ZoO_index sequence [const restrict static 1],
    const ZoO_index sequence_length,
-   const ZoO_index markov_order, /* Pre (> markov_order 1) */
-   ZoO_index sequence_id [const restrict static 1]
+   const ZoO_index markov_order,
+   const struct ZoO_pipe io [const restrict static 1]
 )
 {
-   ZoO_index sorted_id;
+   ZoO_index * buffer;
+   ZoO_index i;
+   const ZoO_index buffer_length = (markov_order - 1);
 
-   if
-   (
-      find_sequence
+   /* TODO */
+
+   for (i = 0; i < sequence_length; ++i)
+   {
+      k->words[sequence[i]].occurrences += 1;
+
+      add_preceding_sequence
       (
          k,
          sequence,
+         i,
+         sequence_length,
+         buffer_length,
+         io
+      );
+
+      add_following_sequence
+      (
+         k,
+         sequence,
+         i,
          sequence_length,
          markov_order,
-         sequence_id
-      ) == 0
-   )
-   {
-      return 0;
+         io
+      );
+
+      /*
+       * TODO: in case of failure, undo part of the word done so far: instead
+       * of unlearning, just remove the occurrence count of sequences and
+       * words so that {k} remains coherent.
+       */
    }
 
-   sorted_id = *sequence_id;
-   *sequence_id = k->sequences_length;
-
-   return
-      add_sequence
-      (
-         k,
-         sequence,
-         sequence_length,
-         markov_order,
-         *sequence_id,
-         sorted_id
-      );
+   return 0;
 }

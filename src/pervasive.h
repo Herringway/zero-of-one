@@ -1,7 +1,10 @@
 #ifndef _ZoO_PERVASIVE_H_
 #define _ZoO_PERVASIVE_H_
 
-#include <limits.h>
+#include <string.h>
+
+#define ZoO_SERVER_VERSION    1
+#define ZoO_PROTOCOL_VERSION  1
 
 #define ZoO_DEBUG_ALL 1
 

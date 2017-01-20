@@ -1,9 +1,9 @@
 add_subdirectory(cli)
 add_subdirectory(core)
-add_subdirectory(file)
-add_subdirectory(irc)
 add_subdirectory(knowledge)
-add_subdirectory(tool)
+add_subdirectory(pipe)
+add_subdirectory(server)
+add_subdirectory(storage)
 
 set(
    SRC_FILES ${SRC_FILES}
