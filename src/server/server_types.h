@@ -5,24 +5,21 @@
 
 #include "../core/index.h"
 
-struct ZoO_server_pipes_data
-{
-   char request_pipe[255];
-   char reply_pipe[255];
-};
+#include "../pipe/pipe_types.h"
 
 struct ZoO_server_message
 {
    char type;
    union
    {
-      struct ZoO_server_pipes_data pipes_name;
+      struct ZoO_pipe_names pipe_names;
       ZoO_index pthread_id;
    } data;
 };
 
 struct ZoO_server
 {
+   /* TODO: insert 2 thread barrier. */
    mqd_t mailbox;
    ZoO_index running_threads;
 };

@@ -30,7 +30,7 @@ static void initialize_word
 )
 {
    w->word = (const ZoO_char *) NULL;
-   w->word_size = 0;
+   w->word_length = 0;
    w->occurrences = 0;
 
    initialize_sequence_collection(&(w->followed));
@@ -53,7 +53,7 @@ static ZoO_char * copy_word
       (ZoO_char *)
       calloc
       (
-         (size_t) (original_length + 1),
+         original_length,
          sizeof(ZoO_char)
       );
 
@@ -71,8 +71,6 @@ static ZoO_char * copy_word
       (((size_t) original_length) * sizeof(ZoO_char))
    );
 
-   result[original_length] = '\0';
-
    return 0;
 }
 
@@ -86,7 +84,8 @@ static int reallocate_words_list
 
    if
    (
-      (SIZE_MAX / sizeof(struct ZoO_knowledge_word)) > (size_t) k->words_length
+      (SIZE_MAX / sizeof(struct ZoO_knowledge_word))
+      > (size_t) k->words_length
    )
    {
       ZoO_S_ERROR
@@ -135,7 +134,7 @@ static int reallocate_words_sorted_list
     * whose size is bigger than a ZoO_index.
     * */
    /*
-   if ((SIZE_MAX / sizeof(ZoO_index)) > (size_t) k->words_length)
+   if ((SIZE_MAX / sizeof(ZoO_index)) > k->words_length)
    {
       ZoO_S_ERROR
       (
@@ -185,7 +184,10 @@ static void set_nth_word
          /* Safe: (=< (+ sorted_word_id 1) k->words_length) */
          (void *) (k->words_sorted + (sorted_word_id + 1)),
          (const void *) (k->words_sorted + sorted_word_id),
-         ((k->words_length - 1) - sorted_word_id)
+         (
+            ((size_t) ((k->words_length - 1) - sorted_word_id))
+            * sizeof(ZoO_index)
+         )
       );
    }
 
@@ -235,7 +237,7 @@ static int add_word
    initialize_word(k->words + word_id);
 
    k->words[word_id].word = stored_word;
-   k->words[word_id].word_size = ((word_length + 1) * sizeof(ZoO_char));
+   k->words[word_id].word_length = word_length;
 
    if (reallocate_words_sorted_list(k, io) < 0)
    {
@@ -257,12 +259,19 @@ int ZoO_knowledge_learn_word
 (
    struct ZoO_knowledge k [const restrict static 1],
    const ZoO_char word [const restrict static 1],
-   const ZoO_index word_length,
+   const size_t word_length,
    ZoO_index word_id [const restrict static 1],
    const struct ZoO_pipe io [const restrict static 1]
 )
 {
    ZoO_index sorted_id;
+
+   if (word_length >= (size_t) ZoO_INDEX_MAX)
+   {
+      ZoO_S_ERROR(io, "Word is too long to be learned.");
+
+      return -1;
+   }
 
    if
    (
@@ -270,9 +279,8 @@ int ZoO_knowledge_learn_word
       (
          k,
          word,
-         (word_length * sizeof(ZoO_char)),
-         word_id,
-         io
+         (((size_t) word_length) * sizeof(ZoO_char)),
+         word_id
       ) == 0
    )
    {
@@ -282,5 +290,5 @@ int ZoO_knowledge_learn_word
    sorted_id = *word_id;
    *word_id = k->words_length;
 
-   return add_word(k, word, word_length, *word_id, sorted_id, io);
+   return add_word(k, word, (ZoO_index) word_length, *word_id, sorted_id, io);
 }

@@ -22,23 +22,5 @@ int ZoO_word_cmp
  */
 ZoO_char ZoO_char_to_lowercase (const ZoO_char c);
 
-/*
- * Returns '1' iff {c} should be considered as an punctuation character, '0'
- * otherwise.
- */
-/*@
- @ ensures ((\result == 1) || (\result == 0));
- @*/
-int ZoO_char_is_punctuation (const ZoO_char c);
-
-/*
- * Returns '1' iff containing {c} means the word should not be learned. '0'
- * otherwise.
- */
-/*@
- @ ensures ((\result == 1) || (\result == 0));
- @*/
-int ZoO_word_char_is_banned (const ZoO_char c);
-
 #endif
 

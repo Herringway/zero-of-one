@@ -26,6 +26,7 @@ int ZoO_knowledge_lock_access
    const struct ZoO_pipe io [const restrict static 1]
 )
 {
+   /* TODO */
    return 0;
 }
 
@@ -35,4 +36,5 @@ void ZoO_knowledge_unlock_access
    const struct ZoO_pipe io [const restrict static 1]
 )
 {
+   /* TODO */
 }

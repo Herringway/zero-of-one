@@ -2,7 +2,7 @@
 #include <string.h>
 #include <stdint.h> /* defines SIZE_MAX */
 
-#include "../core/sequence.h"
+#include "../sequence/sequence.h"
 
 #include "../pipe/pipe.h"
 
@@ -18,15 +18,16 @@ static void set_nth_sequence
    const ZoO_index sequence_id
 )
 {
-   /* Safe: (> k->sequences_length 1) */
    if (sorted_sequence_id < (k->sequences_length - 1))
    {
       memmove
       (
-         /* Safe: (=< (+ sorted_sequence_id 1) k->sequences_length) */
          (void *) (k->sequences_sorted + (sorted_sequence_id + 1)),
          (const void *) (k->sequences_sorted + sorted_sequence_id),
-         ((k->sequences_length - 1) - sorted_sequence_id)
+         (
+            ((size_t) ((k->sequences_length - 1) - sorted_sequence_id))
+            * sizeof(ZoO_index)
+         )
       );
    }
 

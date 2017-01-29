@@ -2,7 +2,7 @@
 #include <string.h>
 #include <stdint.h> /* defines SIZE_MAX */
 
-#include "../core/sequence.h"
+#include "../sequence/sequence.h"
 
 #include "../pipe/pipe.h"
 
@@ -15,11 +15,15 @@ static int add_following_sequence
 (
    struct ZoO_knowledge k [const restrict static 1],
    const ZoO_index sequence [const restrict static 1],
-   const ZoO_index index,
-   const ZoO_index sequence_length,
+   const size_t index,
+   const size_t sequence_length,
    const ZoO_index markov_order,
    const struct ZoO_pipe io [const restrict static 1]
-);
+)
+{
+   /* TODO */
+   return -1;
+}
 
 /******************************************************************************/
 /** LEARN PRECEDING SEQUENCE **************************************************/
@@ -28,32 +32,31 @@ static int add_preceding_sequence
 (
    struct ZoO_knowledge k [const restrict static 1],
    const ZoO_index sequence [const restrict static 1],
-   const ZoO_index index,
-   const ZoO_index sequence_length,
+   const size_t index,
+   const size_t sequence_length,
    const ZoO_index markov_order,
    const struct ZoO_pipe io [const restrict static 1]
 )
 {
+   /* TODO */
+   return -1;
 }
 
 /******************************************************************************/
 /** EXPORTED ******************************************************************/
 /******************************************************************************/
-
 int ZoO_knowledge_learn_sequence
 (
    struct ZoO_knowledge k [const restrict static 1],
    const ZoO_index sequence [const restrict static 1],
-   const ZoO_index sequence_length,
+   const size_t sequence_length,
    const ZoO_index markov_order,
    const struct ZoO_pipe io [const restrict static 1]
 )
 {
    ZoO_index * buffer;
-   ZoO_index i;
+   size_t i;
    const ZoO_index buffer_length = (markov_order - 1);
-
-   /* TODO */
 
    for (i = 0; i < sequence_length; ++i)
    {

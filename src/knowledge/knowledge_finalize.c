@@ -1,8 +1,4 @@
 #include <stdlib.h>
-#include <string.h>
-#include <stdint.h> /* defines SIZE_MAX */
-
-#include "../cli/cli.h"
 
 #include "knowledge.h"
 
@@ -59,7 +55,7 @@ static void knowledge_word_finalize
    struct ZoO_knowledge_word w [const restrict static 1]
 )
 {
-   w->word_size = 0;
+   w->word_length = 0;
    w->occurrences = 0;
 
    if (w->word != (ZoO_char *) NULL)

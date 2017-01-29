@@ -2,7 +2,7 @@
 
 #include "../core/char.h"
 #include "../core/index.h"
-#include "../core/sequence.h"
+#include "../sequence/sequence.h"
 
 #include "../pipe/pipe.h"
 
@@ -13,7 +13,7 @@ int ZoO_knowledge_find_word_id
 (
    const struct ZoO_knowledge k [const restrict static 1],
    const ZoO_char word [const restrict static 1],
-   const size_t word_size,
+   const size_t word_length,
    ZoO_index result [const restrict static 1]
 )
 {
@@ -40,7 +40,7 @@ int ZoO_knowledge_find_word_id
    {
       i = (current_min + ((current_max - current_min) / 2));
 
-      cmp = ZoO_word_cmp(word, word_size, k->words[k->words_sorted[i]].word);
+      cmp = ZoO_word_cmp(word, word_length, k->words[k->words_sorted[i]].word);
 
       if (cmp > 0)
       {
@@ -211,7 +211,7 @@ int ZoO_knowledge_find_following_words
 (
    const struct ZoO_knowledge k [const static 1],
    const ZoO_index sequence [const restrict],
-   const ZoO_index sequence_length,
+   const size_t sequence_length,
    const ZoO_index markov_order,
    const ZoO_index * restrict following_words [const restrict static 1],
    const ZoO_index * restrict following_words_weights [const restrict static 1],
@@ -224,14 +224,15 @@ int ZoO_knowledge_find_following_words
    ZoO_index i, current_min, current_max, local_sequence;
    const ZoO_index * restrict candidate;
    const ZoO_index markov_sequence_length = (markov_order - 1);
-   const ZoO_index sequence_offset =
-      ((sequence_length - markov_sequence_length) - 1);
+   const size_t sequence_offset =
+      ((sequence_length - ((size_t) markov_sequence_length)) - 1);
    const ZoO_index word = sequence[sequence_offset];
 
    if (word >= k->words_length)
    {
       ZoO_S_ERROR
       (
+         io,
          "Attempting to find the following words of an unknown word."
       );
 

@@ -1,0 +1,8 @@
+set(
+   SRC_FILES ${SRC_FILES}
+   ${CMAKE_CURRENT_SOURCE_DIR}/server.c
+   ${CMAKE_CURRENT_SOURCE_DIR}/server_worker.c
+)
+
+set(SRC_FILES ${SRC_FILES} PARENT_SCOPE)
+

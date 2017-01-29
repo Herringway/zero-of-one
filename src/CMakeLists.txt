@@ -3,6 +3,7 @@ add_subdirectory(core)
 add_subdirectory(knowledge)
 add_subdirectory(pipe)
 add_subdirectory(server)
+add_subdirectory(sequence)
 add_subdirectory(storage)
 
 set(

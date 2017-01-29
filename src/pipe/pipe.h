@@ -143,4 +143,5 @@
       }\
    )
 
+/* TODO: add missing pipe functions */
 #endif

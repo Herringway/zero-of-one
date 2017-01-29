@@ -1,7 +1,7 @@
 #ifndef _ZoO_SERVER_SERVER_H_
 #define _ZoO_SERVER_SERVER_H_
 
-#include "../cli/parameters_types.h"
+#include "../parameters/parameters_types.h"
 
 #include "server_types.h"
 
@@ -24,13 +24,14 @@ int ZoO_server_receive_message
    struct ZoO_server_message msg_buffer [const restrict static 1]
 );
 
-int ZoO_server_new_client
+int ZoO_server_add_worker
 (
-   struct ZoO_server [const restrict static 1],
-   struct ZoO_server_message msg_buffer [const restrict static 1]
+   struct ZoO_server s [const restrict static 1],
+   struct ZoO_server_message msg_buffer [const restrict static 1],
+   struct ZoO_worker_parameters worker_params [const restrict static 1]
 );
 
-int ZoO_server_join_thread
+int ZoO_server_finalize_worker
 (
    struct ZoO_server [const restrict static 1],
    struct ZoO_server_message msg_buffer [const restrict static 1]

@@ -52,72 +52,6 @@ static ZoO_index weighted_random_pick
 /******************************************************************************/
 
 /*
- * Adds an id to the left of the sequence.
- * This requires the reallocation of {sequence}. The freeing of the previous
- * memory space is handled. If an error happened, {*sequence} remains untouched.
- * Returns:
- *    0 on success.
- *    -1 iff adding the word would cause an overflow.
- *    -2 iff memory allocation was unsuccessful.
- * Post:
- *    (initialized {sequence})
- *    (initialized {*sequence})
- */
-static int left_append
-(
-   const ZoO_index word_id,
-   ZoO_index * sequence [const restrict],
-   const size_t sequence_size,
-   const struct ZoO_pipe io [const restrict static 1]
-)
-{
-   ZoO_index * new_sequence;
-
-   if ((SIZE_MAX - sizeof(ZoO_index)) > sequence_size)
-   {
-      ZoO_S_ERROR
-      (
-         io,
-         "Left side append aborted, as the new sequence's size would overflow."
-      );
-
-      return -1;
-   }
-
-   new_sequence = (ZoO_index *) malloc(sizeof(ZoO_index) + sequence_size);
-
-   if (new_sequence == (ZoO_index *) NULL)
-   {
-      ZoO_S_ERROR
-      (
-         io,
-         "Left side append aborted, as memory for the new sequence could not be"
-         " allocated."
-      );
-
-      return -2;
-   }
-
-   if (sequence_size > 0)
-   {
-      memcpy
-      (
-         (void *) (new_sequence + 1),
-         (const void *) sequence,
-         sequence_size
-      );
-
-      free((void *) sequence);
-   }
-
-   new_sequence[0] = word_id;
-
-   *sequence = new_sequence;
-
-   return 0;
-}
-
-/*
  * Adds an id to the left of the sequence, according to what is known as likely
  * to fit there.
  * This requires the reallocation of {sequence}. The freeing of the previous
@@ -137,9 +71,10 @@ static int left_append
 static int extend_left
 (
    ZoO_index * sequence [const restrict static 1],
-   const size_t sequence_size,
+   size_t sequence_capacity [const restrict static 1],
+   size_t sequence_length [const restrict static 1],
    const ZoO_index markov_order,
-   const struct ZoO_knowledge k [const restrict static 1],
+   struct ZoO_knowledge k [const restrict static 1],
    const struct ZoO_pipe io [const restrict static 1]
 )
 {
@@ -172,7 +107,7 @@ static int extend_left
 
    if
    (
-      left_append
+      ZoO_sequence_append_left
       (
          weighted_random_pick
          (
@@ -180,7 +115,8 @@ static int extend_left
             preceding_words_weights_sum
          ),
          sequence,
-         sequence_size,
+         sequence_capacity,
+         sequence_length,
          io
       ) < 0
    )
@@ -220,18 +156,30 @@ static int extend_left
 static int complete_left_part_of_sequence
 (
    ZoO_index * sequence [restrict static 1],
-   size_t sequence_size [const restrict static 1],
+   size_t sequence_capacity [const restrict static 1],
+   size_t sequence_length [const restrict static 1],
    const ZoO_index markov_order,
-   ZoO_index credits [const restrict],
-   const struct ZoO_knowledge k [const restrict static 1],
+   size_t credits [const restrict],
+   struct ZoO_knowledge k [const restrict static 1],
    const struct ZoO_pipe io [const restrict static 1]
 )
 {
    for (;;)
    {
-      if ((credits == (ZoO_index *) NULL) || (*credits > 0))
+      if ((credits == (size_t *) NULL) || (*credits > 0))
       {
-         if (extend_left(sequence, *sequence_size, markov_order, k, io) < 0)
+         if
+         (
+            extend_left
+            (
+               sequence,
+               sequence_capacity,
+               sequence_length,
+               markov_order,
+               k,
+               io
+            ) < 0
+         )
          {
             /* We are sure *sequence[0] is defined. */
             if (*sequence[0] == ZoO_START_OF_SEQUENCE_ID)
@@ -256,13 +204,7 @@ static int complete_left_part_of_sequence
          return 0;
       }
 
-      /*
-       * Safe: if it was going to overflow, extend_left would have returned a
-       * negative value, making this statement unreachable.
-       */
-      *sequence_size = (*sequence_size + sizeof(ZoO_index));
-
-      if (credits != (ZoO_index *) NULL)
+      if (credits != (size_t *) NULL)
       {
          *credits -= 1;
       }
@@ -293,65 +235,6 @@ static int complete_left_part_of_sequence
 /** ADDING ELEMENTS TO THE RIGHT **********************************************/
 /******************************************************************************/
 
-/*
- * Adds an id to the right of the sequence.
- * This requires the reallocation of {sequence}. The freeing of the previous
- * memory space is handled. If an error happened, {sequence} remain untouched.
- * Returns:
- *    0 on success.
- *    -1 iff adding the word would cause an overflow.
- *    -2 iff memory allocation was unsuccessful.
- * Post:
- *    (initialized {sequence})
- *    (initialized {*sequence})
- */
-static int right_append
-(
-   ZoO_index * sequence [const restrict],
-   const ZoO_index word_id,
-   const size_t sequence_size,
-   const ZoO_index sequence_length,
-   const struct ZoO_pipe io [const restrict static 1]
-)
-{
-   ZoO_index * new_sequence;
-
-   if ((SIZE_MAX - sizeof(ZoO_index)) > sequence_size)
-   {
-      ZoO_S_ERROR
-      (
-         io,
-         "Right side append aborted, as the new sequence's size would overflow."
-      );
-
-      return -1;
-   }
-
-   new_sequence =
-      (ZoO_index *) realloc
-      (
-         sequence,
-         (sequence_size + sizeof(ZoO_index))
-      );
-
-   if (new_sequence == (ZoO_index *) NULL)
-   {
-      ZoO_S_ERROR
-      (
-         io,
-         "Right side append aborted, as memory for the new sequence could not "
-         "be allocated."
-      );
-
-      return -2;
-   }
-
-   new_sequence[sequence_length] = word_id;
-
-   *sequence = new_sequence;
-
-   return 0;
-}
 
 /*
  * Adds an id to the right of the sequence, according to what is known as likely
@@ -373,10 +256,10 @@ static int right_append
 static int extend_right
 (
    ZoO_index * sequence [const restrict static 1],
-   const size_t sequence_size,
+   size_t sequence_capacity [const restrict static 1],
+   size_t sequence_length [const restrict static 1],
    const ZoO_index markov_order,
-   const ZoO_index sequence_length,
-   const struct ZoO_knowledge k [const restrict static 1],
+   struct ZoO_knowledge k [const restrict static 1],
    const struct ZoO_pipe io [const restrict static 1]
 )
 {
@@ -393,11 +276,12 @@ static int extend_right
       (
          k,
          *sequence,
-         sequence_length,
+         *sequence_length,
          markov_order,
          &following_words,
          &following_words_weights,
-         &following_words_weights_sum
+         &following_words_weights_sum,
+         io
       ) < 0
    )
    {
@@ -410,7 +294,7 @@ static int extend_right
 
    if
    (
-      right_append
+      ZoO_sequence_append_right
       (
          sequence,
          weighted_random_pick
@@ -418,7 +302,7 @@ static int extend_right
             following_words_weights,
             following_words_weights_sum
          ),
-         sequence_size,
+         sequence_capacity,
          sequence_length,
          io
       ) < 0
@@ -459,36 +343,33 @@ static int extend_right
 static int complete_right_part_of_sequence
 (
    ZoO_index * sequence [const restrict static 1],
-   size_t sequence_size [const restrict static 1],
+   size_t sequence_capacity [const restrict static 1],
+   size_t sequence_length [const restrict static 1],
    const ZoO_index markov_order,
-   ZoO_index credits [const restrict],
-   const struct ZoO_knowledge k [const restrict static 1],
+   size_t credits [const restrict],
+   struct ZoO_knowledge k [const restrict static 1],
    const struct ZoO_pipe io [const restrict static 1]
 )
 {
-   ZoO_index sequence_length;
-
-   sequence_length = (*sequence_size / sizeof(ZoO_index));
-
    for (;;)
    {
-      if ((credits == (ZoO_index *) NULL) || (*credits > 0))
+      if ((credits == (size_t *) NULL) || (*credits > 0))
       {
          if
          (
             extend_right
             (
                sequence,
-               *sequence_size,
-               markov_order,
+               sequence_capacity,
                sequence_length,
+               markov_order,
                k,
                io
             ) < 0
          )
          {
             /* Safe: (> sequence_length 1) */
-            if (*sequence[(sequence_length - 1)] == ZoO_END_OF_SEQUENCE_ID)
+            if (*sequence[(*sequence_length - 1)] == ZoO_END_OF_SEQUENCE_ID)
             {
                /*
                 * We failed to add a word, but it was because none should have
@@ -505,25 +386,18 @@ static int complete_right_part_of_sequence
       else
       {
          /* No more credits available, we end the sequence. */
-         *sequence[(sequence_length - 1)] = ZoO_END_OF_SEQUENCE_ID;
+         *sequence[(*sequence_length - 1)] = ZoO_END_OF_SEQUENCE_ID;
 
          return 0;
       }
 
-      /*
-       * Safe: if it was going to overflow, extend_left would have returned a
-       * negative value, making this statement unreachable.
-       */
-      *sequence_size = (*sequence_size + sizeof(ZoO_index));
-      sequence_length += 1;
-
-      if (credits != (ZoO_index *) NULL)
+      if (credits != (size_t *) NULL)
       {
          *credits -= 1;
       }
 
       /* Safe: (> sequence_length 1) */
-      switch (*sequence[(sequence_length - 1)])
+      switch (*sequence[(*sequence_length - 1)])
       {
          case ZoO_START_OF_SEQUENCE_ID:
             ZoO_S_WARNING
@@ -532,7 +406,7 @@ static int complete_right_part_of_sequence
                "END OF LINE was added at the right part of an sequence."
             );
 
-            *sequence[(sequence_length - 1)] = ZoO_END_OF_SEQUENCE_ID;
+            *sequence[(*sequence_length - 1)] = ZoO_END_OF_SEQUENCE_ID;
             return 0;
 
          case ZoO_END_OF_SEQUENCE_ID:
@@ -547,58 +421,6 @@ static int complete_right_part_of_sequence
 /******************************************************************************/
 /** INITIALIZING SEQUENCE *****************************************************/
 /******************************************************************************/
-
-/*
- * Allocates the memory required to store the initial sequence.
- * Returns:
- *    0 on success.
- *    -1 if this would require more memory than can indicate a size_t variable.
- *    -2 if the allocation failed.
- * Post:
- *    (initialized {*sequence})
- *    (initialized {*sequence_size})
- */
-static int allocate_initial_sequence
-(
-   ZoO_index * sequence [const restrict static 1],
-   size_t sequence_size [const restrict static 1],
-   const ZoO_index markov_order,
-   const struct ZoO_pipe io [const restrict static 1]
-)
-{
-   if ((SIZE_MAX / sizeof(ZoO_index)) > ((size_t) markov_order))
-   {
-      ZoO_S_ERROR
-      (
-         io,
-         "Unable to store size of the initial sequence in a size_t variable."
-         "Either reduce the size of a ZoO_index or the markovian order."
-      );
-
-      *sequence = (ZoO_index *) NULL;
-      *sequence_size = 0;
-
-      return -1;
-   }
-
-   *sequence_size = (((size_t) markov_order) * sizeof(ZoO_index));
-   *sequence = (ZoO_index *) malloc(*sequence_size);
-
-   if (*sequence == (void *) NULL)
-   {
-      *sequence_size = 0;
-
-      ZoO_S_ERROR
-      (
-         io,
-         "Unable to allocate the memory required for an new sequence."
-      );
-
-      return -2;
-   }
-
-   return 0;
-}
 
 /*
  * Initializes an pre-allocated sequence by filling it with {initial_word}
@@ -621,7 +443,7 @@ static int initialize_sequence
    ZoO_index sequence [const restrict static 1],
    const ZoO_index initial_word,
    const ZoO_index markov_order,
-   const struct ZoO_knowledge k [const static 1],
+   struct ZoO_knowledge k [const static 1],
    const struct ZoO_pipe io [const restrict static 1]
 )
 {
@@ -637,7 +459,6 @@ static int initialize_sequence
       return 0;
    }
 
-   /* TODO */
    (void) ZoO_knowledge_lock_access(k, io);
 
    if
@@ -701,33 +522,57 @@ static int initialize_sequence
 int ZoO_sequence_create_from
 (
    const ZoO_index initial_word,
-   ZoO_index credits [const restrict],
-   const struct ZoO_knowledge k [const restrict static 1],
+   size_t credits [const restrict],
+   struct ZoO_knowledge k [const restrict static 1],
    const ZoO_index markov_order,
    ZoO_index * sequence [const restrict static 1],
-   size_t sequence_size [const restrict static 1],
+   size_t sequence_capacity [const restrict static 1],
+   size_t sequence_length [const restrict static 1],
    const struct ZoO_pipe io [const restrict static 1]
 )
 {
-   if (allocate_initial_sequence(sequence, sequence_size, markov_order, io) < 0)
+   if
+   (
+      ZoO_sequence_ensure_capacity
+      (
+         sequence,
+         sequence_capacity,
+         markov_order,
+         io
+      ) < 0
+   )
    {
+      *sequence_length = 0;
+
       return -1;
    }
 
-   if (initialize_sequence(*sequence, initial_word, markov_order, k, io) < 0)
+   if
+   (
+      initialize_sequence
+      (
+         *sequence,
+         initial_word,
+         markov_order,
+         k,
+         io
+      ) < 0
+   )
    {
-      free((void *) *sequence);
-      *sequence_size = 0;
+      *sequence_length = 0;
 
       return -2;
    }
+
+   *sequence_length = markov_order;
 
    if
    (
       complete_right_part_of_sequence
       (
          sequence,
-         sequence_size,
+         sequence_capacity,
+         sequence_length,
          markov_order,
          credits,
          k,
@@ -735,8 +580,7 @@ int ZoO_sequence_create_from
       ) < 0
    )
    {
-      free((void *) *sequence);
-      *sequence_size = 0;
+      *sequence_length = 0;
 
       return -3;
    }
@@ -746,7 +590,8 @@ int ZoO_sequence_create_from
       complete_left_part_of_sequence
       (
          sequence,
-         sequence_size,
+         sequence_capacity,
+         sequence_length,
          markov_order,
          credits,
          k,
@@ -754,19 +599,17 @@ int ZoO_sequence_create_from
       ) < 0
    )
    {
-      free((void *) *sequence);
-      *sequence_size = 0;
+      *sequence_length = 0;
 
       return -4;
    }
 
-   if ((*sequence_size / sizeof(ZoO_index)) < 3)
+   if (*sequence_length < 3)
    {
       /* 2 elements, for start and stop. */
       ZoO_S_ERROR(io, "Created sequence was empty.");
 
-      free((void *) *sequence);
-      *sequence_size = 0;
+      *sequence_length = 0;
 
       return -5;
    }

@@ -10,15 +10,16 @@ Open the POSIX named message queue in write_only mode.
 Send a message to this queue with the following format:
    {
       'C',
+      unsigned int requested_protocol_version;
       char req_pipe_name[255],
       char reply_pipe_name[255]
    }
 
 Read from the reply pipe name, with a timeout. When the server has handled
 your connection request, you will receive "ZoO_protocol_version X\n",
-with X a positive integer indicating the version of the protocol. If you do
-not support this protocol, proceed to destroying all the pipes, otherwise you
-are now able to send requests.
+with X a positive integer indicating the version of the protocol that will be
+used. If you do not support this protocol, proceed to destroying all the pipes,
+otherwise you are now able to send requests.
 Disconnecting is done by destroying the pipes. This goes both way: if you did
 not initiate the destroying, assume that the server went offline.
 

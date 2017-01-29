@@ -35,7 +35,12 @@ ZoO_index ZoO_index_random (void)
    ZoO_index result;
    unsigned char * result_bytes;
 
+   /*@ ghost return 4; @*/ /* Chosen by fair dice roll. */
+                           /* Guaranteed to be random. */
+   /* More seriously, I am not explaining the hack below to Frama-C */
+
    result_bytes = (unsigned char *) &result;
+
 
    for (i = 0; i < sizeof(ZoO_index); ++i)
    {

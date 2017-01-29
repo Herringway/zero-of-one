@@ -41,7 +41,7 @@ int ZoO_knowledge_learn_word
 (
    struct ZoO_knowledge k [const static 1],
    const ZoO_char word [const restrict static 1],
-   const ZoO_index word_length,
+   const size_t word_length,
    ZoO_index result [const restrict static 1],
    const struct ZoO_pipe io [const restrict static 1]
 );
@@ -50,7 +50,7 @@ int ZoO_knowledge_learn_sequence
 (
    struct ZoO_knowledge k [const restrict static 1],
    const ZoO_index sequence [const restrict static 1],
-   const ZoO_index sequence_length,
+   const size_t sequence_length,
    const ZoO_index markov_order,
    const struct ZoO_pipe io [const restrict static 1]
 );
@@ -88,7 +88,7 @@ int ZoO_knowledge_get_word
    const struct ZoO_knowledge k [const static 1],
    const ZoO_index word_ref,
    const ZoO_char * word [const restrict static 1],
-   size_t word_size [const restrict static 1],
+   ZoO_index word_size [const restrict static 1],
    const struct ZoO_pipe io [const restrict static 1]
 );
 
@@ -125,7 +125,7 @@ int ZoO_knowledge_find_following_words
 (
    const struct ZoO_knowledge k [const static 1],
    const ZoO_index sequence [const restrict],
-   const ZoO_index sequence_length,
+   const size_t sequence_length,
    const ZoO_index markov_order,
    const ZoO_index * restrict following_words [const restrict static 1],
    const ZoO_index * restrict following_words_weights [const restrict static 1],
