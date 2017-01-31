@@ -16,28 +16,37 @@
 /*@
    requires \valid(required_capacity);
    requires \valid(io);
-   requires (*required_capacity >= 0);
-   requires (*required_capacity <= SIZE_MAX);
    requires \separated(required_capacity, io);
 
    assigns \result;
 
-   ensures (*required_capacity >= 0);
+   assigns (*required_capacity);
 
-   behavior success:
-      assigns (*required_capacity);
+   ensures ((\result == 0) || (\result == -1));
 
-      ensures (\result >= 0);
-      ensures ((*required_capacity) == (\old(*required_capacity) + 1));
-      ensures (((*required_capacity) * sizeof(ZoO_index)) <= SIZE_MAX);
+   ensures \valid(required_capacity);
+   ensures \valid(io);
 
-   behavior failure:
-      assigns \nothing;
+   ensures \separated(required_capacity, io);
 
-      ensures (\result < 0);
+   ensures
+      (
+         (\result == 0) <==>
+               ((*required_capacity) == (\old(*required_capacity) + 1))
+      );
 
-   complete behaviors;
-   disjoint behaviors;
+   ensures
+      (
+         (\result == 0) ==>
+            ((*required_capacity) * sizeof(ZoO_index)) <= SIZE_MAX
+      );
+
+   ensures
+      (
+         (\result == -1) <==>
+            ((*required_capacity) == \old(*required_capacity))
+      );
+
 @*/
 static int increment_required_capacity
 (
@@ -52,13 +61,15 @@ static int increment_required_capacity
    )
    {
       /*@ assert \valid(io); @*/
-      /*@ ghost return -1; @*/
+
+      #ifndef ZoO_RUNNING_FRAMA_C
       ZoO_S_ERROR
       (
          io,
          "Sequence capacity increment aborted, as the new size would not fit"
          " in a size_t variable."
       );
+      #endif
 
       return -1;
    }
@@ -86,6 +97,7 @@ int ZoO_sequence_ensure_capacity
 {
    ZoO_index * new_sequence;
 
+   /*@ assert \valid(sequence_capacity); @*/
    if (sequence_required_capacity <= *sequence_capacity)
    {
       return 0;
@@ -100,7 +112,6 @@ int ZoO_sequence_ensure_capacity
    @*/
    /*@ assert \valid(sequence); @*/
    /*@ assert \valid(*sequence); @*/
-
    new_sequence =
       (ZoO_index *) realloc
       (
@@ -111,13 +122,14 @@ int ZoO_sequence_ensure_capacity
    if (new_sequence == (ZoO_index *) NULL)
    {
       /*@ assert \valid(io); @*/
-      /*@ ghost return -1; @*/
 
+      #ifndef ZoO_RUNNING_FRAMA_C
       ZoO_S_ERROR
       (
          io,
          "Unable to reallocate memory to match sequence's required size."
       );
+      #endif
 
       return -1;
    }
@@ -145,7 +157,6 @@ int ZoO_sequence_append_left
    /*@ assert (((*sequence_length) * sizeof(ZoO_index)) <= SIZE_MAX); @*/
    if
    (
-      /* Appears to make Frama-C forget everything about *sequence_length. */
       ZoO_sequence_ensure_capacity
       (
          sequence,
@@ -155,20 +166,25 @@ int ZoO_sequence_append_left
       ) < 0
    )
    {
-      return -2;
+      *sequence_length -= 1;
+
+      return -1;
    }
+
    /*@ assert *sequence_length >= 0; @*/
 
    if (*sequence_length > 1)
    {
       /*@ assert(((*sequence_length) * sizeof(ZoO_index)) <= SIZE_MAX); @*/
 
+      #ifndef ZoO_RUNNING_FRAMA_C
       memmove
       (
          (void *) (*sequence + 1),
          (const void *) sequence,
          (((*sequence_length) - 1) * sizeof(ZoO_index))
       );
+      #endif
    }
 
    (*sequence)[0] = word_id;
@@ -190,7 +206,8 @@ int ZoO_sequence_append_right
       return -1;
    }
 
-   /*@ assert ((*sequence_length * sizeof(ZoO_index)) < SIZE_MAX); @*/
+   /*@ assert ((*sequence_length * sizeof(ZoO_index)) <= SIZE_MAX); @*/
+
    if
    (
       ZoO_sequence_ensure_capacity
@@ -202,6 +219,8 @@ int ZoO_sequence_append_right
       ) < 0
    )
    {
+      *sequence_length -= 1;
+
       return -1;
    }
 

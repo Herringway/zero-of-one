@@ -18,43 +18,52 @@
    requires \valid(*sequence);
    requires \valid(sequence_capacity);
    requires \valid(io);
-   requires ((sequence_required_capacity * sizeof(ZoO_index)) <= SIZE_MAX);
-   requires (*sequence_capacity >= 0);
-   requires (*sequence_capacity <= SIZE_MAX);
+
    requires (((*sequence_capacity) * sizeof(ZoO_index)) <= SIZE_MAX);
-   requires \separated(sequence, sequence_capacity, io);
+   requires ((sequence_required_capacity * sizeof(ZoO_index)) <= SIZE_MAX);
+
+   requires \separated(sequence, *sequence, sequence_capacity, io);
+
+   ensures \separated(sequence, *sequence, sequence_capacity, io);
+   ensures (((*sequence_capacity) * sizeof(ZoO_index)) <= SIZE_MAX);
+   ensures ((sequence_required_capacity * sizeof(ZoO_index)) <= SIZE_MAX);
+   ensures \valid(sequence);
+   ensures \valid(*sequence);
+   ensures \valid(sequence_capacity);
+   ensures \valid(io);
+
+   assigns (*sequence);
+   assigns (*sequence_capacity);
+
+   ensures ((\result == 1) || (\result == 0) || (\result == -1));
 
    ensures
-   (
       (
-         (\result >= 0)
-         && (*sequence_capacity >= sequence_required_capacity)
-         && ((*sequence_capacity * sizeof(ZoO_index)) <= SIZE_MAX)
-      )
-      || (\result < 0)
-   );
+         (\result == 1) ==>
+            ((*sequence_capacity) == sequence_required_capacity)
+      );
 
-   behavior successful_reallocation:
-      assigns (*sequence);
-      assigns (*sequence_capacity);
+   ensures
+      (
+         (\result == 1) ==>
+            ((*sequence_capacity) > \old(*sequence_capacity))
+      );
 
-      ensures (\result > 0);
-      ensures ((*sequence_capacity) == sequence_required_capacity);
-      ensures \valid(sequence);
+   ensures ((\result == -1) ==> ((*sequence) == \old(*sequence)));
 
-   behavior already_done:
-      assigns \nothing;
+   ensures
+      (
+         (\result == -1) ==>
+            ((*sequence_capacity) == \old(*sequence_capacity))
+      );
 
-      ensures (\result == 0);
-      ensures ((*sequence_capacity) >= sequence_required_capacity);
+   ensures ((\result == 0) ==> ((*sequence) == \old(*sequence)));
 
-   behavior failure:
-      assigns \nothing;
-
-      ensures (\result < 0);
-
-   complete behaviors;
-   disjoint behaviors;
+   ensures
+      (
+         (\result == 0) ==>
+            ((*sequence_capacity) == \old(*sequence_capacity))
+      );
 @*/
 int ZoO_sequence_ensure_capacity
 (
@@ -109,30 +118,58 @@ int ZoO_sequence_create_from
 );
 
 /*@
+   requires \valid(sequence);
+   requires \valid(*sequence);
+   requires \valid(sequence_capacity);
    requires \valid(sequence_length);
    requires \valid(io);
    requires (((*sequence_length) * sizeof(ZoO_index)) <= SIZE_MAX);
    requires (((*sequence_capacity) * sizeof(ZoO_index)) <= SIZE_MAX);
-   requires \separated(sequence, sequence_capacity, sequence_length, io);
+   requires \separated(sequence, sequence, sequence_capacity, sequence_length, io);
 
-   behavior success:
-      assigns (*sequence_length);
-      assigns (*sequence[0]);
-      assigns (*sequence_capacity);
+   assigns (*sequence_length);
+   assigns (*sequence[0]);
+   assigns (*sequence_capacity);
 
-      ensures (\result >= 0);
-      ensures ((*sequence_length > \old(*sequence_length)));
+   ensures \valid(sequence);
+   ensures \valid(sequence_capacity);
+   ensures \valid(sequence_length);
+   ensures \valid(io);
+   ensures (((*sequence_length) * sizeof(ZoO_index)) <= SIZE_MAX);
+   ensures (((*sequence_capacity) * sizeof(ZoO_index)) <= SIZE_MAX);
+   ensures \separated(sequence, *sequence, sequence_capacity, sequence_length, io);
 
-   behavior could_not_increase_length:
-      ensures (\result == -1);
+   ensures ((\result == 0) || (\result == -1));
 
-      assigns (*sequence_length);
+   ensures
+   (
+      (\result == 0) ==>
+         (*sequence_length == (\old(*sequence_length) + 1))
+   );
 
-   behavior could_not_reallocate:
-      ensures (\result < -1);
+   ensures
+      (
+         (\result == 0) ==>
+            ((*sequence_capacity) >= \old(*sequence_capacity))
+      );
 
-   complete behaviors;
-   disjoint behaviors;
+   ensures ((\result == 0) ==> (*sequence_length > \old(*sequence_length)));
+
+   ensures ((\result == -1) ==> ((*sequence_length) == \old(*sequence_length)));
+   ensures ((\result == -1) ==> ((*sequence[0]) == \old(*sequence[0])));
+   ensures
+      (
+         (\result == -1) ==>
+            ((*sequence_capacity) == \old(*sequence_capacity))
+      );
+
+   ensures ((\result == -1) ==> ((*sequence_length) == \old(*sequence_length)));
+   ensures
+      (
+         (\result == -1) ==>
+            ((*sequence_capacity) == \old(*sequence_capacity))
+      );
+
 @*/
 int ZoO_sequence_append_left
 (
@@ -144,32 +181,58 @@ int ZoO_sequence_append_left
 );
 
 /*@
+   requires \valid(sequence);
    requires \valid(*sequence);
    requires \valid(sequence_capacity);
    requires \valid(sequence_length);
    requires \valid(io);
    requires (((*sequence_length) * sizeof(ZoO_index)) <= SIZE_MAX);
    requires (((*sequence_capacity) * sizeof(ZoO_index)) <= SIZE_MAX);
-   requires \separated(sequence, sequence_capacity, sequence_length, io);
+   requires \separated(sequence, sequence, sequence_capacity, sequence_length, io);
 
-   behavior success:
-      assigns (*sequence_length);
-      assigns (*sequence);
-      assigns (*sequence_capacity);
+   assigns (*sequence_length);
+   assigns (*sequence[0]);
+   assigns (*sequence_capacity);
 
-      ensures (\result >= 0);
-      ensures ((*sequence_length > \old(*sequence_length)));
+   ensures \valid(sequence);
+   ensures \valid(sequence_capacity);
+   ensures \valid(sequence_length);
+   ensures \valid(io);
+   ensures (((*sequence_length) * sizeof(ZoO_index)) <= SIZE_MAX);
+   ensures (((*sequence_capacity) * sizeof(ZoO_index)) <= SIZE_MAX);
+   ensures \separated(sequence, *sequence, sequence_capacity, sequence_length, io);
 
-   behavior could_not_increase_length:
-      ensures (\result == -1);
+   ensures ((\result == 0) || (\result == -1));
 
-      assigns (*sequence_length);
+   ensures
+   (
+      (\result == 0) ==>
+         (*sequence_length == (\old(*sequence_length) + 1))
+   );
 
-   behavior could_not_reallocate:
-      ensures (\result < -1);
+   ensures
+      (
+         (\result == 0) ==>
+            ((*sequence_capacity) >= \old(*sequence_capacity))
+      );
 
-   complete behaviors;
-   disjoint behaviors;
+   ensures ((\result == 0) ==> (*sequence_length > \old(*sequence_length)));
+
+   ensures ((\result == -1) ==> ((*sequence_length) == \old(*sequence_length)));
+   ensures ((\result == -1) ==> ((*sequence[0]) == \old(*sequence[0])));
+   ensures
+      (
+         (\result == -1) ==>
+            ((*sequence_capacity) == \old(*sequence_capacity))
+      );
+
+   ensures ((\result == -1) ==> ((*sequence_length) == \old(*sequence_length)));
+   ensures
+      (
+         (\result == -1) ==>
+            ((*sequence_capacity) == \old(*sequence_capacity))
+      );
+
 @*/
 int ZoO_sequence_append_right
 (

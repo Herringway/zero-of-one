@@ -6,18 +6,12 @@
 #define ZoO_SERVER_VERSION    1
 #define ZoO_PROTOCOL_VERSION  1
 
+#define ZoO_RUNNING_FRAMA_C   1
+
 #define ZoO_DEBUG_ALL 1
 
 #ifndef ZoO_DEBUG_ALL
    #define ZoO_DEBUG_ALL 0
-#endif
-
-#ifndef ZoO_NETWORK_TIMEOUT
-   #define ZoO_NETWORK_TIMEOUT            200
-#endif
-
-#ifndef ZoO_MAX_REPLY_WORDS
-   #define ZoO_MAX_REPLY_WORDS            64
 #endif
 
 #define ZoO__TO_STRING(x) #x
