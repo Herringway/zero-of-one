@@ -5,36 +5,54 @@
 
 #include "server_types.h"
 
-int ZoO_server_cleanup_session (const char * session);
-
 int ZoO_server_initialize
 (
-   struct ZoO_server [const restrict static 1],
-   const char * session
+   struct ZoO_server server [const restrict static 1],
+   const struct ZoO_parameters params [const restrict static 1]
 );
 
-int ZoO_server_main (const struct ZoO_parameters params);
-int ZoO_server_finalize (struct ZoO_server [const restrict static 1]);
-
-void ZoO_server_no_mq_termination (struct ZoO_server [const restrict static 1]);
-
-int ZoO_server_receive_message
+int ZoO_server_socket_open
 (
-   struct ZoO_server [const restrict static 1],
-   struct ZoO_server_message msg_buffer [const restrict static 1]
+   struct ZoO_server_socket server_socket [const restrict static 1],
+   const char socket_name [const restrict static 1]
 );
 
-int ZoO_server_add_worker
+void ZoO_server_request_termination (void);
+int ZoO_server_is_running (void);
+int ZoO_server_set_signal_handlers (void);
+
+int ZoO_server_main
 (
-   struct ZoO_server s [const restrict static 1],
-   struct ZoO_server_message msg_buffer [const restrict static 1],
-   struct ZoO_worker_parameters worker_params [const restrict static 1]
+   const struct ZoO_parameters params [const restrict static 1]
 );
 
-int ZoO_server_finalize_worker
+void ZoO_server_finalize (struct ZoO_server [const restrict static 1]);
+
+int ZoO_server_wait_for_new_event
 (
-   struct ZoO_server [const restrict static 1],
-   struct ZoO_server_message msg_buffer [const restrict static 1]
+   struct ZoO_server server [const restrict static 1]
+);
+
+void ZoO_server_handle_joining_threads
+(
+   struct ZoO_server server [const restrict static 1]
+);
+
+int ZoO_server_handle_new_connection
+(
+   struct ZoO_server server [const restrict static 1]
+);
+
+void * ZoO_server_worker_main (void * input);
+
+int ZoO_server_worker_receive
+(
+   struct ZoO_server_worker worker [const restrict static 1]
+);
+
+int ZoO_server_worker_handle_request
+(
+   struct ZoO_server_worker worker [const restrict static 1]
 );
 
 #endif

@@ -86,7 +86,7 @@ static int extend_left
 
    if
    (
-      ZoO_knowledge_find_preceding_words
+      ZoO_knowledge_find_tws_targets
       (
          k,
          *sequence,
@@ -272,7 +272,7 @@ static int extend_right
 
    if
    (
-      ZoO_knowledge_find_following_words
+      ZoO_knowledge_find_swt_targets
       (
          k,
          *sequence,
@@ -447,12 +447,12 @@ static int initialize_sequence
    const struct ZoO_pipe io [const restrict static 1]
 )
 {
-   const ZoO_index * restrict following_sequences_ref;
+   const ZoO_index * restrict swt_sequences_ref;
    const ZoO_index * restrict chosen_sequence;
-   const ZoO_index * restrict following_sequences_weights;
-   ZoO_index following_sequences_weights_sum;
+   const ZoO_index * restrict swt_sequences_weights;
+   ZoO_index swt_sequences_weights_sum;
 
-   sequence[0] = initial_word;
+   sequence[(markov_order - 1)] = initial_word;
 
    if (markov_order == 1)
    {
@@ -463,13 +463,13 @@ static int initialize_sequence
 
    if
    (
-      ZoO_knowledge_get_following_sequences_ref
+      ZoO_knowledge_get_swt_sequences_ref
       (
          k,
          initial_word,
-         &following_sequences_ref,
-         &following_sequences_weights,
-         &following_sequences_weights_sum,
+         &swt_sequences_ref,
+         &swt_sequences_weights,
+         &swt_sequences_weights_sum,
          io
       ) < 0
    )
@@ -489,12 +489,12 @@ static int initialize_sequence
    (void) ZoO_knowledge_get_sequence
    (
       k,
-      following_sequences_ref
+      swt_sequences_ref
       [
          weighted_random_pick
          (
-            following_sequences_weights,
-            following_sequences_weights_sum
+            swt_sequences_weights,
+            swt_sequences_weights_sum
          )
       ],
       &chosen_sequence,
@@ -504,7 +504,7 @@ static int initialize_sequence
    /* Safe if 'allocate_initial_sequence' succeeded. */
    memcpy
    (
-      (void *) (sequence + 1),
+      (void *) sequence,
       (const void *) chosen_sequence,
       ((((size_t) markov_order) - 1) * sizeof(ZoO_index))
    );

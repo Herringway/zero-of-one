@@ -65,8 +65,8 @@ static void knowledge_word_finalize
       w->word = (ZoO_char *) NULL;
    }
 
-   knowledge_sequence_collection_finalize(&(w->followed));
-   knowledge_sequence_collection_finalize(&(w->preceded));
+   knowledge_sequence_collection_finalize(&(w->swt));
+   knowledge_sequence_collection_finalize(&(w->tws));
 }
 
 /* See: "knowledge.h" */
@@ -115,4 +115,6 @@ void ZoO_knowledge_finalize (struct ZoO_knowledge k [const restrict static 1])
 
       k->sequences_sorted = (ZoO_index *) NULL;
    }
+
+   pthread_mutex_destroy(&(k->mutex));
 }

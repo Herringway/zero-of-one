@@ -1,21 +1,62 @@
-#include "worker.h"
+#include <signal.h>
+#include <string.h>
+#include <stdio.h>
 
-void ZoO_worker_initialize_parameters
+#include "server.h"
+
+static void initialize
 (
-   struct ZoO_worker_parameters worker_params;
-   const struct ZoO_server_message msg_buffer [const restrict static 1],
-   const struct ZoO_parameters params [const restrict static 1]
+   struct ZoO_server_worker worker [const restrict static 1],
+   void * input
 )
 {
-   worker_params->thread_id = 0;
-   pthread_barrier_t * barrier;
-   mqd_t * server_mailbox;
-   const struct ZoO_pipe_names * pipe_names;
+   memcpy
+   (
+      (void *) &(worker->params),
+      (const void *) input,
+      sizeof(struct ZoO_server_thread_parameters)
+   );
 
-   /* Program data */
-   ZoO_index markov_order;
-   struct ZoO_knowledge * k;
-   const char * storage_filename;
+   pthread_barrier_wait(&(worker->params.thread_collection->barrier));
 
-   /* TODO */
+   worker->buffer = (char *) NULL;
+   worker->buffer_capacity = 0;
+   worker->buffer_length = 0;
+}
+
+static void finalize
+(
+   struct ZoO_server_worker worker [const restrict static 1]
+)
+{
+   pthread_mutex_lock(&(worker->params.thread_collection->mutex));
+
+   worker->params.thread_collection->threads[worker->params.thread_id].state =
+      ZoO_SERVER_JOINING_THREAD;
+
+   pthread_mutex_unlock(&(worker->params.thread_collection->mutex));
+}
+
+void * ZoO_server_worker_main (void * input)
+{
+   struct ZoO_server_worker worker;
+
+   initialize(&worker, input);
+
+   while (ZoO_server_is_running())
+   {
+      if (ZoO_server_worker_receive(&worker) < 0)
+      {
+         break;
+      }
+
+      if (ZoO_server_worker_handle_request(&worker) < 0)
+      {
+         break;
+      }
+   }
+
+   finalize(&worker);
+
+   return NULL;
 }

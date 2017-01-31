@@ -33,8 +33,8 @@ static void initialize_word
    w->word_length = 0;
    w->occurrences = 0;
 
-   initialize_sequence_collection(&(w->followed));
-   initialize_sequence_collection(&(w->preceded));
+   initialize_sequence_collection(&(w->swt));
+   initialize_sequence_collection(&(w->tws));
 }
 
 /******************************************************************************/

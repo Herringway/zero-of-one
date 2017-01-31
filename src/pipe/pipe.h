@@ -142,6 +142,4 @@
          ZoO_PRINT_S_STDERR(pipe, "F", str);\
       }\
    )
-
-/* TODO: add missing pipe functions */
 #endif

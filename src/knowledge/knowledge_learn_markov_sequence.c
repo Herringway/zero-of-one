@@ -143,7 +143,6 @@ static int reallocate_sequences_sorted_list
 static ZoO_index * copy_sequence
 (
    const ZoO_index base [const restrict static 1],
-   const ZoO_index base_length,
    const ZoO_index destination_length,
    const struct ZoO_pipe io [const restrict static 1]
 )
@@ -169,45 +168,12 @@ static ZoO_index * copy_sequence
       return (ZoO_index *) NULL;
    }
 
-   if (base_length == destination_length)
-   {
-      memcpy
-      (
-         (void *) result,
-         (const void *) base,
-         (((size_t) base_length) * sizeof(ZoO_index))
-      );
-   }
-   else if (base[0] == ZoO_START_OF_SEQUENCE_ID)
-   {
-      diff = (destination_length - base_length);
-
-      memcpy
-      (
-         (void *) (result + diff),
-         (const void *) base,
-         (((size_t) base_length) * sizeof(ZoO_index))
-      );
-
-      for (i = 0; i < diff; ++i)
-      {
-         result[i] = ZoO_START_OF_SEQUENCE_ID;
-      }
-   }
-   else if (base[(base_length - 1)] == ZoO_END_OF_SEQUENCE_ID)
-   {
-      memcpy
-      (
-         (void *) result,
-         (const void *) base,
-         (((size_t) base_length) * sizeof(ZoO_index))
-      );
-
-      for (i = base_length; i < destination_length; ++i)
-      {
-         result[i] = ZoO_END_OF_SEQUENCE_ID;
-      }
-   }
+   memcpy
+   (
+      (void *) result,
+      (const void *) base,
+      (((size_t) destination_length) * sizeof(ZoO_index))
+   );
 
    return result;
 }
@@ -220,7 +186,6 @@ static int add_sequence
 (
    struct ZoO_knowledge k [const restrict static 1],
    const ZoO_index sequence [const restrict static 1],
-   const ZoO_index sequence_length,
    const ZoO_index markov_order, /* Pre (> markov_order 1) */
    const ZoO_index sequence_id,
    const ZoO_index sorted_sequence_id,
@@ -241,7 +206,7 @@ static int add_sequence
       return -1;
    }
 
-   stored_sequence = copy_sequence(sequence, sequence_length, markov_order, io);
+   stored_sequence = copy_sequence(sequence, (markov_order - 1), io);
 
    if (stored_sequence == (ZoO_index *) NULL)
    {
@@ -283,7 +248,6 @@ static int find_sequence
 (
    const struct ZoO_knowledge k [const static 1],
    const ZoO_index sequence [const restrict static 1],
-   const ZoO_index sequence_length,
    const ZoO_index markov_order, /* Pre: (> 1) */
    ZoO_index sequence_id [const restrict static 1]
 )
@@ -317,7 +281,7 @@ static int find_sequence
             k->sequences[k->sequences_sorted[i]],
             markov_sequence_length,
             sequence,
-            sequence_length
+            markov_sequence_length
          );
 
       if (cmp > 0)
@@ -359,7 +323,6 @@ int ZoO_knowledge_learn_markov_sequence
 (
    struct ZoO_knowledge k [const restrict static 1],
    const ZoO_index sequence [const restrict static 1],
-   const ZoO_index sequence_length,
    const ZoO_index markov_order, /* Pre (> markov_order 1) */
    ZoO_index sequence_id [const restrict static 1],
    const struct ZoO_pipe io [const restrict static 1]
@@ -373,7 +336,6 @@ int ZoO_knowledge_learn_markov_sequence
       (
          k,
          sequence,
-         sequence_length,
          markov_order,
          sequence_id
       ) == 0
@@ -390,7 +352,6 @@ int ZoO_knowledge_learn_markov_sequence
       (
          k,
          sequence,
-         sequence_length,
          markov_order,
          *sequence_id,
          sorted_id,

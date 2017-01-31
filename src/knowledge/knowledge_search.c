@@ -73,14 +73,15 @@ int ZoO_knowledge_find_word_id
    }
 }
 
-int ZoO_knowledge_find_preceding_words
+/* pre: \length(sequence) >= markov_order */
+int ZoO_knowledge_find_tws_targets
 (
    const struct ZoO_knowledge k [const static 1],
-   const ZoO_index sequence [const restrict],
+   const ZoO_index sequence [restrict static 1],
    const ZoO_index markov_order, /* Pre: (> 0) */
-   const ZoO_index * restrict preceding_words [const restrict static 1],
-   const ZoO_index * restrict preceding_words_weights [const restrict static 1],
-   ZoO_index preceding_words_weights_sum [const restrict static 1],
+   const ZoO_index * restrict targets [const restrict static 1],
+   const ZoO_index * restrict targets_weights [const restrict static 1],
+   ZoO_index targets_weights_sum [const restrict static 1],
    const struct ZoO_pipe io [const restrict static 1]
 )
 {
@@ -89,19 +90,23 @@ int ZoO_knowledge_find_preceding_words
    ZoO_index i, current_min, current_max, local_sequence;
    const ZoO_index * restrict candidate;
    const ZoO_index markov_sequence_length = (markov_order - 1);
-   const ZoO_index word = sequence[markov_sequence_length];
+   const ZoO_index word = sequence[0];
 
-   if (word >= k->words_length)
+   if
+   (
+      (word >= k->words_length)
+      || (k->words[word].occurrences == 0)
+   )
    {
       ZoO_S_ERROR
       (
          io,
-         "Attempting to find the preceding words of an unknown word."
+         "Attempting to find the TWS targets of an unknown word."
       );
 
-      *preceding_words = (const ZoO_index *) NULL;
-      *preceding_words_weights = (const ZoO_index *) NULL;
-      *preceding_words_weights_sum = 0;
+      *targets = (const ZoO_index *) NULL;
+      *targets_weights = (const ZoO_index *) NULL;
+      *targets_weights_sum = 0;
 
       return -1;
    }
@@ -110,30 +115,34 @@ int ZoO_knowledge_find_preceding_words
    if (markov_order == 1)
    {
       /* Special case: empty sequences. */
-      *preceding_words = (const ZoO_index *) k->words[word].preceded.targets;
+      *targets = (const ZoO_index *) k->words[word].tws.targets;
 
-      *preceding_words_weights =
-         (const ZoO_index *) k->words[word].preceded.targets_occurrences;
+      *targets_weights =
+         (const ZoO_index *) k->words[word].tws.targets_occurrences;
 
-      *preceding_words_weights_sum = k->words[word].occurrences;
+      *targets_weights_sum = k->words[word].occurrences;
 
       return 0;
    }
 
+
+   /* pre: \length(sequence) >= markov_order */
+   /* markov_order > 1 */
+   sequence += 1; /* get the relevant part of the sequence. */
+
    /* Handles the case where the list is empty ********************************/
-   current_max = k->words[word].preceded.sequences_ref_length;
+   current_max = k->words[word].tws.sequences_ref_length;
 
    if (current_max == 0)
    {
-      *preceding_words = (const ZoO_index *) NULL;
-      *preceding_words_weights = (const ZoO_index *) NULL;
-      *preceding_words_weights_sum = 0;
+      *targets = (const ZoO_index *) NULL;
+      *targets_weights = (const ZoO_index *) NULL;
+      *targets_weights_sum = 0;
 
       ZoO_S_ERROR
       (
          io,
-         "Attempting to find the preceding words of a sequence that never had "
-         "any."
+         "Attempting to find the TWS targets of a sequence that never had any."
       );
 
       return -2;
@@ -147,12 +156,12 @@ int ZoO_knowledge_find_preceding_words
    {
       i = (current_min + ((current_max - current_min) / 2));
 
-      local_sequence = k->words[word].preceded.sequences_ref_sorted[i];
+      local_sequence = k->words[word].tws.sequences_ref_sorted[i];
 
       (void) ZoO_knowledge_get_sequence
       (
          k,
-         k->words[word].preceded.sequences_ref[local_sequence],
+         k->words[word].tws.sequences_ref[local_sequence],
          &candidate,
          io
       );
@@ -172,9 +181,9 @@ int ZoO_knowledge_find_preceding_words
 
          if (current_min > current_max)
          {
-            *preceding_words = (const ZoO_index *) NULL;
-            *preceding_words_weights = (const ZoO_index *) NULL;
-            *preceding_words_weights_sum = 0;
+            *targets = (const ZoO_index *) NULL;
+            *targets_weights = (const ZoO_index *) NULL;
+            *targets_weights_sum = 0;
 
             return -2;
          }
@@ -183,9 +192,9 @@ int ZoO_knowledge_find_preceding_words
       {
          if ((current_min > current_max) || (i == 0))
          {
-            *preceding_words = (const ZoO_index *) NULL;
-            *preceding_words_weights = (const ZoO_index *) NULL;
-            *preceding_words_weights_sum = 0;
+            *targets = (const ZoO_index *) NULL;
+            *targets_weights = (const ZoO_index *) NULL;
+            *targets_weights_sum = 0;
 
             return -2;
          }
@@ -194,28 +203,28 @@ int ZoO_knowledge_find_preceding_words
       }
       else
       {
-         *preceding_words = k->words[word].preceded.targets[local_sequence];
+         *targets = k->words[word].tws.targets[local_sequence];
 
-         *preceding_words_weights =
-            k->words[word].preceded.targets_occurrences[local_sequence];
+         *targets_weights =
+            k->words[word].tws.targets_occurrences[local_sequence];
 
-         *preceding_words_weights_sum =
-            k->words[word].preceded.occurrences[local_sequence];
+         *targets_weights_sum =
+            k->words[word].tws.occurrences[local_sequence];
 
          return 0;
       }
    }
 }
 
-int ZoO_knowledge_find_following_words
+int ZoO_knowledge_find_swt_targets
 (
    const struct ZoO_knowledge k [const static 1],
-   const ZoO_index sequence [const restrict],
+   const ZoO_index sequence [restrict static 1],
    const size_t sequence_length,
    const ZoO_index markov_order,
-   const ZoO_index * restrict following_words [const restrict static 1],
-   const ZoO_index * restrict following_words_weights [const restrict static 1],
-   ZoO_index following_words_weights_sum [const restrict static 1],
+   const ZoO_index * restrict targets [const restrict static 1],
+   const ZoO_index * restrict targets_weights [const restrict static 1],
+   ZoO_index targets_weights_sum [const restrict static 1],
    const struct ZoO_pipe io [const restrict static 1]
 )
 {
@@ -224,21 +233,23 @@ int ZoO_knowledge_find_following_words
    ZoO_index i, current_min, current_max, local_sequence;
    const ZoO_index * restrict candidate;
    const ZoO_index markov_sequence_length = (markov_order - 1);
-   const size_t sequence_offset =
-      ((sequence_length - ((size_t) markov_sequence_length)) - 1);
-   const ZoO_index word = sequence[sequence_offset];
+   const ZoO_index word = sequence[sequence_length - 1];
 
-   if (word >= k->words_length)
+   if
+   (
+      (word >= k->words_length)
+      || (k->words[word].occurrences == 0)
+   )
    {
       ZoO_S_ERROR
       (
          io,
-         "Attempting to find the following words of an unknown word."
+         "Attempting to find the SWT targets of an unknown word."
       );
 
-      *following_words = (const ZoO_index *) NULL;
-      *following_words_weights = (const ZoO_index *) NULL;
-      *following_words_weights_sum = 0;
+      *targets = (const ZoO_index *) NULL;
+      *targets_weights = (const ZoO_index *) NULL;
+      *targets_weights_sum = 0;
 
       return -1;
    }
@@ -246,30 +257,30 @@ int ZoO_knowledge_find_following_words
    if (markov_order == 1)
    {
       /* Special case: empty sequences. */
-      *following_words = (const ZoO_index *) k->words[word].preceded.targets;
+      *targets = (const ZoO_index *) k->words[word].swt.targets;
 
-      *following_words_weights =
-         (const ZoO_index *) k->words[word].preceded.targets_occurrences;
+      *targets_weights =
+         (const ZoO_index *) k->words[word].swt.targets_occurrences;
 
-      *following_words_weights_sum = k->words[word].occurrences;
+      *targets_weights_sum = k->words[word].occurrences;
 
       return 0;
    }
 
+   sequence = (sequence + (sequence_length - markov_order));
    /* Handles the case where the list is empty ********************************/
-   current_max = k->words[word].preceded.sequences_ref_length;
+   current_max = k->words[word].swt.sequences_ref_length;
 
    if (current_max == 0)
    {
-      *following_words = (const ZoO_index *) NULL;
-      *following_words_weights = (const ZoO_index *) NULL;
-      *following_words_weights_sum = 0;
+      *targets = (const ZoO_index *) NULL;
+      *targets_weights = (const ZoO_index *) NULL;
+      *targets_weights_sum = 0;
 
       ZoO_S_WARNING
       (
          io,
-         "Attempting to find the following words of a sequence that never had "
-         "any."
+         "Attempting to find the SWT targets of a sequence that never had any."
       );
 
       return -2;
@@ -283,12 +294,12 @@ int ZoO_knowledge_find_following_words
    {
       i = (current_min + ((current_max - current_min) / 2));
 
-      local_sequence = k->words[word].followed.sequences_ref_sorted[i];
+      local_sequence = k->words[word].swt.sequences_ref_sorted[i];
 
       (void) ZoO_knowledge_get_sequence
       (
          k,
-         k->words[word].followed.sequences_ref[local_sequence],
+         k->words[word].swt.sequences_ref[local_sequence],
          &candidate,
          io
       );
@@ -296,7 +307,7 @@ int ZoO_knowledge_find_following_words
       cmp =
          ZoO_sequence_cmp
          (
-            (sequence + sequence_offset),
+            sequence,
             markov_sequence_length,
             candidate,
             markov_sequence_length
@@ -308,9 +319,9 @@ int ZoO_knowledge_find_following_words
 
          if (current_min > current_max)
          {
-            *following_words = (const ZoO_index *) NULL;
-            *following_words_weights = (const ZoO_index *) NULL;
-            *following_words_weights_sum = 0;
+            *targets = (const ZoO_index *) NULL;
+            *targets_weights = (const ZoO_index *) NULL;
+            *targets_weights_sum = 0;
 
             return -2;
          }
@@ -319,9 +330,9 @@ int ZoO_knowledge_find_following_words
       {
          if ((current_min > current_max) || (i == 0))
          {
-            *following_words = (const ZoO_index *) NULL;
-            *following_words_weights = (const ZoO_index *) NULL;
-            *following_words_weights_sum = 0;
+            *targets = (const ZoO_index *) NULL;
+            *targets_weights = (const ZoO_index *) NULL;
+            *targets_weights_sum = 0;
 
             return -2;
          }
@@ -330,13 +341,13 @@ int ZoO_knowledge_find_following_words
       }
       else
       {
-         *following_words = k->words[word].followed.targets[local_sequence];
+         *targets = k->words[word].swt.targets[local_sequence];
 
-         *following_words_weights =
-            k->words[word].followed.targets_occurrences[local_sequence];
+         *targets_weights =
+            k->words[word].swt.targets_occurrences[local_sequence];
 
-         *following_words_weights_sum =
-            k->words[word].followed.occurrences[local_sequence];
+         *targets_weights_sum =
+            k->words[word].swt.occurrences[local_sequence];
 
          return 0;
       }
