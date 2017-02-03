@@ -125,13 +125,14 @@ int ZoO_sequence_create_from
    requires \valid(io);
    requires (((*sequence_length) * sizeof(ZoO_index)) <= SIZE_MAX);
    requires (((*sequence_capacity) * sizeof(ZoO_index)) <= SIZE_MAX);
-   requires \separated(sequence, sequence, sequence_capacity, sequence_length, io);
+   requires \separated(sequence, *sequence, sequence_capacity, sequence_length, io);
 
    assigns (*sequence_length);
    assigns (*sequence[0]);
    assigns (*sequence_capacity);
 
    ensures \valid(sequence);
+   ensures \valid(*sequence);
    ensures \valid(sequence_capacity);
    ensures \valid(sequence_length);
    ensures \valid(io);
@@ -188,13 +189,14 @@ int ZoO_sequence_append_left
    requires \valid(io);
    requires (((*sequence_length) * sizeof(ZoO_index)) <= SIZE_MAX);
    requires (((*sequence_capacity) * sizeof(ZoO_index)) <= SIZE_MAX);
-   requires \separated(sequence, sequence, sequence_capacity, sequence_length, io);
+   requires \separated(sequence, *sequence, sequence_capacity, sequence_length, io);
 
    assigns (*sequence_length);
    assigns (*sequence[0]);
    assigns (*sequence_capacity);
 
    ensures \valid(sequence);
+   ensures \valid(*sequence);
    ensures \valid(sequence_capacity);
    ensures \valid(sequence_length);
    ensures \valid(io);

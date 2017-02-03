@@ -3,7 +3,9 @@
 
 #include <sys/time.h>
 
-#include <pthread.h>
+#ifndef ZoO_RUNNING_FRAMA_C
+   #include <pthread.h>
+#endif
 
 #include "../core/index.h"
 
@@ -24,7 +26,9 @@ enum ZoO_server_thread_state
 
 struct ZoO_server_thread_data
 {
+#ifndef ZoO_RUNNING_FRAMA_C
    pthread_t posix_id;
+#endif
    enum ZoO_server_thread_state state;
 };
 
@@ -32,8 +36,10 @@ struct ZoO_server_thread_collection
 {
    struct ZoO_server_thread_data * threads;
    size_t threads_capacity;
+#ifndef ZoO_RUNNING_FRAMA_C
    pthread_mutex_t mutex;
    pthread_barrier_t barrier;
+#endif
    ZoO_index currently_running;
 };
 

@@ -15,13 +15,9 @@ static void initialize_sequence_collection
    struct ZoO_knowledge_sequence_collection c [const restrict static 1]
 )
 {
-   c->sequences_ref = (ZoO_index *) NULL;
+   c->sequences_ref = (struct ZoO_knowledge_sequence_data *) NULL;
    c->sequences_ref_length = 0;
    c->sequences_ref_sorted = (ZoO_index *) NULL;
-   c->occurrences = (ZoO_index *) NULL;
-   c->targets = (ZoO_index **) NULL;
-   c->targets_length = (ZoO_index *) NULL;
-   c->targets_occurrences = (ZoO_index **) NULL;
 }
 
 static void initialize_word

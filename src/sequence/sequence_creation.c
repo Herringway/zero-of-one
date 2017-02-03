@@ -11,41 +11,6 @@
 
 #include "sequence.h"
 
-/*
- * Returns a randomly chosen index pointing to a element in {weights}.
- * The values of {weights} are used as weights to guide the choice.
- * Returns:
- *    Value in [0, (length weights)[.
- * Pre:
- *    (> weights_sum 0).
- *    (= (sum weights) weights_sum).
- */
-/*@
- @ requires (weights_sum > 0);
- @ requires \valid(weights);
- @ requires (\sum(0, (\length(weights) - 1), weights) = weights_sum);
-@*/
-static ZoO_index weighted_random_pick
-(
-   const ZoO_index weights [const restrict static 1],
-   const ZoO_index weights_sum
-)
-{
-   ZoO_index result, accumulator, random_number;
-
-   accumulator = 0;
-
-   random_number = ZoO_index_random_up_to(weights_sum);
-   /*@ ensures (0 <= random_number <= weights_sum); @*/
-
-   for (result = 0; accumulator < random_number; ++result)
-   {
-      /*@ requires (\sum(0, (\length(weights) - 1), weights) = weights_sum); @*/
-      accumulator += weights[result];
-   }
-
-   return result;
-}
 
 /******************************************************************************/
 /** ADDING ELEMENTS TO THE LEFT ***********************************************/
@@ -78,42 +43,58 @@ static int extend_left
    const struct ZoO_pipe io [const restrict static 1]
 )
 {
-   const ZoO_index * restrict preceding_words;
-   const ZoO_index * restrict preceding_words_weights;
-   ZoO_index preceding_words_weights_sum;
+   ZoO_index sequence_id, word_id;
 
    (void) ZoO_knowledge_lock_access(k, io);
-
-   if
-   (
-      ZoO_knowledge_find_tws_targets
-      (
-         k,
-         *sequence,
-         markov_order,
-         &preceding_words,
-         &preceding_words_weights,
-         &preceding_words_weights_sum,
-         io
-      ) < 0
-   )
-   {
-      (void) ZoO_knowledge_unlock_access(k, io);
-
-      return -1;
-   }
 
    /* preceding_words_weights_sum > 0 */
 
    if
    (
+      ZoO_knowledge_find_sequence
+      (
+         k,
+         ((*sequence) + 1),
+         markov_order,
+         &sequence_id
+      ) < 0
+   )
+   {
+      (void) ZoO_knowledge_unlock_access(k, io);
+
+      /* TODO: Err message. */
+      return -1;
+   }
+
+   (void) ZoO_knowledge_unlock_access(k, io);
+
+   (void) ZoO_knowledge_lock_access(k, io);
+
+   if
+   (
+      ZoO_knowledge_random_tws_target
+      (
+         k,
+         &word_id,
+         (*sequence)[0],
+         sequence_id
+      ) < 0
+   )
+   {
+      (void) ZoO_knowledge_unlock_access(k, io);
+
+      /* TODO: Err message. */
+
+      return -1;
+   }
+
+   (void) ZoO_knowledge_unlock_access(k, io);
+
+   if
+   (
       ZoO_sequence_append_left
       (
-         weighted_random_pick
-         (
-            preceding_words_weights,
-            preceding_words_weights_sum
-         ),
+         word_id,
          sequence,
          sequence_capacity,
          sequence_length,
@@ -121,12 +102,8 @@ static int extend_left
       ) < 0
    )
    {
-      (void) ZoO_knowledge_unlock_access(k, io);
-
       return -3;
    }
-
-   (void) ZoO_knowledge_unlock_access(k, io);
 
    return 0;
 }
@@ -263,32 +240,53 @@ static int extend_right
    const struct ZoO_pipe io [const restrict static 1]
 )
 {
-   const ZoO_index * restrict following_words;
-   const ZoO_index * restrict following_words_weights;
-
-   ZoO_index following_words_weights_sum;
+   ZoO_index sequence_id, word_id;
 
    (void) ZoO_knowledge_lock_access(k, io);
 
+   /* preceding_words_weights_sum > 0 */
+
    if
    (
-      ZoO_knowledge_find_swt_targets
+      ZoO_knowledge_find_sequence
       (
          k,
-         *sequence,
-         *sequence_length,
+         ((*sequence) + (*sequence_length - markov_order)),
          markov_order,
-         &following_words,
-         &following_words_weights,
-         &following_words_weights_sum,
-         io
+         &sequence_id
       ) < 0
    )
    {
       (void) ZoO_knowledge_unlock_access(k, io);
 
+      /* TODO: Err message. */
       return -1;
    }
+
+   (void) ZoO_knowledge_unlock_access(k, io);
+
+   (void) ZoO_knowledge_lock_access(k, io);
+
+   if
+   (
+      ZoO_knowledge_random_swt_target
+      (
+         k,
+         sequence_id,
+         (*sequence)[*sequence_length - 1],
+         &word_id
+      ) < 0
+   )
+   {
+      (void) ZoO_knowledge_unlock_access(k, io);
+
+      /* TODO: Err message. */
+
+      return -1;
+   }
+
+   (void) ZoO_knowledge_unlock_access(k, io);
+
 
    /* following_words_weights_sum > 0 */
 
@@ -297,11 +295,7 @@ static int extend_right
       ZoO_sequence_append_right
       (
          sequence,
-         weighted_random_pick
-         (
-            following_words_weights,
-            following_words_weights_sum
-         ),
+         word_id,
          sequence_capacity,
          sequence_length,
          io
@@ -447,11 +441,6 @@ static int initialize_sequence
    const struct ZoO_pipe io [const restrict static 1]
 )
 {
-   const ZoO_index * restrict swt_sequences_ref;
-   const ZoO_index * restrict chosen_sequence;
-   const ZoO_index * restrict swt_sequences_weights;
-   ZoO_index swt_sequences_weights_sum;
-
    sequence[(markov_order - 1)] = initial_word;
 
    if (markov_order == 1)
@@ -463,51 +452,20 @@ static int initialize_sequence
 
    if
    (
-      ZoO_knowledge_get_swt_sequences_ref
+      ZoO_knowledge_copy_random_swt_sequence
       (
          k,
+         sequence,
          initial_word,
-         &swt_sequences_ref,
-         &swt_sequences_weights,
-         &swt_sequences_weights_sum,
+         markov_order,
          io
       ) < 0
    )
    {
       (void) ZoO_knowledge_unlock_access(k, io);
 
-      ZoO_S_ERROR
-      (
-         io,
-         "Unable to find any sequence that would precede the initial word."
-      );
-
       return -1;
    }
-
-   /* following_sequences_ref contains only valid references. */
-   (void) ZoO_knowledge_get_sequence
-   (
-      k,
-      swt_sequences_ref
-      [
-         weighted_random_pick
-         (
-            swt_sequences_weights,
-            swt_sequences_weights_sum
-         )
-      ],
-      &chosen_sequence,
-      io
-   );
-
-   /* Safe if 'allocate_initial_sequence' succeeded. */
-   memcpy
-   (
-      (void *) sequence,
-      (const void *) chosen_sequence,
-      ((((size_t) markov_order) - 1) * sizeof(ZoO_index))
-   );
 
    (void) ZoO_knowledge_unlock_access(k, io);
 

@@ -1,9 +1,9 @@
-add_subdirectory(cli)
 add_subdirectory(core)
 add_subdirectory(knowledge)
+add_subdirectory(parameters)
 add_subdirectory(pipe)
-add_subdirectory(server)
 add_subdirectory(sequence)
+add_subdirectory(server)
 add_subdirectory(storage)
 
 set(

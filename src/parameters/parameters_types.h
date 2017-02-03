@@ -1,6 +1,8 @@
 #ifndef _ZoO_CLI_PARAMETERS_TYPES_H_
 #define _ZoO_CLI_PARAMETERS_TYPES_H_
 
+#include "../core/index_types.h"
+
 enum ZoO_invocation_objective
 {
    ZoO_PRINTS_HELP,

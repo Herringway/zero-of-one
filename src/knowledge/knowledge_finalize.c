@@ -2,6 +2,25 @@
 
 #include "knowledge.h"
 
+
+static void knowledge_sequence_data_finalize
+(
+   struct ZoO_knowledge_sequence_data sd [const restrict static 1]
+)
+{
+   sd->occurrences = 0;
+
+   if (sd->targets != (struct ZoO_knowledge_target *) NULL)
+   {
+      free((void *) sd->targets);
+
+      sd->targets = (struct ZoO_knowledge_target *) NULL;
+   }
+
+   sd->targets_length = 0;
+
+}
+
 static void knowledge_sequence_collection_finalize
 (
    struct ZoO_knowledge_sequence_collection c [const restrict static 1]
@@ -9,10 +28,16 @@ static void knowledge_sequence_collection_finalize
 {
    ZoO_index i;
 
-   if (c->sequences_ref != (ZoO_index *) NULL)
+
+   for (i = 0; i < c->sequences_ref_length; ++i)
+   {
+      knowledge_sequence_data_finalize(c->sequences_ref + i);
+   }
+
+   if (c->sequences_ref != (struct ZoO_knowledge_sequence_data *) NULL)
    {
       free((void *) c->sequences_ref);
-      c->sequences_ref = (ZoO_index *) NULL;
+      c->sequences_ref = (struct ZoO_knowledge_sequence_data *) NULL;
    }
 
    if (c->sequences_ref_sorted != (ZoO_index *) NULL)
@@ -21,33 +46,7 @@ static void knowledge_sequence_collection_finalize
       c->sequences_ref_sorted = (ZoO_index *) NULL;
    }
 
-   if (c->occurrences != (ZoO_index *) NULL)
-   {
-      free((void *) c->occurrences);
-      c->occurrences = (ZoO_index *) NULL;
-   }
-
-   for (i = 0; i < c->sequences_ref_length; ++i)
-   {
-      free((void *) c->targets[i]);
-      free((void *) c->targets_occurrences[i]);
-   }
-
    c->sequences_ref_length = 0;
-
-   if (c->targets != (ZoO_index **) NULL)
-   {
-      free((void *) c->targets);
-      c->targets != (ZoO_index **) NULL;
-   }
-
-   free((void *) c->targets_length);
-
-   if (c->targets_occurrences != (ZoO_index **) NULL)
-   {
-      free((void *) c->targets_occurrences);
-      c->targets_occurrences != (ZoO_index **) NULL;
-   }
 }
 
 static void knowledge_word_finalize

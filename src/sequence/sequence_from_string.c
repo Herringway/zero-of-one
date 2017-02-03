@@ -16,10 +16,6 @@
 /** HANDLING WORDS ************************************************************/
 /******************************************************************************/
 
-/*
- * Semaphore:
- *    Takes then releases access for {k}.
- */
 static int add_word_to_sequence
 (
    const ZoO_char string [const restrict static 1],

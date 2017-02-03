@@ -1,6 +1,6 @@
 #include <stdio.h>
 
-#include "cli/parameters.h"
+#include "parameters/parameters.h"
 
 #include "server/server.h"
 
@@ -30,11 +30,8 @@ int main (int const argc, const char * argv [const static argc])
 
    switch (ZoO_parameters_initialize(&params, argc, argv))
    {
-      case ZoO_CLEANS_UP:
-         return ZoO_server_cleanup_session(params.session);
-
       case ZoO_RUNS:
-         return ZoO_server_main(params);
+         return ZoO_server_main(&params);
 
       default:
       case ZoO_PRINTS_HELP:

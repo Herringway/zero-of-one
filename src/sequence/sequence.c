@@ -75,13 +75,13 @@ static void bypass_redundant_sos
 
 /* See "sequence.h" */
 /*@
-   \requires
+   requires
    (
       \valid(sequence_a+ (0 .. sequence_a_length))
       || (sequence_a_length == 0)
    );
 
-   \requires
+   requires
    (
       \valid(sequence_b+ (0 .. sequence_b_length))
       || (sequence_b_length == 0)

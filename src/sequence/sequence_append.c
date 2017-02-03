@@ -224,8 +224,9 @@ int ZoO_sequence_append_right
       return -1;
    }
 
-   /* assert (*sequence_length >= 1) */
+   /*@ assert (*sequence_length >= 1); @*/
    (*sequence)[*sequence_length - 1] = word_id;
+   /*@ assert (*sequence_length >= 1); @*/
 
    return 0;
 }

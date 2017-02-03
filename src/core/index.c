@@ -64,3 +64,19 @@ ZoO_index ZoO_index_random_up_to (const ZoO_index max)
       * ((float) max)
    );
 }
+
+int ZoO_index_cmp (const ZoO_index a, const ZoO_index b)
+{
+   if (a < b)
+   {
+      return -1;
+   }
+   else if (a > b)
+   {
+      return 1;
+   }
+   else
+   {
+      return 0;
+   }
+}

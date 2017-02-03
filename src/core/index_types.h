@@ -1,6 +1,8 @@
 #ifndef _ZoO_CORE_INDEX_TYPES_H_
 #define _ZoO_CORE_INDEX_TYPES_H_
 
+#include "../pervasive.h"
+
 /*
  * ZoO_index is a replacement for size_t. As many indices are stored for every
  * word learned, having control over which type of variable is used to represent
@@ -8,6 +10,7 @@
  */
 
 #include <limits.h>
+#include <stdint.h>
 
 /* Must be unsigned. */
 typedef unsigned int ZoO_index;
@@ -15,9 +18,10 @@ typedef unsigned int ZoO_index;
 /* Must be > 0. */
 #define ZoO_INDEX_MAX UINT_MAX
 
-
-#if (ZoO_INDEX_MAX > SIZE_MAX)
-   #error "ZoO_index should not be able to go higher than a size_t variable."
+#ifndef ZoO_RUNNING_FRAMA_C
+   #if (ZoO_INDEX_MAX > SIZE_MAX)
+      #error "ZoO_index should not be able to go higher than a size_t variable."
+   #endif
 #endif
 
 #endif

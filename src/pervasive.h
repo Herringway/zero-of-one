@@ -6,7 +6,7 @@
 #define ZoO_SERVER_VERSION    1
 #define ZoO_PROTOCOL_VERSION  1
 
-#define ZoO_RUNNING_FRAMA_C   1
+//#define ZoO_RUNNING_FRAMA_C   1
 
 #define ZoO_DEBUG_ALL 1
 

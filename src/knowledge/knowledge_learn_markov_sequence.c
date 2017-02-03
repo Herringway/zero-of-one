@@ -244,7 +244,7 @@ static int add_sequence
 /** SEARCH EXISTING SEQUENCES *************************************************/
 /******************************************************************************/
 
-static int find_sequence
+int ZoO_knowledge_find_sequence
 (
    const struct ZoO_knowledge k [const static 1],
    const ZoO_index sequence [const restrict static 1],
@@ -332,7 +332,7 @@ int ZoO_knowledge_learn_markov_sequence
 
    if
    (
-      find_sequence
+      ZoO_knowledge_find_sequence
       (
          k,
          sequence,

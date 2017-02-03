@@ -21,4 +21,6 @@ ZoO_index ZoO_index_random (void);
 @*/
 ZoO_index ZoO_index_random_up_to (const ZoO_index limit);
 
+int ZoO_index_cmp (const ZoO_index a, const ZoO_index b);
+
 #endif

@@ -61,24 +61,6 @@ int ZoO_knowledge_learn_markov_sequence
    const struct ZoO_pipe io [const restrict static 1]
 );
 
-int ZoO_knowledge_get_swt_sequences_ref
-(
-   const struct ZoO_knowledge k [const static 1],
-   const ZoO_index initial_word,
-   const ZoO_index * restrict following_sequences_ref [const restrict static 1],
-   const ZoO_index * restrict following_sequences_weights [const restrict static 1],
-   ZoO_index following_sequences_weights_sum [const static 1],
-   const struct ZoO_pipe io [const restrict static 1]
-);
-
-int ZoO_knowledge_get_sequence
-(
-   const struct ZoO_knowledge k [const static 1],
-   const ZoO_index sequences_ref,
-   const ZoO_index * restrict sequence [const restrict static 1],
-   const struct ZoO_pipe io [const restrict static 1]
-);
-
 int ZoO_knowledge_get_word
 (
    const struct ZoO_knowledge k [const static 1],
@@ -106,26 +88,50 @@ int ZoO_knowledge_find_word_id
    ZoO_index result [const restrict static 1]
 );
 
-int ZoO_knowledge_find_tws_targets
+int ZoO_knowledge_find_sequence
 (
    const struct ZoO_knowledge k [const static 1],
-   const ZoO_index sequence [const restrict],
-   const ZoO_index markov_order,
-   const ZoO_index * restrict targets [const restrict static 1],
-   const ZoO_index * restrict targets_weights [const restrict static 1],
-   ZoO_index targets_weights_sum [const restrict static 1],
-   const struct ZoO_pipe io [const restrict static 1]
+   const ZoO_index sequence [const restrict static 1],
+   const ZoO_index markov_order, /* Pre: (> 1) */
+   ZoO_index sequence_id [const restrict static 1]
 );
 
-int ZoO_knowledge_find_swt_targets
+int ZoO_knowledge_find_markov_sequence
+(
+   const ZoO_index sequence_id,
+   const struct ZoO_knowledge_sequence_collection sc [const restrict static 1],
+   ZoO_index result [const restrict static 1]
+);
+
+int ZoO_knowledge_find_sequence_target
+(
+   const ZoO_index target_id,
+   const struct ZoO_knowledge_sequence_data sd [const restrict static 1],
+   ZoO_index result [const restrict static 1]
+);
+
+int ZoO_knowledge_random_tws_target
 (
    const struct ZoO_knowledge k [const static 1],
-   const ZoO_index sequence [const restrict],
-   const size_t sequence_length,
+   ZoO_index target [const restrict static 1],
+   const ZoO_index word_id,
+   const ZoO_index sequence_id
+);
+
+int ZoO_knowledge_random_swt_target
+(
+   const struct ZoO_knowledge k [const static 1],
+   const ZoO_index sequence_id,
+   const ZoO_index word_id,
+   ZoO_index target [const restrict static 1]
+);
+
+int ZoO_knowledge_copy_random_swt_sequence
+(
+   const struct ZoO_knowledge k [const static 1],
+   ZoO_index sequence [const restrict static 1],
+   const ZoO_index word_id,
    const ZoO_index markov_order,
-   const ZoO_index * restrict targets [const restrict static 1],
-   const ZoO_index * restrict targets_weights [const restrict static 1],
-   ZoO_index targets_weights_sum [const restrict static 1],
    const struct ZoO_pipe io [const restrict static 1]
 );
 

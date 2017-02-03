@@ -8,8 +8,6 @@
 
 #include "knowledge.h"
 
-
-
 /******************************************************************************/
 /** LEARN FOLLOWING SEQUENCE **************************************************/
 /******************************************************************************/
@@ -47,6 +45,7 @@ static int add_swt_sequence
    const ZoO_index sequence [const restrict static 1],
    const size_t index,
    const size_t sequence_length,
+   const ZoO_index markov_order,
    ZoO_index buffer [const restrict static 1],
    const ZoO_index buffer_length,
    const struct ZoO_pipe io [const restrict static 1]
@@ -134,6 +133,7 @@ static int add_tws_sequence
    const ZoO_index sequence [const restrict static 1],
    const size_t index,
    const size_t sequence_length,
+   const ZoO_index markov_order,
    ZoO_index buffer [const restrict static 1],
    const ZoO_index buffer_length,
    const struct ZoO_pipe io [const restrict static 1]
@@ -220,12 +220,14 @@ int ZoO_knowledge_learn_sequence
 
    for (i = 0; i < sequence_length; ++i)
    {
+      /* TODO: handle failure. */
       add_tws_sequence
       (
          k,
          sequence,
          i,
          sequence_length,
+         markov_order,
          buffer,
          buffer_length,
          io
@@ -237,6 +239,7 @@ int ZoO_knowledge_learn_sequence
          sequence,
          i,
          sequence_length,
+         markov_order,
          buffer,
          buffer_length,
          io
