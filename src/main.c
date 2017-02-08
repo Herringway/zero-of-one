@@ -18,7 +18,7 @@ static void print_help ()
 		"\nParameters:\n"
 		"   SESSION_NAME: valid POSIX message queue filename.\n"
 		"   MARKOV_ORDER: non-null positive integer.\n"
-		"   STORAGE_FILE: file in which the knowledge will be stored.",
+		"   STORAGE_FILE: file in which the knowledge will be stored.\n",
       ZoO_SERVER_VERSION,
       ZoO_PROTOCOL_VERSION
 	);

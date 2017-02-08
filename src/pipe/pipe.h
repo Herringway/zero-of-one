@@ -39,7 +39,7 @@
 #endif
 
 #define ZoO_PRINT_STDERR(pipe, symbol, str, ...)\
-   fprintf(pipe->out, "E [" symbol "]" ZoO_LOCATION " " str "\n", __VA_ARGS__);
+   fprintf(pipe->out, "[" symbol "] " ZoO_LOCATION " " str "\n", __VA_ARGS__);
 
 /*
  * Given that we use preprocessor contants as flags, we can expect the compilers
@@ -96,7 +96,7 @@
 /* For outputs without dynamic content (static). ******************************/
 
 #define ZoO_PRINT_S_STDERR(pipe, symbol, str)\
-   fprintf(pipe->out, "E [" symbol "]" ZoO_LOCATION " " str "\n");
+   fprintf(pipe->out, "[" symbol "] " ZoO_LOCATION " " str "\n");
 
 #define ZoO_S_DEBUG(pipe, flag, str)\
    ZoO_ISOLATE\

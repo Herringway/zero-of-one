@@ -29,9 +29,9 @@ static int parse_markov_order
 		fprintf
       (
 			stderr,
-         "[F] Invalid or value for parameter 'MARKOV_ORDER', accepted"
+         "[F] Invalid or value for parameter 'MARKOV_ORDER', accepted "
 			"range is "
-         "[1, %lli] (integer).",
+         "[1, %lli] (integer).\n",
          (long long int) ZoO_INDEX_MAX
       );
 
@@ -81,4 +81,28 @@ enum ZoO_invocation_objective ZoO_parameters_initialize
       default:
          return ZoO_PRINTS_HELP;
    }
+}
+
+const char * ZoO_parameters_get_session_name
+(
+   const struct ZoO_parameters param [const restrict static 1]
+)
+{
+   return param->session;
+}
+
+ZoO_index ZoO_parameters_get_markov_order
+(
+   const struct ZoO_parameters param [const restrict static 1]
+)
+{
+   return param->markov_order;
+}
+
+const char * ZoO_parameters_get_storage_filename
+(
+   const struct ZoO_parameters param [const restrict static 1]
+)
+{
+   return param->storage;
 }

@@ -1,41 +1,144 @@
-Create 2 POSIX named pipes:
-   - REQ_PIPE, used to send requests.
-   - REPLY_PIPE, used to get replies to the requests.
+################################################################################
+## Zero of One - PROTOCOL VERSION 1 ############################################
+################################################################################
+Communications are done through bi-directional sockets.
 
-Open the pipes:
-   - REQ_PIPE as write_only.
-   - REPLY_PIPE as read_only.
+All communications are text based. Messages are separated by the '\n'
+character.
 
-Open the POSIX named message queue in write_only mode.
-Send a message to this queue with the following format:
-   {
-      'C',
-      unsigned int requested_protocol_version;
-      char req_pipe_name[255],
-      char reply_pipe_name[255]
-   }
+#### SUPPORTED MESSAGES ########################################################
+Messages use the "<TAG>[ <CONTENT>]\n" format. Neither <TAG> nor <CONTENT> are
+allowed to contain the character '\n'.
 
-Read from the reply pipe name, with a timeout. When the server has handled
-your connection request, you will receive "ZoO_protocol_version X\n",
-with X a positive integer indicating the version of the protocol that will be
-used. If you do not support this protocol, proceed to destroying all the pipes,
-otherwise you are now able to send requests.
-Disconnecting is done by destroying the pipes. This goes both way: if you did
-not initiate the destroying, assume that the server went offline.
+###### Requests ################################################################
+######## Request Protocol Version ##############################################
+########## Syntax
+"<TAG>": "?RPV"
+"<CONTENT>": list of comma separated unsigned integers.
 
-Once connected, send your request on REQ_PIPE using the "CMD STRING\n" format,
-in which:
-   - CMD is one of:
-      - "L" -> Learn STRING, do not reply, do not add to storage.
-      - "LS" -> Learn STRING, do not reply, add to storage.
-      - "LSR" -> Learn STRING, reply, add to storage.
-      - "R" -> Do not learn STRING, reply, do not add to storage.
-   - STRING must not contain the '\n' character.
+########## Semantic
+Upon reception of one such message, one should start using the latest
+Zero of One protocol version listed in <CONTENT> that one can. If none are
+supported, communication sockets should be closed (error messages may be sent
+prior to closing the socket). Otherwise, a Confirm Protocol Version message
+should be sent.
 
-The reply will come from REPLY_PIPE, using the "TYPE STRING\n" format, in which:
-	- TYPE is one of:
-		- "E" -> STRING contains an error message.
-		- "D" -> STRING contains the requested data.
-      - "C" -> All replies related to the request have been sent.
-At most one "D" reply per request, exactly one "C" reply per request, any
-number of "E" replies per request.
+######## Request Learn #########################################################
+########## Syntax
+"<TAG>": "?RL"
+"<CONTENT>": Any character string (does not expect null termination).
+
+########## Semantic
+Requests the learning of <CONTENT>. Response should be either a Positive
+message, or a Negative message.
+
+######## Request Learn & Store #################################################
+########## Syntax
+"<TAG>": "?RLS"
+"<CONTENT>": Any character string (does not expect null termination).
+
+########## Semantic
+Requests the learning of <CONTENT>, followed by the storing of <CONTENT> in
+the storage file. Response should be either a Positive message, or a Negative
+message.
+
+######## Request Learn & Store & Reply #########################################
+########## Syntax
+"<TAG>": "?RLSR"
+"<CONTENT>": Any character string (does not expect null termination).
+
+########## Semantic
+Requests the learning of <CONTENT>, followed by the storing of <CONTENT> in
+the storage file, as well as the generation of a reply.
+Response should be either a Positive message preceded by a Generated Reply
+message, or a Negative message.
+
+######## Request Reply #########################################################
+########## Syntax
+"<TAG>": "?RR"
+"<CONTENT>": Any character string (does not expect null termination).
+
+########## Semantic
+Requests the generation of a reply to <CONTENT>.
+Response should be either a Positive message preceded by a Generated Reply
+message, or a Negative message.
+
+###### Replies #################################################################
+######## Confirm Protocol Version ##############################################
+########## Syntax
+"<TAG>": "!CPV"
+"<CONTENT>": unsigned integer.
+
+########## Semantic
+Indicates the Zero of One protocol version that will henceforth be used.
+
+######## Positive ##############################################################
+########## Syntax
+"<TAG>": "!P"
+"<CONTENT>": None.
+
+########## Semantic
+Previous request should be considered as being completed (no more messages
+related to it will be sent).
+
+######## Negative ##############################################################
+########## Syntax
+"<TAG>": "!N"
+"<CONTENT>": None.
+
+########## Semantic
+Previous request should be considered as having failed (no more messages related
+to it will be sent).
+
+######## Generated Reply #######################################################
+########## Syntax
+"<TAG>": "!GR"
+"<CONTENT>": Any character string (without null termination).
+
+########## Semantic
+This is a string that has been generated following a request.
+
+###### Errors ##################################################################
+######## Debug Message #########################################################
+########## Syntax
+"<TAG>": "[D]"
+"<CONTENT>": Any character string (without null termination).
+
+########## Semantic
+Debug message that has been generated during the handling of the previous
+request.
+
+######## Warning Message #######################################################
+########## Syntax
+"<TAG>": "[W]"
+"<CONTENT>": Any character string (without null termination).
+
+########## Semantic
+Warning message that has been generated during the handling of the previous
+request.
+
+######## Error Message #########################################################
+########## Syntax
+"<TAG>": "[E]"
+"<CONTENT>": Any character string (without null termination).
+
+########## Semantic
+Error message that has been generated during the handling of the previous
+request.
+
+######## Programming fault Message #############################################
+########## Syntax
+"<TAG>": "[P]"
+"<CONTENT>": Any character string (without null termination).
+
+########## Semantic
+A serious programming fault occurred during the handling of the previous
+request.
+
+######## Fatal error Message #############################################
+########## Syntax
+"<TAG>": "[F]"
+"<CONTENT>": Any character string (without null termination).
+
+########## Semantic
+A fatal error occurred during the handling of the previous request.

@@ -28,7 +28,7 @@ int ZoO_server_main
 
 void ZoO_server_finalize (struct ZoO_server [const restrict static 1]);
 
-int ZoO_server_wait_for_new_event
+int ZoO_server_wait_for_event
 (
    struct ZoO_server server [const restrict static 1]
 );

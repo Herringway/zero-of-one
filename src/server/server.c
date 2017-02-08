@@ -26,7 +26,7 @@ int ZoO_server_main
 
    while (ZoO_server_is_running())
    {
-      switch (ZoO_server_wait_for_new_event(&server))
+      switch (ZoO_server_wait_for_event(&server))
       {
          case 0: /* Timed out or signal'd. */
             ZoO_server_handle_joining_threads(&server);
@@ -60,7 +60,7 @@ int ZoO_server_main
    /* Waiting for the threads to join... */
    while (server.workers.currently_running > 0)
    {
-      switch (ZoO_server_wait_for_new_event(&server))
+      switch (ZoO_server_wait_for_event(&server))
       {
          case 0: /* Timed out. */
          case 1: /* New client attempted connection. */

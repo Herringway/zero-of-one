@@ -110,7 +110,7 @@ static int add_word
    size_t insertion_point;
 
 	(void) ZoO_knowledge_lock_access(k, io);
-	ZoO_knowledge_get_word(k, word_id, &word, &word_size, io);
+	ZoO_knowledge_get_word(k, word_id, &word, &word_size);
 	(void) ZoO_knowledge_unlock_access(k, io);
 
    insertion_point = *destination_length;

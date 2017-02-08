@@ -7,7 +7,11 @@
    #include <pthread.h>
 #endif
 
-#include "../core/index.h"
+#include "../core/index_types.h"
+
+#include "../knowledge/knowledge_types.h"
+
+#include "../parameters/parameters_types.h"
 
 #include "../pipe/pipe_types.h"
 
@@ -54,16 +58,18 @@ struct ZoO_server_thread_parameters
 {
    struct ZoO_server_thread_collection * thread_collection;
    const struct ZoO_parameters * server_params;
+   struct ZoO_knowledge * knowledge;
    ZoO_index thread_id;
    int socket;
 };
 
 struct ZoO_server_worker
 {
+   struct ZoO_server_thread_parameters params;
    char * buffer;
    size_t buffer_capacity;
    size_t buffer_length;
-   struct ZoO_server_thread_parameters params;
+   FILE * socket_as_file;
 };
 
 struct ZoO_server

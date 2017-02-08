@@ -61,13 +61,12 @@ int ZoO_knowledge_learn_markov_sequence
    const struct ZoO_pipe io [const restrict static 1]
 );
 
-int ZoO_knowledge_get_word
+void ZoO_knowledge_get_word
 (
    const struct ZoO_knowledge k [const static 1],
    const ZoO_index word_ref,
    const ZoO_char * word [const restrict static 1],
-   ZoO_index word_size [const restrict static 1],
-   const struct ZoO_pipe io [const restrict static 1]
+   ZoO_index word_length [const restrict static 1]
 );
 
 /*

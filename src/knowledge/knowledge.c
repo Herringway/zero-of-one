@@ -56,3 +56,15 @@ void ZoO_knowledge_unlock_access
 {
    pthread_mutex_unlock(&(k->mutex));
 }
+
+void ZoO_knowledge_get_word
+(
+   const struct ZoO_knowledge k [const static 1],
+   const ZoO_index word_ref,
+   const ZoO_char * word [const restrict static 1],
+   ZoO_index word_length [const restrict static 1]
+)
+{
+   *word = k->words[word_ref].word;
+   *word_length = k->words[word_ref].word_length;
+}

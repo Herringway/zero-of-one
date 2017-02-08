@@ -1,10 +1,10 @@
-#include <signal.h>
+#include <stdlib.h>
 #include <string.h>
 #include <stdio.h>
 
 #include "server.h"
 
-static void initialize
+static int initialize
 (
    struct ZoO_server_worker worker [const restrict static 1],
    void * input
@@ -22,6 +22,16 @@ static void initialize
    worker->buffer = (char *) NULL;
    worker->buffer_capacity = 0;
    worker->buffer_length = 0;
+
+   worker->socket_as_file = fdopen(worker->params.socket, "w+");
+
+   if (worker->socket_as_file == (FILE *) NULL)
+   {
+      /* TODO: error message? */
+      return -1;
+   }
+
+   return 0;
 }
 
 static void finalize
@@ -29,6 +39,23 @@ static void finalize
    struct ZoO_server_worker worker [const restrict static 1]
 )
 {
+   if (worker->socket_as_file != (FILE *) NULL)
+   {
+      fclose(worker->socket_as_file);
+
+      worker->socket_as_file = NULL;
+   }
+
+   if (worker->buffer != (char *) NULL)
+   {
+      free((void *) worker->buffer);
+
+      worker->buffer = (char *) NULL;
+   }
+
+   worker->buffer_capacity = 0;
+   worker->buffer_length = 0;
+
    pthread_mutex_lock(&(worker->params.thread_collection->mutex));
 
    worker->params.thread_collection->threads[worker->params.thread_id].state =
