@@ -6,7 +6,7 @@
 #include "../core/char.h"
 #include "../core/index.h"
 
-#include "../pipe/pipe.h"
+#include "../error/error.h"
 
 #include "../knowledge/knowledge.h"
 
@@ -20,7 +20,7 @@ static int ensure_string_capacity
    ZoO_char * string [const restrict static 1],
    size_t string_capacity [const restrict static 1],
    const size_t string_required_capacity,
-   const struct ZoO_pipe io [const restrict static 1]
+   FILE io [const restrict static 1]
 )
 {
    ZoO_char * new_string;
@@ -61,10 +61,10 @@ static int increment_required_capacity
 (
    size_t current_capacity [const restrict static 1],
    const size_t increase_factor,
-   const struct ZoO_pipe io [const restrict static 1]
+   FILE io [const restrict static 1]
 )
 {
-   if ((ZoO_INDEX_MAX - increase_factor) > *current_capacity)
+   if ((ZoO_INDEX_MAX - increase_factor) < *current_capacity)
    {
       ZoO_S_ERROR
       (
@@ -78,7 +78,7 @@ static int increment_required_capacity
 
    *current_capacity += increase_factor;
 
-   if ((SIZE_MAX / sizeof(ZoO_char)) > *current_capacity)
+   if ((SIZE_MAX / sizeof(ZoO_char)) < *current_capacity)
    {
       *current_capacity -= increase_factor;
 
@@ -102,12 +102,17 @@ static int add_word
    ZoO_char * destination [const restrict static 1],
    size_t destination_capacity [const restrict static 1],
    size_t destination_length [const restrict static 1],
-   const struct ZoO_pipe io [const restrict static 1]
+   FILE io [const restrict static 1]
 )
 {
 	const ZoO_char * word;
 	ZoO_index word_size;
    size_t insertion_point;
+
+   if (word_id < ZoO_RESERVED_IDS_COUNT)
+   {
+      return 0;
+   }
 
 	(void) ZoO_knowledge_lock_access(k, io);
 	ZoO_knowledge_get_word(k, word_id, &word, &word_size);
@@ -155,14 +160,16 @@ int ZoO_sequence_to_undercase_string
 (
    const ZoO_index sequence [const restrict static 1],
    const size_t sequence_length,
-   ZoO_char * destination [const restrict static 1],
    struct ZoO_knowledge k [const restrict static 1],
+   ZoO_char * destination [const restrict static 1],
    size_t destination_capacity [const restrict static 1],
    size_t destination_length [const restrict static 1],
-   const struct ZoO_pipe io [const restrict static 1]
+   FILE io [const restrict static 1]
 )
 {
    size_t i;
+
+   *destination_length = 0;
 
    for (i = 0; i < sequence_length; ++i)
    {

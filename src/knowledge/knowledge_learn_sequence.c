@@ -4,7 +4,7 @@
 
 #include "../sequence/sequence.h"
 
-#include "../pipe/pipe.h"
+#include "../error/error.h"
 
 #include "knowledge.h"
 
@@ -26,8 +26,6 @@ static void parse_swt_sequence
 
    for (j = 0; j < buffer_length; ++j)
    {
-      index_offset = (buffer_length - j);
-
       if (index >= index_offset)
       {
          buffer[j] = sequence[index - index_offset];
@@ -36,6 +34,8 @@ static void parse_swt_sequence
       {
          buffer[j] = ZoO_START_OF_SEQUENCE_ID;
       }
+
+      --index_offset;
    }
 }
 
@@ -48,7 +48,7 @@ static int add_swt_sequence
    const ZoO_index markov_order,
    ZoO_index buffer [const restrict static 1],
    const ZoO_index buffer_length,
-   const struct ZoO_pipe io [const restrict static 1]
+   FILE io [const restrict static 1]
 )
 {
    ZoO_index sequence_id;
@@ -64,7 +64,7 @@ static int add_swt_sequence
          (buffer_length + 1),
          &sequence_id,
          io
-      )
+      ) < 0
    )
    {
       return -1;
@@ -110,15 +110,14 @@ static void parse_tws_sequence
 {
    size_t j;
    size_t index_offset;
-   const size_t remaining_items = (sequence_length - index);
 
    for (j = 0; j < buffer_length; ++j)
    {
-      index_offset = (j + 1);
+      index_offset = (j + 1) + index;
 
-      if (remaining_items > index_offset)
+      if (sequence_length > index_offset)
       {
-         buffer[j] = sequence[index + index_offset];
+         buffer[j] = sequence[index_offset];
       }
       else
       {
@@ -136,7 +135,7 @@ static int add_tws_sequence
    const ZoO_index markov_order,
    ZoO_index buffer [const restrict static 1],
    const ZoO_index buffer_length,
-   const struct ZoO_pipe io [const restrict static 1]
+   FILE io [const restrict static 1]
 )
 {
    ZoO_index sequence_id;
@@ -152,7 +151,7 @@ static int add_tws_sequence
          (buffer_length + 1),
          &sequence_id,
          io
-      )
+      ) < 0
    )
    {
       return -1;
@@ -193,7 +192,7 @@ int ZoO_knowledge_learn_sequence
    const ZoO_index sequence [const restrict static 1],
    const size_t sequence_length,
    const ZoO_index markov_order,
-   const struct ZoO_pipe io [const restrict static 1]
+   FILE io [const restrict static 1]
 )
 {
    ZoO_index * buffer;
@@ -220,30 +219,43 @@ int ZoO_knowledge_learn_sequence
 
    for (i = 0; i < sequence_length; ++i)
    {
-      /* TODO: handle failure. */
-      add_tws_sequence
+      if
       (
-         k,
-         sequence,
-         i,
-         sequence_length,
-         markov_order,
-         buffer,
-         buffer_length,
-         io
-      );
+         add_swt_sequence
+         (
+            k,
+            sequence,
+            i,
+            sequence_length,
+            markov_order,
+            buffer,
+            buffer_length,
+            io
+         ) < 0
+      )
+      {
+         return -1;
+      }
 
-      add_swt_sequence
+      /* TODO: handle failure. */
+      if
       (
-         k,
-         sequence,
-         i,
-         sequence_length,
-         markov_order,
-         buffer,
-         buffer_length,
-         io
-      );
+         add_tws_sequence
+         (
+            k,
+            sequence,
+            i,
+            sequence_length,
+            markov_order,
+            buffer,
+            buffer_length,
+            io
+         ) < 0
+      )
+      {
+         return -1;
+      }
+
 
       k->words[sequence[i]].occurrences += 1;
    }

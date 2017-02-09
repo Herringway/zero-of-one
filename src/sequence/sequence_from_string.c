@@ -6,7 +6,7 @@
 #include "../core/char.h"
 #include "../core/index.h"
 
-#include "../pipe/pipe.h"
+#include "../error/error.h"
 
 #include "../knowledge/knowledge.h"
 
@@ -25,16 +25,11 @@ static int add_word_to_sequence
    size_t sequence_capacity [const restrict static 1],
    size_t sequence_length [const restrict static 1],
    struct ZoO_knowledge k [const restrict static 1],
-   const struct ZoO_pipe io [const restrict static 1]
+   FILE io [const restrict static 1]
 )
 {
    ZoO_index word_id;
    ZoO_char * stored_word;
-
-   if (word_length == 0)
-   {
-      return 0;
-   }
 
    (void) ZoO_knowledge_lock_access(k, io);
 
@@ -105,11 +100,6 @@ static int find_word
       i += 1;
    }
 
-   if (i >= string_length)
-   {
-      return -1;
-   }
-
    *word_length = (i - *word_start);
 
    return 0;
@@ -128,7 +118,7 @@ int ZoO_sequence_from_undercase_string
    ZoO_index * sequence [const restrict static 1],
    size_t sequence_capacity [const restrict static 1],
    size_t sequence_length [const restrict static 1],
-   const struct ZoO_pipe io [const restrict static 1]
+   FILE io [const restrict static 1]
 )
 {
    size_t word_start, word_length;
@@ -136,8 +126,15 @@ int ZoO_sequence_from_undercase_string
 
    i = 0;
 
-   *sequence = (ZoO_index *) NULL;
    *sequence_length = 0;
+
+   ZoO_DEBUG
+   (
+      io,
+      ZoO_DEBUG_SEQUENCE_FROM_STRING,
+      "Converting string of size %lu to sequence.",
+      string_length
+   );
 
    if
    (
@@ -151,15 +148,33 @@ int ZoO_sequence_from_undercase_string
       ) < 0
    )
    {
+      *sequence_length = 0;
+
       return -1;
    }
 
+   ZoO_S_DEBUG
+   (
+      io,
+      ZoO_DEBUG_SEQUENCE_FROM_STRING,
+      "[SOS] added to sequence."
+   );
+
    while (i < string_length)
    {
-      if (find_word(string, i, string_length, &word_start, &word_length) < 0)
+      if (find_word(string, string_length, i, &word_start, &word_length) < 0)
       {
          break;
       }
+
+      ZoO_DEBUG
+      (
+         io,
+         ZoO_DEBUG_SEQUENCE_FROM_STRING,
+         "Word of size %lu found in string at index %lu.",
+         word_length,
+         word_start
+      );
 
       if
       (
@@ -176,8 +191,6 @@ int ZoO_sequence_from_undercase_string
          ) < 0
       )
       {
-         free((void *) *sequence);
-         *sequence = (ZoO_index *) NULL;
          *sequence_length = 0;
 
          return -1;
@@ -198,9 +211,6 @@ int ZoO_sequence_from_undercase_string
       ) < 0
    )
    {
-      free((void *) *sequence);
-
-      *sequence = (ZoO_index *) NULL;
       *sequence_length = 0;
 
       return -1;

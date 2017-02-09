@@ -4,7 +4,7 @@
 
 #include "../sequence/sequence.h"
 
-#include "../pipe/pipe.h"
+#include "../error/error.h"
 
 #include "knowledge.h"
 
@@ -40,12 +40,12 @@ static void set_nth_sequence
 static int reallocate_sequences_list
 (
    struct ZoO_knowledge k [const restrict static 1],
-   const struct ZoO_pipe io [const restrict static 1]
+   FILE io [const restrict static 1]
 )
 {
    ZoO_index ** new_sequences;
 
-   if ((SIZE_MAX / sizeof(ZoO_index *)) > (size_t) k->sequences_length)
+   if ((SIZE_MAX / sizeof(ZoO_index *)) < (size_t) k->sequences_length)
    {
       ZoO_S_ERROR
       (
@@ -83,12 +83,12 @@ static int reallocate_sequences_list
 static int reallocate_sequences_sorted_list
 (
    struct ZoO_knowledge k [const restrict static 1],
-   const struct ZoO_pipe io [const restrict static 1]
+   FILE io [const restrict static 1]
 )
 {
    ZoO_index * new_sequences_sorted;
 
-   if ((SIZE_MAX / sizeof(ZoO_index)) > (size_t) k->sequences_length)
+   if ((SIZE_MAX / sizeof(ZoO_index)) < (size_t) k->sequences_length)
    {
       ZoO_S_ERROR
       (
@@ -104,7 +104,7 @@ static int reallocate_sequences_sorted_list
       (ZoO_index *) realloc
       (
          (void *) k->sequences_sorted,
-         ((size_t) k->sequences_length) * sizeof(ZoO_index)
+         (((size_t) k->sequences_length) * sizeof(ZoO_index))
       );
 
    if (new_sequences_sorted == (ZoO_index *) NULL)
@@ -144,7 +144,7 @@ static ZoO_index * copy_sequence
 (
    const ZoO_index base [const restrict static 1],
    const ZoO_index destination_length,
-   const struct ZoO_pipe io [const restrict static 1]
+   FILE io [const restrict static 1]
 )
 {
    ZoO_index i, diff;
@@ -189,7 +189,7 @@ static int add_sequence
    const ZoO_index markov_order, /* Pre (> markov_order 1) */
    const ZoO_index sequence_id,
    const ZoO_index sorted_sequence_id,
-   const struct ZoO_pipe io [const restrict static 1]
+   FILE io [const restrict static 1]
 )
 {
    ZoO_index * stored_sequence;
@@ -211,6 +211,30 @@ static int add_sequence
    if (stored_sequence == (ZoO_index *) NULL)
    {
       return -1;
+   }
+
+   if (ZoO_DEBUG_KNOWLEDGE_LEARN_SEQUENCE)
+   {
+      ZoO_index i;
+
+      ZoO_S_DEBUG
+      (
+         io,
+         ZoO_DEBUG_KNOWLEDGE_LEARN_SEQUENCE,
+         "Learning new sequence."
+      );
+
+      for (i = 0; i < (markov_order - 1); ++i)
+      {
+         ZoO_DEBUG
+         (
+            io,
+            ZoO_DEBUG_KNOWLEDGE_LEARN_SEQUENCE,
+            "markov_sequence[%u]: %u",
+            i,
+            stored_sequence[i]
+         );
+      }
    }
 
    k->sequences_length += 1;
@@ -271,16 +295,15 @@ int ZoO_knowledge_find_sequence
    current_min = 0;
    current_max -= 1;
 
-   for (;;)
+   while (current_min <= current_max)
    {
       i = (current_min + ((current_max - current_min) / 2));
 
       cmp =
          ZoO_sequence_cmp
          (
-            k->sequences[k->sequences_sorted[i]],
-            markov_sequence_length,
             sequence,
+            k->sequences[k->sequences_sorted[i]],
             markov_sequence_length
          );
 
@@ -297,9 +320,9 @@ int ZoO_knowledge_find_sequence
       }
       else if (cmp < 0)
       {
-         if ((current_min > current_max) || (i == 0))
+         if ((current_min >= current_max) || (i == 0))
          {
-            *sequence_id = i;
+            *sequence_id = current_min;
 
             return -1;
          }
@@ -313,6 +336,10 @@ int ZoO_knowledge_find_sequence
          return 0;
       }
    }
+
+   *sequence_id = current_min;
+
+   return -1;
 }
 
 /******************************************************************************/
@@ -325,10 +352,34 @@ int ZoO_knowledge_learn_markov_sequence
    const ZoO_index sequence [const restrict static 1],
    const ZoO_index markov_order, /* Pre (> markov_order 1) */
    ZoO_index sequence_id [const restrict static 1],
-   const struct ZoO_pipe io [const restrict static 1]
+   FILE io [const restrict static 1]
 )
 {
    ZoO_index sorted_id;
+
+   if (ZoO_DEBUG_KNOWLEDGE_LEARN_SEQUENCE)
+   {
+      ZoO_index i;
+
+      ZoO_S_DEBUG
+      (
+         io,
+         ZoO_DEBUG_KNOWLEDGE_LEARN_SEQUENCE,
+         "Studying markov sequence..."
+      );
+
+      for (i = 0; i < (markov_order - 1); ++i)
+      {
+         ZoO_DEBUG
+         (
+            io,
+            ZoO_DEBUG_KNOWLEDGE_LEARN_SEQUENCE,
+            "markov_sequence[%u]: %u",
+            i,
+            sequence[i]
+         );
+      }
+   }
 
    if
    (
@@ -341,6 +392,14 @@ int ZoO_knowledge_learn_markov_sequence
       ) == 0
    )
    {
+      ZoO_DEBUG
+      (
+         io,
+         ZoO_DEBUG_KNOWLEDGE_LEARN_SEQUENCE,
+         "Markov sequence is known. ID: %u",
+         *sequence_id
+      );
+
       return 0;
    }
 

@@ -2,7 +2,7 @@
 #include <string.h>
 #include <stdint.h> /* defines SIZE_MAX */
 
-#include "../pipe/pipe.h"
+#include "../error/error.h"
 
 #include "knowledge.h"
 
@@ -40,7 +40,7 @@ static ZoO_char * copy_word
 (
    const ZoO_char original [const restrict static 1],
    const ZoO_index original_length,
-   const struct ZoO_pipe io [const restrict static 1]
+   FILE io [const restrict static 1]
 )
 {
    ZoO_char * result;
@@ -67,13 +67,13 @@ static ZoO_char * copy_word
       (((size_t) original_length) * sizeof(ZoO_char))
    );
 
-   return 0;
+   return result;
 }
 
 static int reallocate_words_list
 (
    struct ZoO_knowledge k [const restrict static 1],
-   const struct ZoO_pipe io [const restrict static 1]
+   FILE io [const restrict static 1]
 )
 {
    struct ZoO_knowledge_word * new_words;
@@ -81,7 +81,7 @@ static int reallocate_words_list
    if
    (
       (SIZE_MAX / sizeof(struct ZoO_knowledge_word))
-      > (size_t) k->words_length
+      < (size_t) k->words_length
    )
    {
       ZoO_S_ERROR
@@ -120,7 +120,7 @@ static int reallocate_words_list
 static int reallocate_words_sorted_list
 (
    struct ZoO_knowledge k [const restrict static 1],
-   const struct ZoO_pipe io [const restrict static 1]
+   FILE io [const restrict static 1]
 )
 {
    ZoO_index * new_words_sorted;
@@ -130,7 +130,7 @@ static int reallocate_words_sorted_list
     * whose size is bigger than a ZoO_index.
     * */
    /*
-   if ((SIZE_MAX / sizeof(ZoO_index)) > k->words_length)
+   if ((SIZE_MAX / sizeof(ZoO_index)) < k->words_length)
    {
       ZoO_S_ERROR
       (
@@ -197,7 +197,7 @@ static int add_word
    const ZoO_index word_length,
    const ZoO_index word_id,
    const ZoO_index sorted_word_id,
-   const struct ZoO_pipe io [const restrict static 1]
+   FILE io [const restrict static 1]
 )
 {
    ZoO_char * stored_word;
@@ -244,7 +244,7 @@ static int add_word
 
    set_nth_word(k, sorted_word_id, word_id);
 
-   return -1;
+   return 0;
 }
 
 /******************************************************************************/
@@ -257,7 +257,7 @@ int ZoO_knowledge_learn_word
    const ZoO_char word [const restrict static 1],
    const size_t word_length,
    ZoO_index word_id [const restrict static 1],
-   const struct ZoO_pipe io [const restrict static 1]
+   FILE io [const restrict static 1]
 )
 {
    ZoO_index sorted_id;
@@ -280,11 +280,30 @@ int ZoO_knowledge_learn_word
       ) == 0
    )
    {
+      ZoO_DEBUG
+      (
+         io,
+         ZoO_DEBUG_KNOWLEDGE_LEARN_WORD,
+         "Word of size %u is already known (id: %u).",
+         (ZoO_index) word_length,
+         *word_id
+      );
+
       return 0;
    }
 
    sorted_id = *word_id;
    *word_id = k->words_length;
+
+   ZoO_DEBUG
+   (
+      io,
+      ZoO_DEBUG_KNOWLEDGE_LEARN_WORD,
+      "Learning new word of size %u (id: %u, sorted_id: %u).",
+      (ZoO_index) word_length,
+      *word_id,
+      sorted_id
+   );
 
    return add_word(k, word, (ZoO_index) word_length, *word_id, sorted_id, io);
 }

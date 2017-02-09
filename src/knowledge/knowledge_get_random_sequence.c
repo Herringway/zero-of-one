@@ -2,9 +2,10 @@
 
 #include "../core/char.h"
 #include "../core/index.h"
+
 #include "../sequence/sequence.h"
 
-#include "../pipe/pipe.h"
+#include "../error/error.h"
 
 #include "knowledge.h"
 
@@ -52,7 +53,7 @@ int ZoO_knowledge_copy_random_swt_sequence
    ZoO_index sequence [const restrict static 1],
    const ZoO_index word_id,
    const ZoO_index markov_order,
-   const struct ZoO_pipe io [const restrict static 1]
+   FILE io [const restrict static 1]
 )
 {
    ZoO_index sequence_id;

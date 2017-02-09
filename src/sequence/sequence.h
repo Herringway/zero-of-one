@@ -7,7 +7,7 @@
 #include "../core/char_types.h"
 #include "../core/index_types.h"
 
-#include "../pipe/pipe.h"
+#include "../error/error.h"
 
 #include "../knowledge/knowledge_types.h"
 
@@ -15,16 +15,32 @@
 
 /*@
    requires \valid(sequence);
-   requires \valid(*sequence);
+   requires (\block_length(sequence) >= 1);
    requires \valid(sequence_capacity);
+   requires (\block_length(sequence) >= 1);
    requires \valid(io);
 
    requires (((*sequence_capacity) * sizeof(ZoO_index)) <= SIZE_MAX);
    requires ((sequence_required_capacity * sizeof(ZoO_index)) <= SIZE_MAX);
 
-   requires \separated(sequence, *sequence, sequence_capacity, io);
+   requires
+      \separated
+      (
+         (sequence+ (0 .. \block_length(sequence))),
+         ((*sequence)+ (0 .. \block_length(*sequence))),
+         (sequence_capacity+ (0 ..\block_length(sequence_capacity))),
+         (io+ (0 ..\block_length(io)))
+      );
 
-   ensures \separated(sequence, *sequence, sequence_capacity, io);
+   ensures
+      \separated
+      (
+         (sequence+ (0 .. \block_length(sequence))),
+         ((*sequence)+ (0 .. \block_length(*sequence))),
+         (sequence_capacity+ (0 ..\block_length(sequence_capacity))),
+         (io+ (0 ..\block_length(io)))
+      );
+
    ensures (((*sequence_capacity) * sizeof(ZoO_index)) <= SIZE_MAX);
    ensures ((sequence_required_capacity * sizeof(ZoO_index)) <= SIZE_MAX);
    ensures \valid(sequence);
@@ -70,7 +86,7 @@ int ZoO_sequence_ensure_capacity
    ZoO_index * sequence [const restrict static 1],
    size_t sequence_capacity [const restrict static 1],
    const size_t sequence_required_capacity,
-   const struct ZoO_pipe io [const restrict static 1]
+   FILE io [const restrict static 1]
 );
 
 int ZoO_sequence_from_undercase_string
@@ -81,7 +97,7 @@ int ZoO_sequence_from_undercase_string
    ZoO_index * sequence [const restrict static 1],
    size_t sequence_capacity [const restrict static 1],
    size_t sequence_length [const restrict static 1],
-   const struct ZoO_pipe io [const restrict static 1]
+   FILE io [const restrict static 1]
 );
 
 /*
@@ -114,7 +130,7 @@ int ZoO_sequence_create_from
    ZoO_index * sequence [const restrict static 1],
    size_t sequence_capacity [const restrict static 1],
    size_t sequence_length [const restrict static 1],
-   const struct ZoO_pipe io [const restrict static 1]
+   FILE io [const restrict static 1]
 );
 
 /*@
@@ -125,7 +141,15 @@ int ZoO_sequence_create_from
    requires \valid(io);
    requires (((*sequence_length) * sizeof(ZoO_index)) <= SIZE_MAX);
    requires (((*sequence_capacity) * sizeof(ZoO_index)) <= SIZE_MAX);
-   requires \separated(sequence, *sequence, sequence_capacity, sequence_length, io);
+   requires
+      \separated
+      (
+         (sequence+ (0 .. \block_length(sequence))),
+         ((*sequence)+ (0 .. \block_length(*sequence))),
+         (sequence_capacity+ (0 ..\block_length(sequence_capacity))),
+         (sequence_length+ (0 ..\block_length(sequence_length))),
+         (io+ (0 ..\block_length(io)))
+      );
 
    assigns (*sequence_length);
    assigns (*sequence[0]);
@@ -138,7 +162,15 @@ int ZoO_sequence_create_from
    ensures \valid(io);
    ensures (((*sequence_length) * sizeof(ZoO_index)) <= SIZE_MAX);
    ensures (((*sequence_capacity) * sizeof(ZoO_index)) <= SIZE_MAX);
-   ensures \separated(sequence, *sequence, sequence_capacity, sequence_length, io);
+   ensures
+      \separated
+      (
+         (sequence+ (0 .. \block_length(sequence))),
+         ((*sequence)+ (0 .. \block_length(*sequence))),
+         (sequence_capacity+ (0 ..\block_length(sequence_capacity))),
+         (sequence_length+ (0 ..\block_length(sequence_length))),
+         (io+ (0 ..\block_length(io)))
+      );
 
    ensures ((\result == 0) || (\result == -1));
 
@@ -157,7 +189,7 @@ int ZoO_sequence_create_from
    ensures ((\result == 0) ==> (*sequence_length > \old(*sequence_length)));
 
    ensures ((\result == -1) ==> ((*sequence_length) == \old(*sequence_length)));
-   ensures ((\result == -1) ==> ((*sequence[0]) == \old(*sequence[0])));
+   ensures ((\result == -1) ==> (((*sequence)[0]) == \old((*sequence)[0])));
    ensures
       (
          (\result == -1) ==>
@@ -178,7 +210,7 @@ int ZoO_sequence_append_left
    ZoO_index * sequence [const restrict static 1],
    size_t sequence_capacity [const restrict static 1],
    size_t sequence_length [const restrict static 1],
-   const struct ZoO_pipe io [const restrict static 1]
+   FILE io [const restrict static 1]
 );
 
 /*@
@@ -189,10 +221,18 @@ int ZoO_sequence_append_left
    requires \valid(io);
    requires (((*sequence_length) * sizeof(ZoO_index)) <= SIZE_MAX);
    requires (((*sequence_capacity) * sizeof(ZoO_index)) <= SIZE_MAX);
-   requires \separated(sequence, *sequence, sequence_capacity, sequence_length, io);
+   requires
+      \separated
+      (
+         (sequence+ (0 .. \block_length(sequence))),
+         ((*sequence)+ (0 .. \block_length(*sequence))),
+         (sequence_capacity+ (0 ..\block_length(sequence_capacity))),
+         (sequence_length+ (0 ..\block_length(sequence_length))),
+         (io+ (0 ..\block_length(io)))
+      );
 
    assigns (*sequence_length);
-   assigns (*sequence[0]);
+   assigns ((*sequence)[0]);
    assigns (*sequence_capacity);
 
    ensures \valid(sequence);
@@ -202,7 +242,15 @@ int ZoO_sequence_append_left
    ensures \valid(io);
    ensures (((*sequence_length) * sizeof(ZoO_index)) <= SIZE_MAX);
    ensures (((*sequence_capacity) * sizeof(ZoO_index)) <= SIZE_MAX);
-   ensures \separated(sequence, *sequence, sequence_capacity, sequence_length, io);
+   ensures
+      \separated
+      (
+         (sequence+ (0 .. \block_length(sequence))),
+         ((*sequence)+ (0 .. \block_length(*sequence))),
+         (sequence_capacity+ (0 ..\block_length(sequence_capacity))),
+         (sequence_length+ (0 ..\block_length(sequence_length))),
+         (io+ (0 ..\block_length(io)))
+      );
 
    ensures ((\result == 0) || (\result == -1));
 
@@ -221,7 +269,7 @@ int ZoO_sequence_append_left
    ensures ((\result == 0) ==> (*sequence_length > \old(*sequence_length)));
 
    ensures ((\result == -1) ==> ((*sequence_length) == \old(*sequence_length)));
-   ensures ((\result == -1) ==> ((*sequence[0]) == \old(*sequence[0])));
+   ensures ((\result == -1) ==> (((*sequence)[0]) == \old((*sequence)[0])));
    ensures
       (
          (\result == -1) ==>
@@ -242,7 +290,7 @@ int ZoO_sequence_append_right
    const ZoO_index word_id,
    size_t sequence_capacity [const restrict static 1],
    size_t sequence_length [const restrict static 1],
-   const struct ZoO_pipe io [const restrict static 1]
+   FILE io [const restrict static 1]
 );
 
 /*
@@ -265,9 +313,19 @@ int ZoO_sequence_append_right
 int ZoO_sequence_cmp
 (
    const ZoO_index sequence_a [const],
-   size_t sequence_a_length,
    const ZoO_index sequence_b [const],
-   size_t sequence_b_length
+   const ZoO_index length
+);
+
+int ZoO_sequence_to_undercase_string
+(
+   const ZoO_index sequence [const restrict static 1],
+   const size_t sequence_length,
+   struct ZoO_knowledge k [const restrict static 1],
+   ZoO_char * destination [const restrict static 1],
+   size_t destination_capacity [const restrict static 1],
+   size_t destination_length [const restrict static 1],
+   FILE io [const restrict static 1]
 );
 
 #endif

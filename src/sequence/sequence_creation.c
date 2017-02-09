@@ -5,7 +5,7 @@
 
 #include "../core/index.h"
 
-#include "../pipe/pipe.h"
+#include "../error/error.h"
 
 #include "../knowledge/knowledge.h"
 
@@ -40,7 +40,7 @@ static int extend_left
    size_t sequence_length [const restrict static 1],
    const ZoO_index markov_order,
    struct ZoO_knowledge k [const restrict static 1],
-   const struct ZoO_pipe io [const restrict static 1]
+   FILE io [const restrict static 1]
 )
 {
    ZoO_index sequence_id, word_id;
@@ -62,7 +62,8 @@ static int extend_left
    {
       (void) ZoO_knowledge_unlock_access(k, io);
 
-      /* TODO: Err message. */
+      ZoO_S_ERROR(io, "Could not find matching TWS sequence.");
+
       return -1;
    }
 
@@ -83,7 +84,7 @@ static int extend_left
    {
       (void) ZoO_knowledge_unlock_access(k, io);
 
-      /* TODO: Err message. */
+      ZoO_S_ERROR(io, "Could not find matching TWS target.");
 
       return -1;
    }
@@ -138,7 +139,7 @@ static int complete_left_part_of_sequence
    const ZoO_index markov_order,
    size_t credits [const restrict],
    struct ZoO_knowledge k [const restrict static 1],
-   const struct ZoO_pipe io [const restrict static 1]
+   FILE io [const restrict static 1]
 )
 {
    for (;;)
@@ -159,7 +160,7 @@ static int complete_left_part_of_sequence
          )
          {
             /* We are sure *sequence[0] is defined. */
-            if (*sequence[0] == ZoO_START_OF_SEQUENCE_ID)
+            if ((*sequence)[0] == ZoO_START_OF_SEQUENCE_ID)
             {
                /*
                 * We failed to add a word, but it was because none should have
@@ -176,7 +177,7 @@ static int complete_left_part_of_sequence
       else
       {
          /* No more credits available, the sequence will have to start here. */
-         *sequence[0] = ZoO_START_OF_SEQUENCE_ID;
+         (*sequence)[0] = ZoO_START_OF_SEQUENCE_ID;
 
          return 0;
       }
@@ -187,7 +188,7 @@ static int complete_left_part_of_sequence
       }
 
       /* We are sure *sequence[0] is defined. */
-      switch (*sequence[0])
+      switch ((*sequence)[0])
       {
          case ZoO_END_OF_SEQUENCE_ID:
             ZoO_S_WARNING
@@ -196,7 +197,7 @@ static int complete_left_part_of_sequence
                "END OF LINE was added at the left part of an sequence."
             );
 
-            *sequence[0] = ZoO_START_OF_SEQUENCE_ID;
+            (*sequence)[0] = ZoO_START_OF_SEQUENCE_ID;
             return 0;
 
          case ZoO_START_OF_SEQUENCE_ID:
@@ -237,7 +238,7 @@ static int extend_right
    size_t sequence_length [const restrict static 1],
    const ZoO_index markov_order,
    struct ZoO_knowledge k [const restrict static 1],
-   const struct ZoO_pipe io [const restrict static 1]
+   FILE io [const restrict static 1]
 )
 {
    ZoO_index sequence_id, word_id;
@@ -342,7 +343,7 @@ static int complete_right_part_of_sequence
    const ZoO_index markov_order,
    size_t credits [const restrict],
    struct ZoO_knowledge k [const restrict static 1],
-   const struct ZoO_pipe io [const restrict static 1]
+   FILE io [const restrict static 1]
 )
 {
    for (;;)
@@ -363,7 +364,7 @@ static int complete_right_part_of_sequence
          )
          {
             /* Safe: (> sequence_length 1) */
-            if (*sequence[(*sequence_length - 1)] == ZoO_END_OF_SEQUENCE_ID)
+            if ((*sequence)[(*sequence_length - 1)] == ZoO_END_OF_SEQUENCE_ID)
             {
                /*
                 * We failed to add a word, but it was because none should have
@@ -380,7 +381,7 @@ static int complete_right_part_of_sequence
       else
       {
          /* No more credits available, we end the sequence. */
-         *sequence[(*sequence_length - 1)] = ZoO_END_OF_SEQUENCE_ID;
+         (*sequence)[((*sequence_length) - 1)] = ZoO_END_OF_SEQUENCE_ID;
 
          return 0;
       }
@@ -391,7 +392,7 @@ static int complete_right_part_of_sequence
       }
 
       /* Safe: (> sequence_length 1) */
-      switch (*sequence[(*sequence_length - 1)])
+      switch ((*sequence)[((*sequence_length) - 1)])
       {
          case ZoO_START_OF_SEQUENCE_ID:
             ZoO_S_WARNING
@@ -400,7 +401,7 @@ static int complete_right_part_of_sequence
                "END OF LINE was added at the right part of an sequence."
             );
 
-            *sequence[(*sequence_length - 1)] = ZoO_END_OF_SEQUENCE_ID;
+            (*sequence)[((*sequence_length) - 1)] = ZoO_END_OF_SEQUENCE_ID;
             return 0;
 
          case ZoO_END_OF_SEQUENCE_ID:
@@ -438,7 +439,7 @@ static int initialize_sequence
    const ZoO_index initial_word,
    const ZoO_index markov_order,
    struct ZoO_knowledge k [const static 1],
-   const struct ZoO_pipe io [const restrict static 1]
+   FILE io [const restrict static 1]
 )
 {
    sequence[(markov_order - 1)] = initial_word;
@@ -467,6 +468,23 @@ static int initialize_sequence
       return -1;
    }
 
+   if (ZoO_DEBUG_SEQUENCE_CREATION_INIT)
+   {
+      ZoO_index i;
+
+      for (i = 0; i < markov_order; ++i)
+      {
+         ZoO_DEBUG
+         (
+            io,
+            ZoO_DEBUG_SEQUENCE_CREATION_INIT,
+            "sequence[%u]: %u",
+            i,
+            sequence[i]
+         );
+      }
+   }
+
    (void) ZoO_knowledge_unlock_access(k, io);
 
    return 0;
@@ -486,9 +504,11 @@ int ZoO_sequence_create_from
    ZoO_index * sequence [const restrict static 1],
    size_t sequence_capacity [const restrict static 1],
    size_t sequence_length [const restrict static 1],
-   const struct ZoO_pipe io [const restrict static 1]
+   FILE io [const restrict static 1]
 )
 {
+   size_t i;
+
    if
    (
       ZoO_sequence_ensure_capacity
@@ -517,6 +537,8 @@ int ZoO_sequence_create_from
       ) < 0
    )
    {
+      ZoO_S_ERROR(io, "Failed to create start of new sequence.");
+
       *sequence_length = 0;
 
       return -2;
@@ -538,6 +560,8 @@ int ZoO_sequence_create_from
       ) < 0
    )
    {
+      ZoO_S_ERROR(io, "Failed to create right part of sequence.");
+
       *sequence_length = 0;
 
       return -3;
@@ -557,6 +581,8 @@ int ZoO_sequence_create_from
       ) < 0
    )
    {
+      ZoO_S_ERROR(io, "Failed to create left part of sequence.");
+
       *sequence_length = 0;
 
       return -4;

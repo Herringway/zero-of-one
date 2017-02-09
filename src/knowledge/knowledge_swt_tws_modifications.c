@@ -2,7 +2,7 @@
 
 #include "../core/index.h"
 
-#include "../pipe/pipe.h"
+#include "../error/error.h"
 
 #include "knowledge.h"
 
@@ -12,7 +12,7 @@ static int add_target
    const ZoO_index target_id,
    const ZoO_index s_index,
    const ZoO_index t_index,
-   const struct ZoO_pipe io [const restrict static 1]
+   FILE io [const restrict static 1]
 )
 {
    struct ZoO_knowledge_target * new_p;
@@ -68,7 +68,7 @@ static int add_sequence
    struct ZoO_knowledge_sequence_collection sc [const restrict static 1],
    const ZoO_index sequence_id,
    ZoO_index s_index [const restrict static 1],
-   const struct ZoO_pipe io [const restrict static 1]
+   FILE io [const restrict static 1]
 )
 {
    struct ZoO_knowledge_sequence_data * new_p;
@@ -149,7 +149,7 @@ static int add_sequence
    sc->sequences_ref[*s_index].targets = (struct ZoO_knowledge_target *) NULL;
    sc->sequences_ref[*s_index].targets_length = 0;
 
-   return -1;
+   return 0;
 }
 
 int ZoO_knowledge_strengthen_swt
@@ -158,7 +158,7 @@ int ZoO_knowledge_strengthen_swt
    const ZoO_index sequence_id,
    const ZoO_index word_id,
    const ZoO_index target_id,
-   const struct ZoO_pipe io [const restrict static 1]
+   FILE io [const restrict static 1]
 )
 {
    ZoO_index s_index, t_index;
@@ -248,7 +248,7 @@ int ZoO_knowledge_strengthen_tws
    const ZoO_index target_id,
    const ZoO_index word_id,
    const ZoO_index sequence_id,
-   const struct ZoO_pipe io [const restrict static 1]
+   FILE io [const restrict static 1]
 )
 {
    ZoO_index s_index, t_index;
@@ -277,7 +277,6 @@ int ZoO_knowledge_strengthen_tws
          return -1;
       }
    }
-
 
    if
    (
@@ -330,5 +329,5 @@ int ZoO_knowledge_strengthen_tws
    k->words[word_id].tws.sequences_ref[s_index].occurrences += 1;
    k->words[word_id].tws.sequences_ref[s_index].targets[t_index].occurrences += 1;
 
-   return -1;
+   return 0;
 }

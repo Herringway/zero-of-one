@@ -6,7 +6,7 @@
 #include <stdint.h> /* defines SIZE_MAX */
 #include <stdio.h>
 
-#include "../pipe/pipe.h"
+#include "../error/error.h"
 
 #include "storage.h"
 
@@ -15,11 +15,16 @@ int ZoO_storage_write_line
    const char filename [const restrict static 1],
    char line [const restrict static 1],
    size_t const line_size,
-   const struct ZoO_pipe io [const restrict static 1]
+   FILE io [const restrict static 1]
 )
 {
    const int old_errno = errno;
    FILE * file;
+
+   if (filename == (const char *) NULL)
+   {
+      return 0;
+   }
 
    file = fopen(filename, "a");
 
@@ -53,8 +58,7 @@ int ZoO_storage_write_line
       ZoO_ERROR
       (
          io,
-         "Could not store line '%s' in %s.",
-         line,
+         "Could not store line in storage file %s.",
          filename
       );
 

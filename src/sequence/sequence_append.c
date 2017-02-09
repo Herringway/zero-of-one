@@ -5,7 +5,7 @@
 
 #include "../core/index.h"
 
-#include "../pipe/pipe.h"
+#include "../error/error.h"
 
 #include "sequence.h"
 
@@ -16,10 +16,14 @@
 /*@
    requires \valid(required_capacity);
    requires \valid(io);
-   requires \separated(required_capacity, io);
+   requires
+      \separated
+      (
+         (required_capacity+ (0 .. \block_length(required_capacity))),
+         (io+ (0 .. \block_length(io)))
+      );
 
    assigns \result;
-
    assigns (*required_capacity);
 
    ensures ((\result == 0) || (\result == -1));
@@ -27,7 +31,12 @@
    ensures \valid(required_capacity);
    ensures \valid(io);
 
-   ensures \separated(required_capacity, io);
+   ensures
+      \separated
+      (
+         (required_capacity+ (0 .. \block_length(required_capacity))),
+         (io+ (0 .. \block_length(io)))
+      );
 
    ensures
       (
@@ -51,7 +60,7 @@
 static int increment_required_capacity
 (
    size_t required_capacity [const restrict static 1],
-   const struct ZoO_pipe io [const restrict static 1]
+   FILE io [const restrict static 1]
 )
 {
    if
@@ -92,7 +101,7 @@ int ZoO_sequence_ensure_capacity
    ZoO_index * sequence [const restrict static 1],
    size_t sequence_capacity [const restrict static 1],
    const size_t sequence_required_capacity,
-   const struct ZoO_pipe io [const restrict static 1]
+   FILE io [const restrict static 1]
 )
 {
    ZoO_index * new_sequence;
@@ -146,7 +155,7 @@ int ZoO_sequence_append_left
    ZoO_index * sequence [const restrict static 1],
    size_t sequence_capacity [const restrict static 1],
    size_t sequence_length [const restrict static 1],
-   const struct ZoO_pipe io [const restrict static 1]
+   FILE io [const restrict static 1]
 )
 {
    if (increment_required_capacity(sequence_length, io) < 0)
@@ -171,17 +180,17 @@ int ZoO_sequence_append_left
       return -1;
    }
 
-   /*@ assert *sequence_length >= 0; @*/
+   /*@ assert (*sequence_length) >= 0; @*/
 
-   if (*sequence_length > 1)
+   if ((*sequence_length) > 1)
    {
       /*@ assert(((*sequence_length) * sizeof(ZoO_index)) <= SIZE_MAX); @*/
 
       #ifndef ZoO_RUNNING_FRAMA_C
       memmove
       (
-         (void *) (*sequence + 1),
-         (const void *) sequence,
+         (void *) ((*sequence) + 1),
+         (const void *) (*sequence),
          (((*sequence_length) - 1) * sizeof(ZoO_index))
       );
       #endif
@@ -198,7 +207,7 @@ int ZoO_sequence_append_right
    const ZoO_index word_id,
    size_t sequence_capacity [const restrict static 1],
    size_t sequence_length [const restrict static 1],
-   const struct ZoO_pipe io [const restrict static 1]
+   FILE io [const restrict static 1]
 )
 {
    if (increment_required_capacity(sequence_length, io) < 0)
@@ -206,7 +215,7 @@ int ZoO_sequence_append_right
       return -1;
    }
 
-   /*@ assert ((*sequence_length * sizeof(ZoO_index)) <= SIZE_MAX); @*/
+   /*@ assert (((*sequence_length) * sizeof(ZoO_index)) <= SIZE_MAX); @*/
 
    if
    (
@@ -224,9 +233,9 @@ int ZoO_sequence_append_right
       return -1;
    }
 
-   /*@ assert (*sequence_length >= 1); @*/
-   (*sequence)[*sequence_length - 1] = word_id;
-   /*@ assert (*sequence_length >= 1); @*/
+   /*@ assert ((*sequence_length) >= 1); @*/
+   (*sequence)[(*sequence_length) - 1] = word_id;
+   /*@ assert ((*sequence_length) >= 1); @*/
 
    return 0;
 }

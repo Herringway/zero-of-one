@@ -11,6 +11,7 @@ set(
    ${CMAKE_CURRENT_SOURCE_DIR}/server_worker.c
    ${CMAKE_CURRENT_SOURCE_DIR}/server_worker_handle_request.c
    ${CMAKE_CURRENT_SOURCE_DIR}/server_worker_receive.c
+   ${CMAKE_CURRENT_SOURCE_DIR}/server_worker_send.c
 )
 
 set(SRC_FILES ${SRC_FILES} PARENT_SCOPE)

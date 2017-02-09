@@ -4,7 +4,7 @@
 #include "../core/index.h"
 #include "../sequence/sequence.h"
 
-#include "../pipe/pipe.h"
+#include "../error/error.h"
 
 #include "knowledge.h"
 
@@ -36,11 +36,18 @@ int ZoO_knowledge_find_word_id
    current_min = 0;
    current_max -= 1;
 
-   for (;;)
+   while (current_min <= current_max)
    {
       i = (current_min + ((current_max - current_min) / 2));
 
-      cmp = ZoO_word_cmp(word, word_length, k->words[k->words_sorted[i]].word);
+      cmp =
+         ZoO_word_cmp
+         (
+            word,
+            word_length,
+            k->words[k->words_sorted[i]].word,
+            k->words[k->words_sorted[i]].word_length
+         );
 
       if (cmp > 0)
       {
@@ -55,7 +62,7 @@ int ZoO_knowledge_find_word_id
       }
       else if (cmp < 0)
       {
-         if ((current_min > current_max) || (i == 0))
+         if ((current_min >= current_max) || (i == 0))
          {
             *result = current_min;
 
@@ -71,6 +78,10 @@ int ZoO_knowledge_find_word_id
          return 0;
       }
    }
+
+   *result = current_min;
+
+   return -1;
 }
 
 int ZoO_knowledge_find_markov_sequence
@@ -94,7 +105,7 @@ int ZoO_knowledge_find_markov_sequence
    current_min = 0;
    current_max = (sc->sequences_ref_length - 1);
 
-   for (;;)
+   while (current_min <= current_max)
    {
       i = (current_min + ((current_max - current_min) / 2));
 
@@ -118,7 +129,7 @@ int ZoO_knowledge_find_markov_sequence
       }
       else if (cmp < 0)
       {
-         if ((current_min > current_max) || (i == 0))
+         if ((current_min >= current_max) || (i == 0))
          {
             *result = current_min;
 
@@ -134,6 +145,10 @@ int ZoO_knowledge_find_markov_sequence
          return 0;
       }
    }
+
+   *result = current_min;
+
+   return -1;
 }
 
 int ZoO_knowledge_find_sequence_target
@@ -157,7 +172,7 @@ int ZoO_knowledge_find_sequence_target
    current_min = 0;
    current_max = (sd->targets_length - 1);
 
-   for (;;)
+   while (current_min <= current_max)
    {
       i = (current_min + ((current_max - current_min) / 2));
 
@@ -176,7 +191,7 @@ int ZoO_knowledge_find_sequence_target
       }
       else if (cmp < 0)
       {
-         if ((current_min > current_max) || (i == 0))
+         if ((current_min >= current_max) || (i == 0))
          {
             *result = current_min;
 
@@ -192,4 +207,8 @@ int ZoO_knowledge_find_sequence_target
          return 0;
       }
    }
+
+   *result = current_min;
+
+   return -1;
 }

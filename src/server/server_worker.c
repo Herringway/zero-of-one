@@ -23,6 +23,10 @@ static int initialize
    worker->buffer_capacity = 0;
    worker->buffer_length = 0;
 
+   worker->sequence_buffer = (ZoO_index *) NULL;
+   worker->sequence_buffer_capacity = 0;
+   worker->sequence_buffer_length = 0;
+
    worker->socket_as_file = fdopen(worker->params.socket, "w+");
 
    if (worker->socket_as_file == (FILE *) NULL)

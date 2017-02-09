@@ -18,9 +18,30 @@ int ZoO_word_cmp
 (
    const ZoO_char word_a [const static 1],
    const size_t word_a_size,
-   const ZoO_char word_b [const static 1]
+   const ZoO_char word_b [const static 1],
+   const size_t word_b_size
 )
 {
-   return strncmp((const char *) word_a, (const char *) word_b, word_a_size);
+   int result;
+   size_t min_size;
+
+   if (word_a_size < word_b_size)
+   {
+      result =
+         strncmp((const char *) word_a, (const char *) word_b, word_a_size);
+
+      return (result == 0) ? -1 : result;
+   }
+   else if (word_b_size < word_a_size)
+   {
+      result =
+         strncmp((const char *) word_a, (const char *) word_b, word_b_size);
+
+      return (result == 0) ? 1 : result;
+   }
+   else
+   {
+      return strncmp((const char *) word_a, (const char *) word_b, word_a_size);
+   }
 }
 

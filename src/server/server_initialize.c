@@ -4,6 +4,8 @@
 
 #include "../parameters/parameters.h"
 
+#include "../knowledge/knowledge.h"
+
 #include "server.h"
 
 static int initialize_worker_collection
@@ -67,6 +69,7 @@ void initialize_thread_parameters
 {
    server->thread_params.thread_collection = &(server->workers);
    server->thread_params.server_params = params;
+   server->thread_params.knowledge = &(server->k);
    server->thread_params.socket = -1;
 }
 
@@ -77,6 +80,11 @@ int ZoO_server_initialize
 )
 {
    if (initialize_worker_collection(&(server->workers)) < 0)
+   {
+      return -1;
+   }
+
+   if (ZoO_knowledge_initialize(&(server->k)) < 0)
    {
       return -1;
    }

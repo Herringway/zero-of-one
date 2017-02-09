@@ -55,4 +55,24 @@ int ZoO_server_worker_handle_request
    struct ZoO_server_worker worker [const restrict static 1]
 );
 
+int ZoO_server_worker_send_confirm_protocol_version
+(
+   struct ZoO_server_worker worker [const restrict static 1]
+);
+
+int ZoO_server_worker_send_positive
+(
+   struct ZoO_server_worker worker [const restrict static 1]
+);
+
+int ZoO_server_worker_send_negative
+(
+   struct ZoO_server_worker worker [const restrict static 1]
+);
+
+int ZoO_server_worker_send_generated_reply
+(
+   struct ZoO_server_worker worker [const restrict static 1]
+);
+
 #endif

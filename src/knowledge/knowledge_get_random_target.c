@@ -2,9 +2,10 @@
 
 #include "../core/char.h"
 #include "../core/index.h"
-#include "../sequence/sequence.h"
 
-#include "../pipe/pipe.h"
+#include "../error/error.h"
+
+#include "../sequence/sequence.h"
 
 #include "knowledge.h"
 

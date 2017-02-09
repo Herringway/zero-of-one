@@ -89,7 +89,7 @@ static int get_new_thread (struct ZoO_server server [const restrict static 1])
    new_threads =
       (struct ZoO_server_thread_data *) realloc
       (
-         &(server->workers.threads),
+         server->workers.threads,
          (
             sizeof(struct ZoO_server_thread_data)
             * ((size_t) server->workers.threads_capacity)

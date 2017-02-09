@@ -4,20 +4,20 @@
 #include "../core/char_types.h"
 #include "../core/index_types.h"
 
-#include "../pipe/pipe_types.h"
+#include "../error/error.h"
 
 #include "knowledge_types.h"
 
 int ZoO_knowledge_lock_access
 (
    struct ZoO_knowledge k [const restrict static 1],
-   const struct ZoO_pipe io [const restrict static 1]
+   FILE io [const restrict static 1]
 );
 
 void ZoO_knowledge_unlock_access
 (
    struct ZoO_knowledge k [const restrict static 1],
-   const struct ZoO_pipe io [const restrict static 1]
+   FILE io [const restrict static 1]
 );
 
 int ZoO_knowledge_initialize (struct ZoO_knowledge k [const restrict static 1]);
@@ -40,7 +40,7 @@ int ZoO_knowledge_learn_word
    const ZoO_char word [const restrict static 1],
    const size_t word_length,
    ZoO_index result [const restrict static 1],
-   const struct ZoO_pipe io [const restrict static 1]
+   FILE io [const restrict static 1]
 );
 
 int ZoO_knowledge_learn_sequence
@@ -49,7 +49,7 @@ int ZoO_knowledge_learn_sequence
    const ZoO_index sequence [const restrict static 1],
    const size_t sequence_length,
    const ZoO_index markov_order,
-   const struct ZoO_pipe io [const restrict static 1]
+   FILE io [const restrict static 1]
 );
 
 int ZoO_knowledge_learn_markov_sequence
@@ -58,7 +58,7 @@ int ZoO_knowledge_learn_markov_sequence
    const ZoO_index sequence [const restrict static 1],
    const ZoO_index markov_order, /* Pre (> markov_order 1) */
    ZoO_index sequence_id [const restrict static 1],
-   const struct ZoO_pipe io [const restrict static 1]
+   FILE io [const restrict static 1]
 );
 
 void ZoO_knowledge_get_word
@@ -93,6 +93,14 @@ int ZoO_knowledge_find_sequence
    const ZoO_index sequence [const restrict static 1],
    const ZoO_index markov_order, /* Pre: (> 1) */
    ZoO_index sequence_id [const restrict static 1]
+);
+
+int ZoO_knowledge_rarest_word
+(
+   const struct ZoO_knowledge k [const static 1],
+   const ZoO_index sequence [const restrict static 1],
+   const size_t sequence_length,
+   ZoO_index word_id [const restrict static 1]
 );
 
 int ZoO_knowledge_find_markov_sequence
@@ -131,7 +139,7 @@ int ZoO_knowledge_copy_random_swt_sequence
    ZoO_index sequence [const restrict static 1],
    const ZoO_index word_id,
    const ZoO_index markov_order,
-   const struct ZoO_pipe io [const restrict static 1]
+   FILE io [const restrict static 1]
 );
 
 int ZoO_knowledge_strengthen_swt
@@ -140,7 +148,7 @@ int ZoO_knowledge_strengthen_swt
    const ZoO_index sequence_id,
    const ZoO_index word_id,
    const ZoO_index target_id,
-   const struct ZoO_pipe io [const restrict static 1]
+   FILE io [const restrict static 1]
 );
 
 int ZoO_knowledge_strengthen_tws
@@ -149,7 +157,7 @@ int ZoO_knowledge_strengthen_tws
    const ZoO_index target_id,
    const ZoO_index word_id,
    const ZoO_index sequence_id,
-   const struct ZoO_pipe io [const restrict static 1]
+   FILE io [const restrict static 1]
 );
 
 /*
@@ -162,7 +170,7 @@ int ZoO_knowledge_weaken_swt
    const ZoO_index sequence_id,
    const ZoO_index word_id,
    const ZoO_index target_id,
-   const struct ZoO_pipe io [const restrict static 1]
+   FILE io [const restrict static 1]
 );
 
 int ZoO_knowledge_weaken_tws
@@ -171,7 +179,7 @@ int ZoO_knowledge_weaken_tws
    const ZoO_index target_id,
    const ZoO_index word_id,
    const ZoO_index sequence_id,
-   const struct ZoO_pipe io [const restrict static 1]
+   FILE io [const restrict static 1]
 );
 */
 #endif

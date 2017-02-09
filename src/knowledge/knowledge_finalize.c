@@ -2,7 +2,6 @@
 
 #include "knowledge.h"
 
-
 static void knowledge_sequence_data_finalize
 (
    struct ZoO_knowledge_sequence_data sd [const restrict static 1]

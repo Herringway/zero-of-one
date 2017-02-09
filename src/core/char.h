@@ -13,7 +13,8 @@ int ZoO_word_cmp
 (
    const ZoO_char word_a [const static 1],
    const size_t word_a_size,
-   const ZoO_char word_b [const static 1]
+   const ZoO_char word_b [const static 1],
+   const size_t word_b_size
 );
 
 /*

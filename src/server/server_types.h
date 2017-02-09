@@ -13,7 +13,7 @@
 
 #include "../parameters/parameters_types.h"
 
-#include "../pipe/pipe_types.h"
+#include "../error/error.h"
 
 #define ZoO_SERVER_MAX_RETRIES 10
 #define ZoO_SERVER_BUFFER_SIZE 0
@@ -66,10 +66,15 @@ struct ZoO_server_thread_parameters
 struct ZoO_server_worker
 {
    struct ZoO_server_thread_parameters params;
+   FILE * socket_as_file;
+
    char * buffer;
    size_t buffer_capacity;
    size_t buffer_length;
-   FILE * socket_as_file;
+
+   ZoO_index * sequence_buffer;
+   size_t sequence_buffer_capacity;
+   size_t sequence_buffer_length;
 };
 
 struct ZoO_server
@@ -77,6 +82,7 @@ struct ZoO_server
    struct ZoO_server_thread_collection workers;
    struct ZoO_server_socket socket;
    struct ZoO_server_thread_parameters thread_params;
+   struct ZoO_knowledge k;
 };
 
 #endif

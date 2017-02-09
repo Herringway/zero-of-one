@@ -14,14 +14,13 @@ allowed to contain the character '\n'.
 ######## Request Protocol Version ##############################################
 ########## Syntax
 "<TAG>": "?RPV"
-"<CONTENT>": list of comma separated unsigned integers.
+"<CONTENT>": list of comma separated unsigned integers, in a ascending order.
 
 ########## Semantic
 Upon reception of one such message, one should start using the latest
 Zero of One protocol version listed in <CONTENT> that one can. If none are
-supported, communication sockets should be closed (error messages may be sent
-prior to closing the socket). Otherwise, a Confirm Protocol Version message
-should be sent.
+supported, a Negative reply is sent. Otherwise, a Confirm Protocol Version
+message should be sent.
 
 ######## Request Learn #########################################################
 ########## Syntax
