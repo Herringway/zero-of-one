@@ -2,6 +2,9 @@
 
 #include "knowledge.h"
 
+/*@
+   requires \valid(sd);
+@*/
 static void knowledge_sequence_data_finalize
 (
    struct ZoO_knowledge_sequence_data sd [const restrict static 1]
@@ -27,7 +30,6 @@ static void knowledge_sequence_collection_finalize
 {
    ZoO_index i;
 
-
    for (i = 0; i < c->sequences_ref_length; ++i)
    {
       knowledge_sequence_data_finalize(c->sequences_ref + i);
@@ -36,12 +38,14 @@ static void knowledge_sequence_collection_finalize
    if (c->sequences_ref != (struct ZoO_knowledge_sequence_data *) NULL)
    {
       free((void *) c->sequences_ref);
+
       c->sequences_ref = (struct ZoO_knowledge_sequence_data *) NULL;
    }
 
    if (c->sequences_ref_sorted != (ZoO_index *) NULL)
    {
       free((void *) c->sequences_ref_sorted);
+
       c->sequences_ref_sorted = (ZoO_index *) NULL;
    }
 

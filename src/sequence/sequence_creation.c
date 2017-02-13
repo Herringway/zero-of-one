@@ -260,7 +260,13 @@ static int extend_right
    {
       (void) ZoO_knowledge_unlock_access(k, io);
 
-      /* TODO: Err message. */
+      ZoO_S_PROG_ERROR
+      (
+         io,
+         "Knowledge consistency error: generated markov sequence could not be "
+         "found."
+      );
+
       return -1;
    }
 
@@ -281,7 +287,12 @@ static int extend_right
    {
       (void) ZoO_knowledge_unlock_access(k, io);
 
-      /* TODO: Err message. */
+      ZoO_S_PROG_ERROR
+      (
+         io,
+         "Knowledge consistency error: generated markov sequence had no known "
+         "targets."
+      );
 
       return -1;
    }
@@ -468,6 +479,8 @@ static int initialize_sequence
       return -1;
    }
 
+   (void) ZoO_knowledge_unlock_access(k, io);
+
    if (ZoO_DEBUG_SEQUENCE_CREATION_INIT)
    {
       ZoO_index i;
@@ -484,8 +497,6 @@ static int initialize_sequence
          );
       }
    }
-
-   (void) ZoO_knowledge_unlock_access(k, io);
 
    return 0;
 }

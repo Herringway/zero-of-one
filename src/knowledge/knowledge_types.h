@@ -44,15 +44,19 @@ struct ZoO_knowledge_word
 
 struct ZoO_knowledge
 {
+#ifndef ZoO_RUNNING_FRAMA_C
+   pthread_mutex_t mutex;
+#else
+   int mutex;
+#endif
+
    struct ZoO_knowledge_word * words;
    ZoO_index words_length;
    ZoO_index * words_sorted;
+
    ZoO_index ** sequences;
    ZoO_index sequences_length;
    ZoO_index * sequences_sorted;
-#ifndef ZoO_RUNNING_FRAMA_C
-   pthread_mutex_t mutex;
-#endif
 };
 
 #endif

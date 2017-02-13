@@ -25,10 +25,10 @@ static int get_new_socket (struct ZoO_server server [const restrict static 1])
 
    if (server->thread_params.socket == -1)
    {
-      fprintf
+      ZoO_ERROR
       (
          stderr,
-         "[E] Unable to accept on the server's socket: %s.\n",
+         "Unable to accept on the server's socket: %s.",
          strerror(errno)
       );
 
@@ -71,11 +71,10 @@ static int get_new_thread (struct ZoO_server server [const restrict static 1])
       )
    )
    {
-      fprintf
+      ZoO_S_ERROR
       (
          stderr,
-         "[E] Maximum number of concurrent threads attained, unable to add"
-         " more.\n"
+         "Maximum number of concurrent threads attained, unable to add more."
       );
 
       pthread_mutex_unlock(&(server->workers.mutex));
@@ -98,10 +97,10 @@ static int get_new_thread (struct ZoO_server server [const restrict static 1])
 
    if (new_threads == ((struct ZoO_server_thread_data *) NULL))
    {
-      fprintf
+      ZoO_S_ERROR
       (
          stderr,
-         "[E] Reallocation of the threads' data list failed.\n"
+         "Reallocation of the threads' data list failed."
       );
 
       pthread_mutex_unlock(&(server->workers.mutex));
@@ -134,10 +133,10 @@ static int spawn_thread (struct ZoO_server server [const restrict static 1])
 
    if (error != 0)
    {
-      fprintf
+      ZoO_ERROR
       (
          stderr,
-         "[E] Unable to spawn thread: %s.\n",
+         "Unable to spawn thread: %s.",
          strerror(error)
       );
 

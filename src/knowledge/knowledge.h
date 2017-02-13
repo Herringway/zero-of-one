@@ -8,18 +8,67 @@
 
 #include "knowledge_types.h"
 
+/*@
+   requires \valid(k);
+   requires \separated(k, io);
+
+// Do not use if lock is already yours.
+   requires (k->mutex == 1);
+
+// Returns zero on success, -1 on failure.
+   assigns \result;
+   ensures ((\result == 0) || (\result == -1));
+
+// On success, lock is acquired.
+   ensures ((\result == 0) ==> (k->mutex == 0));
+
+// Changes the status of the lock.
+   assigns (k->mutex);
+@*/
 int ZoO_knowledge_lock_access
 (
    struct ZoO_knowledge k [const restrict static 1],
    FILE io [const restrict static 1]
 );
 
+/*@
+   requires \valid(k);
+   requires \separated(k, io);
+
+// Do not use if lock is not yours.
+   requires (k->mutex == 0);
+
+// Lock is released.
+   ensures (k->mutex == 1);
+
+// Changes the status of the lock.
+   assigns (k->mutex);
+@*/
 void ZoO_knowledge_unlock_access
 (
    struct ZoO_knowledge k [const restrict static 1],
    FILE io [const restrict static 1]
 );
 
+/*@
+   requires (\block_length(k) >= 1);
+
+// Returns zero on success, -1 on failure.
+   assigns \result;
+   ensures ((\result == 0) || (\result == -1));
+
+// On success, all fields of {*k} are set.
+   ensures ((\result == 0) ==> \valid(k));
+
+// On success, the two reserved words are learnt.
+   ensures ((\result == 0) ==> (k->words_length == 2));
+
+// On success, the mutex is initialized and unlocked.
+   ensures ((\result == 0) ==> (k->mutex == 1));
+
+// At least some fields of k are set in any case.
+   assigns (*k);
+@*/
 int ZoO_knowledge_initialize (struct ZoO_knowledge k [const restrict static 1]);
 
 void ZoO_knowledge_finalize (struct ZoO_knowledge k [const restrict static 1]);

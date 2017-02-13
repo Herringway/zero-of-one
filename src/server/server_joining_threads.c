@@ -24,6 +24,8 @@ void ZoO_server_handle_joining_threads
    {
       if (server->workers.threads[i].state == ZoO_SERVER_JOINING_THREAD)
       {
+         ZoO_DEBUG(stderr, 1, "Joining thread %u", i);
+
          pthread_join(server->workers.threads[i].posix_id, (void **) NULL);
 
          server->workers.threads[i].state = ZoO_SERVER_NO_THREAD;

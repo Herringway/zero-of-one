@@ -4,6 +4,8 @@
 
 #include "../core/index.h"
 
+#include "../error/error.h"
+
 #include "parameters.h"
 
 static int parse_markov_order
@@ -26,12 +28,12 @@ static int parse_markov_order
 		|| (input < 1)
    )
    {
-		fprintf
+      ZoO_FATAL
       (
 			stderr,
-         "[F] Invalid or value for parameter 'MARKOV_ORDER', accepted "
+         "Invalid or value for parameter 'MARKOV_ORDER', accepted "
 			"range is "
-         "[1, %lli] (integer).\n",
+         "[1, %lli] (integer).",
          (long long int) ZoO_INDEX_MAX
       );
 

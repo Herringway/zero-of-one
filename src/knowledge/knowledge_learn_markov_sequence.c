@@ -50,7 +50,7 @@ static int reallocate_sequences_list
       ZoO_S_ERROR
       (
          io,
-         "Unable to store the size of the sequences list, as it would overflow"
+         "Unable to store the size of the sequences list, as it would overflow "
          "size_t variables."
       );
 
@@ -93,8 +93,8 @@ static int reallocate_sequences_sorted_list
       ZoO_S_ERROR
       (
          io,
-         "Unable to store the size of the sorted sequences list, as it would"
-         " overflow size_t variables."
+         "Unable to store the size of the sorted sequences list, as it would "
+         "overflow size_t variables."
       );
 
       return -1;
@@ -112,8 +112,8 @@ static int reallocate_sequences_sorted_list
       ZoO_S_ERROR
       (
          io,
-         "Unable to allocate the memory required for the new sorted sequences"
-         " list."
+         "Unable to allocate the memory required for the new sorted sequences "
+         "list."
       );
 
       return -1;

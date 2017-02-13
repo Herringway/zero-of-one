@@ -87,7 +87,7 @@ static int reallocate_words_list
       ZoO_S_ERROR
       (
          io,
-         "Unable to store the size of the words list, as it would overflow"
+         "Unable to store the size of the words list, as it would overflow "
          "size_t variables."
       );
 
@@ -134,8 +134,8 @@ static int reallocate_words_sorted_list
    {
       ZoO_S_ERROR
       (
-         "Unable to store the size of the sorted words list, as it would"
-         " overflow size_t variables."
+         "Unable to store the size of the sorted words list, as it would "
+         "overflow size_t variables."
       );
 
       return -1;

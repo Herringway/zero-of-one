@@ -7,6 +7,8 @@
 #include <sys/socket.h>
 #include <sys/un.h>
 
+#include "../error/error.h"
+
 #include "server.h"
 
 static int create_socket (int result [const restrict static 1])
@@ -18,10 +20,10 @@ static int create_socket (int result [const restrict static 1])
 
    if (*result == -1)
    {
-      fprintf
+      ZoO_FATAL
       (
          stderr,
-         "[F] Unable to create server socket: %s.\n",
+         "Unable to create server socket: %s.",
          strerror(errno)
       );
 
@@ -64,10 +66,10 @@ static int bind_socket
       ) != 0
    )
    {
-      fprintf
+      ZoO_FATAL
       (
          stderr,
-         "[F] Unable to bind server socket to %s: %s.\n",
+         "Unable to bind server socket to %s: %s.",
          socket_name,
          strerror(errno)
       );
@@ -91,10 +93,10 @@ static int set_socket_to_unblocking (const int socket)
 
    if (current_flags == -1)
    {
-      fprintf
+      ZoO_FATAL
       (
          stderr,
-         "[F] Unable to get server socket properties: %s.\n",
+         "Unable to get server socket properties: %s.",
          strerror(errno)
       );
 
@@ -109,10 +111,10 @@ static int set_socket_to_unblocking (const int socket)
 
    if (current_flags == -1)
    {
-      fprintf
+      ZoO_FATAL
       (
          stderr,
-         "[F] Unable to set server socket properties: %s.\n",
+         "Unable to set server socket properties: %s.",
          strerror(errno)
       );
 
@@ -132,10 +134,10 @@ static int set_socket_as_listener (const int socket)
 
    if (listen(socket, ZoO_SERVER_SOCKET_LISTEN_BACKLOG) != 0)
    {
-      fprintf
+      ZoO_FATAL
       (
          stderr,
-         "[F] Unable to set server socket properties: %s.\n",
+         "Unable to set server socket properties: %s.",
          strerror(errno)
       );
 

@@ -69,8 +69,8 @@ static int increment_required_capacity
       ZoO_S_ERROR
       (
          io,
-         "String capacity increment aborted, as the new capacity would not"
-         " fit in a ZoO_index variable."
+         "String capacity increment aborted, as the new capacity would not "
+         "fit in a ZoO_index variable."
       );
 
       return -1;
@@ -85,8 +85,8 @@ static int increment_required_capacity
       ZoO_S_ERROR
       (
          io,
-         "String capacity increment aborted, as the new size would not fit"
-         " in a size_t variable."
+         "String capacity increment aborted, as the new size would not fit "
+         "in a size_t variable."
       );
 
       return -2;

@@ -29,6 +29,7 @@ int ZoO_server_main
       switch (ZoO_server_wait_for_event(&server))
       {
          case 0: /* Timed out or signal'd. */
+            ZoO_S_DEBUG(stderr, 1, "Timed out...");
             ZoO_server_handle_joining_threads(&server);
 
             retries = 0;
@@ -36,6 +37,7 @@ int ZoO_server_main
             break;
 
          case 1: /* New client attempted connection. */
+            ZoO_S_DEBUG(stderr, 1, "New connection.");
             ZoO_server_handle_joining_threads(&server);
             (void) ZoO_server_handle_new_connection(&server);
 
@@ -52,6 +54,15 @@ int ZoO_server_main
 
                return -1;
             }
+
+            break;
+
+         default:
+            ZoO_S_PROG_ERROR
+            (
+               stderr,
+               "Unexpected wait_for_event return value."
+            );
 
             break;
       }

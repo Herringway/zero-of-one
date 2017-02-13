@@ -75,8 +75,8 @@ static int increment_required_capacity
       ZoO_S_ERROR
       (
          io,
-         "Sequence capacity increment aborted, as the new size would not fit"
-         " in a size_t variable."
+         "Sequence capacity increment aborted, as the new size would not fit "
+         "in a size_t variable."
       );
       #endif
 

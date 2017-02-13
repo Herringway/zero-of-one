@@ -1,6 +1,7 @@
 #include <stdlib.h>
 #include <string.h>
 #include <stdio.h>
+#include <errno.h>
 
 #include "server.h"
 
@@ -10,6 +11,8 @@ static int initialize
    void * input
 )
 {
+   const int old_errno = errno;
+
    memcpy
    (
       (void *) &(worker->params),
@@ -29,11 +32,23 @@ static int initialize
 
    worker->socket_as_file = fdopen(worker->params.socket, "w+");
 
+   errno = 0;
+
    if (worker->socket_as_file == (FILE *) NULL)
    {
-      /* TODO: error message? */
+      ZoO_ERROR
+      (
+         stderr,
+         "Unable to open client socket as a file stream: %s.",
+         strerror(errno)
+      );
+
+      errno = old_errno;
+
       return -1;
    }
+
+   errno = old_errno;
 
    return 0;
 }

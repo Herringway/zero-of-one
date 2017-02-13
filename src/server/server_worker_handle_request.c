@@ -42,13 +42,13 @@ static int load_reply
       ) < 0
    )
    {
-      ZoO_S_ERROR(worker->socket_as_file, "Could not find rarest word.");
-
       ZoO_knowledge_unlock_access
       (
          worker->params.knowledge,
          worker->socket_as_file
       );
+
+      ZoO_S_ERROR(worker->socket_as_file, "Could not find rarest word.");
 
       return -1;
    }

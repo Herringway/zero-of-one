@@ -23,14 +23,19 @@ int ZoO_knowledge_initialize (struct ZoO_knowledge k [const restrict static 1])
    k->sequences_length = 0;
    k->sequences_sorted = (ZoO_index *) NULL;
 
+#ifndef ZoO_RUNNING_FRAMA_C
    error = pthread_mutex_init(&(k->mutex), (const pthread_mutexattr_t *) NULL);
+#else
+   k->mutex = 1;
+   error = 0;
+#endif
 
    if (error != 0)
    {
-      fprintf
+      ZoO_FATAL
       (
          stderr,
-         "[F] Unable to initialize knowledge mutex: %s.\n",
+         "Unable to initialize knowledge mutex: %s.",
          strerror(error)
       );
 
@@ -78,7 +83,13 @@ int ZoO_knowledge_lock_access
 {
    int err;
 
+#ifndef ZoO_RUNNING_FRAMA_C
    err = pthread_mutex_lock(&(k->mutex));
+#else
+   /*@ assert (k->mutex == 1); @*/
+   k->mutex = 0;
+   err = 0;
+#endif
 
    if (err != 0)
    {
@@ -103,7 +114,13 @@ void ZoO_knowledge_unlock_access
 {
    int err;
 
+#ifndef ZoO_RUNNING_FRAMA_C
    err = pthread_mutex_unlock(&(k->mutex));
+#else
+   /*@ assert (k->mutex == 0); @*/
+   k->mutex = 1;
+   err = 0;
+#endif
 
    if (err != 0)
    {

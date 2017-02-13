@@ -28,10 +28,10 @@ static int initialize_worker_collection
 
 	if (error != 0)
 	{
-		fprintf
+      ZoO_FATAL
 		(
 			stderr,
-         "[F] Unable to initialize worker collection's mutex: %s.\n",
+         "Unable to initialize worker collection's mutex: %s.",
          strerror(error)
 		);
 
@@ -48,10 +48,10 @@ static int initialize_worker_collection
 
    if (error != 0)
 	{
-		fprintf
+      ZoO_FATAL
 		(
 			stderr,
-         "[F] Unable to initialize worker collection's barrier: %s.\n",
+         "[F] Unable to initialize worker collection's barrier: %s.",
          strerror(error)
 		);
 

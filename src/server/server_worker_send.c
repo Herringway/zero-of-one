@@ -1,4 +1,7 @@
-#include "../pervasive.h"
+#include <stdio.h>
+#include <string.h>
+
+#include "../error/error.h"
 
 #include "server.h"
 
@@ -11,9 +14,24 @@ int ZoO_server_worker_send_confirm_protocol_version
 
    err = fprintf(worker->socket_as_file, "!CPV 1\n");
 
-   if (err <= 0)
+   if (err == 0)
    {
-      /* TODO: error message? */
+      ZoO_S_ERROR
+      (
+         stderr,
+         "Thread could not write anything to socket."
+      );
+
+      return -1;
+   }
+   else if (err < 0)
+   {
+      ZoO_ERROR
+      (
+         stderr,
+         "Thread could not write to socket: %s.",
+         strerror(err)
+      );
 
       return -1;
    }
@@ -30,9 +48,24 @@ int ZoO_server_worker_send_positive
 
    err = fprintf(worker->socket_as_file, "!P\n");
 
-   if (err <= 0)
+   if (err == 0)
    {
-      /* TODO: error message? */
+      ZoO_S_ERROR
+      (
+         stderr,
+         "Thread could not write anything to socket."
+      );
+
+      return -1;
+   }
+   else if (err < 0)
+   {
+      ZoO_ERROR
+      (
+         stderr,
+         "Thread could not write to socket: %s.",
+         strerror(err)
+      );
 
       return -1;
    }
@@ -49,9 +82,24 @@ int ZoO_server_worker_send_negative
 
    err = fprintf(worker->socket_as_file, "!N\n");
 
-   if (err <= 0)
+   if (err == 0)
    {
-      /* TODO: error message? */
+      ZoO_S_ERROR
+      (
+         stderr,
+         "Thread could not write anything to socket."
+      );
+
+      return -1;
+   }
+   else if (err < 0)
+   {
+      ZoO_ERROR
+      (
+         stderr,
+         "Thread could not write to socket: %s.",
+         strerror(err)
+      );
 
       return -1;
    }
@@ -66,16 +114,30 @@ int ZoO_server_worker_send_generated_reply
 {
    int err;
 
-   /* TODO */
    err = fputs
    (
       "!GR ",
       worker->socket_as_file
    );
 
-   if (err <= 0)
+   if (err == 0)
    {
-      /* TODO: error message? */
+      ZoO_S_ERROR
+      (
+         stderr,
+         "Thread could not write anything to socket."
+      );
+
+      return -1;
+   }
+   else if (err < 0)
+   {
+      ZoO_ERROR
+      (
+         stderr,
+         "Thread could not write to socket: %s.",
+         strerror(err)
+      );
 
       return -1;
    }
@@ -89,15 +151,41 @@ int ZoO_server_worker_send_generated_reply
          worker->socket_as_file
       );
 
+   if (err == 0)
+   {
+      ZoO_S_ERROR
+      (
+         stderr,
+         "Thread could not write anything to socket."
+      );
+
+      return -1;
+   }
+   else if (err < 0)
+   {
+      ZoO_ERROR
+      (
+         stderr,
+         "Thread could not write to socket: %s.",
+         strerror(err)
+      );
+
+      return -1;
+   }
+
    err = fputs
    (
       "\n",
       worker->socket_as_file
    );
 
-   if (err <= 0)
+   if (err == 0)
    {
-      /* TODO: error message? */
+      ZoO_S_ERROR
+      (
+         stderr,
+         "Thread could not write anything to socket."
+      );
 
       return -1;
    }

@@ -68,8 +68,13 @@ int ZoO_knowledge_copy_random_swt_sequence
       ) < 0
    )
    {
-      /* TODO: Err message. */
-
+      ZoO_S_PROG_ERROR
+      (
+         io,
+         "Knowledge inconsistency; there are no acceptable markov sequences "
+         "linked to a word that has been picked as being an acceptable pillar."
+      )
+   ;
       return -1;
    }
 
