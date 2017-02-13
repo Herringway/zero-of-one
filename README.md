@@ -1,5 +1,11 @@
-# zero-of-one
+# zero-of-one-prototype
 (Yet another) Markov chain based IRC reply bot.
+### Deprecated:
+This is the prototype that led to the Zero of One bot, it is known to
+have stability issues. Users are encouraged to switch to the actual
+Zero of One bot (which uses a Server/Filters/Gateways architecture) as
+soon as possible. As all learned data is stored in plain text, switching
+should not cause any issues.
 
 ## Dependencies
 - POSIX compliant OS.
