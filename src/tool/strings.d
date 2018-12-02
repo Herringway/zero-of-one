@@ -1,52 +1,54 @@
-#define _POSIX_C_SOURCE 200809L
-#include <stdlib.h>
-#include <string.h>
-#include <stdint.h> /* defines SIZE_MAX */
+module tool.strings;
 
-#include "../io/error.h"
+import pervasive;
+import io.error;
+import tool.strings_types;
 
-#include "strings.h"
+import core.stdc.stdlib;
+import core.stdc.string;
 
+extern(C):
 
-void ZoO_strings_initialize (struct ZoO_strings s [const restrict static 1])
+void ZoO_strings_initialize (ZoO_strings* s)
 {
-   s->words_count = 0;
-   s->words = (ZoO_char **) NULL;
-   s->word_sizes = (size_t *) NULL;
+   s.words_count = 0;
+   s.words = cast(ZoO_char **) null;
+   s.word_sizes = cast(size_t *) null;
 }
 
-void ZoO_strings_finalize (struct ZoO_strings s [const restrict static 1])
+void ZoO_strings_finalize (ZoO_strings* s)
 {
-   if (s->words_count != 0)
+   if (s.words_count != 0)
    {
       ZoO_index i;
 
-      for (i = 0; i < s->words_count; ++i)
+      for (i = 0; i < s.words_count; ++i)
       {
-         free((void *) s->words[i]);
+         free(cast(void *) s.words[i]);
       }
 
-      s->words_count = 0;
+      s.words_count = 0;
 
-      free((void *) s->words);
-      free((void *) s->word_sizes);
+      free(cast(void *) s.words);
+      free(cast(void *) s.word_sizes);
 
-      s->words = (ZoO_char **) NULL;
-      s->word_sizes = (size_t *) NULL;
+      s.words = cast(ZoO_char **) null;
+      s.word_sizes = cast(size_t *) null;
    }
 }
 
-static int add_word
+int add_word
 (
-   struct ZoO_strings s [const restrict static 1],
-   size_t const line_size,
-   const ZoO_char line [const restrict static line_size]
+   ZoO_strings* s,
+   const size_t line_size,
+   const ZoO_char* line
 )
 {
    size_t * new_s_word_sizes;
-   ZoO_char * new_word, ** new_s_words;
+   ZoO_char* new_word;
+   ZoO_char** new_s_words;
 
-   if (s->words_count == ZoO_INDEX_MAX)
+   if (s.words_count == ZoO_INDEX_MAX)
    {
       ZoO_S_WARNING("Data input sentence has too many words.");
 
@@ -54,74 +56,75 @@ static int add_word
    }
 
    /* overflow-safe, as line_size < SIZE_MAX */
-   new_word = (ZoO_char *) calloc((line_size + 1), sizeof(ZoO_char));
+   new_word = cast(ZoO_char *) calloc((line_size + 1), ZoO_char.sizeof);
 
-   if (new_word == (ZoO_char *) NULL)
+   if (new_word == cast(ZoO_char *) null)
    {
       ZoO_S_WARNING("Unable to allocate memory to extract new word.");
 
       return -1;
    }
 
-   memcpy((void *) new_word, (const void *) line, line_size);
+   memcpy(cast(void *) new_word, cast(const void *) line, line_size);
 
    new_word[line_size] = '\0';
 
    new_s_words =
-      (ZoO_char **) realloc
+      cast(ZoO_char **) realloc
       (
-         (void *) s->words,
+         cast(void *) s.words,
          /* XXX: (sizeof() * _) assumed overflow-safe. */
-         /* (di->words_count + 1) overflow-safe */
-         (sizeof(ZoO_char *) * (s->words_count + 1))
+         /* (di.words_count + 1) overflow-safe */
+         ((ZoO_char *).sizeof * (s.words_count + 1))
       );
 
-   if (new_s_words == (ZoO_char **) NULL)
+   if (new_s_words == cast(ZoO_char **) null)
    {
       ZoO_S_WARNING("Unable to reallocate memory to extract new word.");
 
-      free((void *) new_word);
+      free(cast(void *) new_word);
 
       return -1;
    }
 
-   s->words = new_s_words;
+   s.words = new_s_words;
 
    new_s_word_sizes =
-      (size_t *) realloc
+      cast(size_t *) realloc
       (
-         (void *) s->word_sizes,
+         cast(void *) s.word_sizes,
          /* XXX: (sizeof() * _) assumed overflow-safe. */
-         /* (di->words_count + 1) overflow-safe */
-         (sizeof(size_t) * (s->words_count + 1))
+         /* (di.words_count + 1) overflow-safe */
+         (size_t.sizeof * (s.words_count + 1))
       );
 
-   if (new_s_word_sizes == (size_t *) NULL)
+   if (new_s_word_sizes == cast(size_t *) null)
    {
       ZoO_S_WARNING("Unable to reallocate memory to extract new word.");
 
-      free((void *) new_word);
+      free(cast(void *) new_word);
 
       return -1;
    }
 
-   s->word_sizes = new_s_word_sizes;
+   s.word_sizes = new_s_word_sizes;
 
-   s->words[s->words_count] = new_word;
-   s->word_sizes[s->words_count] = (line_size + 1);
+   s.words[s.words_count] = new_word;
+   s.word_sizes[s.words_count] = (line_size + 1);
 
-   s->words_count += 1;
+   s.words_count += 1;
 
    return 0;
 }
 
-static int parse_word
+
+ int parse_word
 (
-   struct ZoO_strings s [const restrict static 1],
-   ZoO_index const punctuations_count,
-   const ZoO_char punctuations [const restrict static punctuations_count],
-   size_t const line_size,
-   ZoO_char line [const static line_size]
+   ZoO_strings* s,
+   const ZoO_index punctuations_count,
+   const ZoO_char* punctuations,
+   const size_t line_size,
+   ZoO_char* line
 )
 {
    ZoO_index j;
@@ -161,7 +164,7 @@ static int parse_word
          case 'X':
          case 'Y':
          case 'Z':
-            line[j] = 'z' - ('Z' - line[j]);
+            line[j] = cast(char)('z' - ('Z' - line[j]));
             break;
 
          default:
@@ -198,18 +201,18 @@ static int parse_word
 
 int ZoO_strings_parse
 (
-   struct ZoO_strings s [const restrict static 1],
+   ZoO_strings* s,
    size_t input_size,
-   ZoO_char input [const restrict],
-   ZoO_index const punctuations_count,
-   const ZoO_char punctuations [const restrict static punctuations_count]
+   ZoO_char* input,
+   const ZoO_index* punctuations_count,
+   const ZoO_char* punctuations
 )
 {
    size_t i, w_start;
 
    ZoO_strings_finalize(s);
 
-   if (input == NULL)
+   if (input == null)
    {
       return 0;
    }
@@ -253,7 +256,7 @@ int ZoO_strings_parse
             parse_word
             (
                s,
-               punctuations_count,
+               *punctuations_count,
                punctuations,
                /* overflow-safe: w_start < i */
                (i - w_start),
@@ -283,7 +286,7 @@ int ZoO_strings_parse
       parse_word
       (
          s,
-         punctuations_count,
+         *punctuations_count,
          punctuations,
          /* overflow-safe: w_start =< i */
          (i - w_start),
@@ -298,3 +301,4 @@ int ZoO_strings_parse
 
    return 0;
 }
+

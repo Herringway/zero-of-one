@@ -1,19 +1,18 @@
-#define _POSIX_C_SOURCE 200809L
-#include <stdlib.h>
-#include <string.h>
-#include <errno.h>
-#include <stdint.h> /* defines SIZE_MAX */
-#include <stdio.h>
+module io.data_output;
 
-#include "error.h"
+import core.stdc.errno;
+import core.stdc.stdio;
+import core.stdc.string;
 
-#include "data_output.h"
+import io.error;
+
+extern(C):
 
 int ZoO_data_output_write_line
 (
-   const char filename [const restrict static 1],
-   char line [const restrict static 1],
-   size_t const line_size
+   const char* filename,
+   char* line,
+   const size_t line_size
 )
 {
    const int old_errno = errno;
@@ -21,12 +20,12 @@ int ZoO_data_output_write_line
 
    file = fopen(filename, "a");
 
-   if (file == (FILE *) NULL)
+   if (file == cast(FILE *)null)
    {
       ZoO_ERROR
       (
          "Could not open file '%s' in appending mode.",
-         filename
+         filename[0..strlen(filename)]
       );
 
       return -1;
@@ -38,8 +37,8 @@ int ZoO_data_output_write_line
    (
       fwrite
       (
-         (const void *) line,
-         sizeof(char),
+         cast(const void *) line,
+         char.sizeof,
          line_size,
          file
       ) < line_size
@@ -50,8 +49,8 @@ int ZoO_data_output_write_line
       ZoO_ERROR
       (
          "Could not store line '%s' in %s.",
-         line,
-         filename
+         line[0..strlen(line)],
+         filename[0..strlen(filename)]
       );
 
       fclose(file);

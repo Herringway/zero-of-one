@@ -1,0 +1,16 @@
+.dub
+docs.json
+__dummy.html
+docs/
+zero-of-one
+zero-of-one.so
+zero-of-one.dylib
+zero-of-one.dll
+zero-of-one.a
+zero-of-one.lib
+zero-of-one-test-*
+*.exe
+*.o
+*.obj
+*.lst
+dub.selections.json

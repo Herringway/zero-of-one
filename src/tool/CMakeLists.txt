@@ -1,8 +1,0 @@
-set(
-   SRC_FILES ${SRC_FILES}
-   ${CMAKE_CURRENT_SOURCE_DIR}/strings.c
-   ${CMAKE_CURRENT_SOURCE_DIR}/sorted_list.c
-)
-
-set(SRC_FILES ${SRC_FILES} PARENT_SCOPE)
-

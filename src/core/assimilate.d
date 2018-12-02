@@ -1,24 +1,31 @@
-#include <stdlib.h>
-#include <string.h>
+module core.assimilate;
 
-#include "../io/error.h"
+import core.stdc.stdlib;
+import core.stdc.string;
 
-#include "knowledge.h"
+import io.error;
+
+import core.knowledge_types;
+import core.knowledge;
+import core.sequence;
+import pervasive;
+import tool.strings_types;
+
+extern(C):
 
 /** Functions to assimilate sentences using a ZoO_knowledge structure *********/
 
-
-static int add_sequence
+int add_sequence
 (
-   ZoO_index links_count [const],
-   struct ZoO_knowledge_link * links [const],
-   ZoO_index const sequence [const restrict static ZoO_MARKOV_ORDER],
-   ZoO_index const target_i,
-   ZoO_index const offset
+   ZoO_index* links_count,
+   ZoO_knowledge_link** links,
+   const ZoO_index* sequence,
+   const ZoO_index target_i,
+   const ZoO_index offset
 )
 {
    ZoO_index link_index, i;
-   struct ZoO_knowledge_link * link;
+   ZoO_knowledge_link * link;
    ZoO_index * new_p;
 
    if
@@ -36,63 +43,63 @@ static int add_sequence
    }
 
    link = (*links + link_index);
-   link->occurrences += 1;
+   link.occurrences += 1;
 
-   for (i = 0; i < link->targets_count; ++i)
+   for (i = 0; i < link.targets_count; ++i)
    {
-      if (link->targets[i] == sequence[target_i])
+      if (link.targets[i] == sequence[target_i])
       {
-         link->targets_occurrences[i] += 1;
+         link.targets_occurrences[i] += 1;
 
          return 0;
       }
    }
 
-   link->targets_count += 1;
+   link.targets_count += 1;
 
    new_p =
-      (ZoO_index *) realloc
+      cast(ZoO_index *) realloc
       (
-         (void *) link->targets,
-         (sizeof(ZoO_index) * link->targets_count)
+         cast(void *) link.targets,
+         (ZoO_index.sizeof * link.targets_count)
       );
 
-   if (new_p == (ZoO_index *) NULL)
+   if (new_p == cast(ZoO_index *)null)
    {
-      link->targets_count -= 1;
+      link.targets_count -= 1;
 
       /* TODO: err. */
       return -1;
    }
 
-   link->targets = new_p;
-   link->targets[link->targets_count - 1] = sequence[target_i];
+   link.targets = new_p;
+   link.targets[link.targets_count - 1] = sequence[target_i];
 
    new_p =
-      (ZoO_index *) realloc
+      cast(ZoO_index *) realloc
       (
-         (void *) link->targets_occurrences,
-         (sizeof(ZoO_index) * link->targets_count)
+         cast(void *) link.targets_occurrences,
+         (ZoO_index.sizeof * link.targets_count)
       );
 
-   if (new_p == (ZoO_index *) NULL)
+   if (new_p == cast(ZoO_index *) null)
    {
-      link->targets_count -= 1;
+      link.targets_count -= 1;
 
       /* TODO: err. */
       return -1;
    }
 
-   link->targets_occurrences = new_p;
-   link->targets_occurrences[link->targets_count - 1] = 1;
+   link.targets_occurrences = new_p;
+   link.targets_occurrences[link.targets_count - 1] = 1;
 
    return 0;
 }
 
-static int add_word_occurrence
+int add_word_occurrence
 (
-   struct ZoO_knowledge k [const restrict static 1],
-   ZoO_index const sequence [const static ((ZoO_MARKOV_ORDER * 2) + 1)]
+   ZoO_knowledge* k,
+   const ZoO_index[(ZoO_MARKOV_ORDER * 2) + 1] sequence
 )
 {
    ZoO_index w;
@@ -103,9 +110,9 @@ static int add_word_occurrence
    error =
       add_sequence
       (
-         &(k->words[w].forward_links_count),
-         &(k->words[w].forward_links),
-         sequence + (ZoO_MARKOV_ORDER + 1),
+         &(k.words[w].forward_links_count),
+         &(k.words[w].forward_links),
+         sequence.ptr + (ZoO_MARKOV_ORDER + 1),
          (ZoO_MARKOV_ORDER - 1),
          0
       );
@@ -114,9 +121,9 @@ static int add_word_occurrence
       (
          add_sequence
          (
-            &(k->words[w].backward_links_count),
-            &(k->words[w].backward_links),
-            sequence,
+            &(k.words[w].backward_links_count),
+            &(k.words[w].backward_links),
+            sequence.ptr,
             0,
             1
          )
@@ -126,17 +133,18 @@ static int add_word_occurrence
    return error;
 }
 
-static int should_assimilate
+
+int should_assimilate
 (
-   struct ZoO_strings string [const restrict static 1],
-   ZoO_index const aliases_count,
-   const char * restrict aliases [const restrict static aliases_count]
+   ZoO_strings* string,
+   const ZoO_index aliases_count,
+   const char ** aliases
 )
 {
    ZoO_index i;
 
    /* Don't assimilate empty strings. */
-   if (string->words_count == 0)
+   if (string.words_count == 0)
    {
       return 0;
    }
@@ -144,7 +152,7 @@ static int should_assimilate
    /* Don't assimilate things that start with our name. */
    for (i = 0; i < aliases_count; ++i)
    {
-      if (ZoO_IS_PREFIX(aliases[i], string->words[0]))
+      if (strncmp(aliases[i], string.words[0], strlen(aliases[i])) == 0)
       {
          return 0;
       }
@@ -153,11 +161,11 @@ static int should_assimilate
    return 1;
 }
 
-static int init_sequence
+int init_sequence
 (
-   struct ZoO_knowledge k [const static 1],
-   struct ZoO_strings string [const restrict static 1],
-   ZoO_index sequence [const restrict static ((ZoO_MARKOV_ORDER * 2) + 1)]
+   ZoO_knowledge* k,
+   ZoO_strings* string,
+   ZoO_index[(ZoO_MARKOV_ORDER * 2) + 1] sequence
 )
 {
    ZoO_index i;
@@ -169,15 +177,15 @@ static int init_sequence
    {
       sequence[ZoO_MARKOV_ORDER - i] = ZoO_WORD_START_OF_LINE;
 
-      if (i <= string->words_count)
+      if (i <= string.words_count)
       {
          if
          (
             ZoO_knowledge_learn
             (
                k,
-               string->words[i - 1],
-               (sequence + (ZoO_MARKOV_ORDER + i))
+               string.words[i - 1],
+               (sequence.ptr + (ZoO_MARKOV_ORDER + i))
             ) < 0
          )
          {
@@ -195,14 +203,14 @@ static int init_sequence
 
 int ZoO_knowledge_assimilate
 (
-   struct ZoO_knowledge k [const static 1],
-   struct ZoO_strings string [const restrict static 1],
-   ZoO_index const aliases_count,
-   const char * restrict aliases [const restrict static aliases_count]
+   ZoO_knowledge* k,
+   ZoO_strings* string,
+   const ZoO_index aliases_count,
+   const char** aliases
 )
 {
    int error;
-   ZoO_index sequence[(ZoO_MARKOV_ORDER * 2) + 1];
+   ZoO_index[(ZoO_MARKOV_ORDER * 2) + 1] sequence;
    ZoO_index next_word, new_word, new_word_id;
 
    if (!should_assimilate(string, aliases_count, aliases))
@@ -230,12 +238,12 @@ int ZoO_knowledge_assimilate
    next_word = 0;
    new_word = ZoO_MARKOV_ORDER;
 
-   while (next_word <= (string->words_count + ZoO_MARKOV_ORDER))
+   while (next_word <= (string.words_count + ZoO_MARKOV_ORDER))
    {
-      if (new_word < string->words_count)
+      if (new_word < string.words_count)
       {
          /* prevents words [restrict], k [restrict] */
-         if (ZoO_knowledge_learn(k, string->words[new_word], &new_word_id) < 0)
+         if (ZoO_knowledge_learn(k, string.words[new_word], &new_word_id) < 0)
          {
             return -1;
          }
@@ -247,10 +255,10 @@ int ZoO_knowledge_assimilate
 
       memmove
       (
-         (void *) sequence,
-         (const void *) (sequence + 1),
+         cast(void *) sequence.ptr,
+         cast(const void *) (sequence.ptr + 1),
          /* Accepts 0. */
-         (sizeof(ZoO_index) * (ZoO_MARKOV_ORDER * 2))
+         (ZoO_index.sizeof * (ZoO_MARKOV_ORDER * 2))
       );
 
       sequence[ZoO_MARKOV_ORDER * 2] = new_word_id;
@@ -278,4 +286,3 @@ int ZoO_knowledge_assimilate
 
    return error;
 }
-

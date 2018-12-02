@@ -1,83 +1,85 @@
-#include <stdlib.h>
-#include <stdio.h>
-#include <string.h>
-#include <errno.h>
+module io.parameters;
 
-#include "../pervasive.h"
+import core.stdc.string;
+import core.stdc.stdio;
+import core.stdc.stdlib;
+import core.stdc.errno;
 
-#include "error.h"
+import io.parameters_types;
+import io.error;
 
-#include "parameters.h"
+import pervasive;
 
-static void load_default_parameters
+extern(C):
+void load_default_parameters
 (
-   struct ZoO_parameters param [const restrict static 1]
+   ZoO_parameters* param
 )
 {
-   param->data_filename        = ZoO_DEFAULT_DATA_FILENAME;
-   param->new_data_filename    = (char *) NULL;
+   param.data_filename        = ZoO_DEFAULT_DATA_FILENAME;
+   param.new_data_filename    = cast(char *) null;
 
-   param->irc_server_addr     = ZoO_DEFAULT_IRC_SERVER_ADDR;
-   param->irc_server_port     = ZoO_DEFAULT_IRC_SERVER_PORT;
-   param->irc_server_channel  = ZoO_DEFAULT_IRC_SERVER_CHANNEL;
-   param->irc_username        = ZoO_DEFAULT_IRC_USERNAME;
-   param->irc_realname        = ZoO_DEFAULT_IRC_REALNAME;
+   param.irc_server_addr     = ZoO_DEFAULT_IRC_SERVER_ADDR;
+   param.irc_server_port     = ZoO_DEFAULT_IRC_SERVER_PORT;
+   param.irc_server_channel  = ZoO_DEFAULT_IRC_SERVER_CHANNEL;
+   param.irc_username        = ZoO_DEFAULT_IRC_USERNAME;
+   param.irc_realname        = ZoO_DEFAULT_IRC_REALNAME;
 
-   param->reply_rate          = ZoO_DEFAULT_REPLY_RATE;
+   param.reply_rate          = ZoO_DEFAULT_REPLY_RATE;
 
-   param->aliases_count = 0;
-   param->aliases = NULL;
+   param.aliases_count = 0;
+   param.aliases = null;
 }
 
-static void print_help (const char exec [const restrict static 1])
+void print_help (const char* exec)
 {
    printf
    (
-      "Usage: %s [option_1 option_2 ...] NICKNAME [ALIAS_1 ALIAS_2 ...] \n"
-      "NICKNAME is used as the IRC nickname value.\n"
-      "If NICKNAME or any ALIAS is found in an event, the program will reply.\n"
-      "\nAvailable options:\n"
-      "   [--data-filename | -df] FILENAME\n"
-      "      Learn content from FILENAME before connecting.\n"
-      "      Default: %s.\n"
-      "   [--new-data-filename | -ndf] FILENAME\n"
-      "      Store new data learned in FILENAME.\n"
-      "      Default: value of the --data-filename param.\n"
-      "   [--irc-server-addr | -isa] IRC_SERVER_ADDR\n"
-      "      Connect to this server address.\n"
-      "      Default: %s.\n"
-      "   [--irc-server-port | -isp] IRC_SERVER_PORT\n"
-      "      Connect to this server port.\n"
-      "      Default: %s.\n"
-      "   [--irc-server-channel | -isc] IRC_SERVER_CHANNEL\n"
-      "      Connect to this server's channel.\n"
-      "      Default: %s.\n"
-      "   [--irc-username | -iu] USERNAME\n"
-      "      Connect using this as 'username' (shown in WHOIS).\n"
-      "      Default: %s.\n"
-      "   [--irc-realname | -ir] REALNAME\n"
-      "      Connect using this as 'realname' (shown in WHOIS).\n"
-      "      Default: %s.\n"
-      "   [--reply-rate | -rr] REPLY_RATE\n"
-      "      Chance to reply to an event (integer, range [0, 100]).\n"
+      "Usage: %s [option_1 option_2 ...] NICKNAME [ALIAS_1 ALIAS_2 ...] \n"~
+      "NICKNAME is used as the IRC nickname value.\n"~
+      "If NICKNAME or any ALIAS is found in an event, the program will reply.\n"~
+      "\nAvailable options:\n"~
+      "   [--data-filename | -df] FILENAME\n"~
+      "      Learn content from FILENAME before connecting.\n"~
+      "      Default: %s.\n"~
+      "   [--new-data-filename | -ndf] FILENAME\n"~
+      "      Store new data learned in FILENAME.\n"~
+      "      Default: value of the --data-filename param.\n"~
+      "   [--irc-server-addr | -isa] IRC_SERVER_ADDR\n"~
+      "      Connect to this server address.\n"~
+      "      Default: %s.\n"~
+      "   [--irc-server-port | -isp] IRC_SERVER_PORT\n"~
+      "      Connect to this server port.\n"~
+      "      Default: %s.\n"~
+      "   [--irc-server-channel | -isc] IRC_SERVER_CHANNEL\n"~
+      "      Connect to this server's channel.\n"~
+      "      Default: %s.\n"~
+      "   [--irc-username | -iu] USERNAME\n"~
+      "      Connect using this as 'username' (shown in WHOIS).\n"~
+      "      Default: %s.\n"~
+      "   [--irc-realname | -ir] REALNAME\n"~
+      "      Connect using this as 'realname' (shown in WHOIS).\n"~
+      "      Default: %s.\n"~
+      "   [--reply-rate | -rr] REPLY_RATE\n"~
+      "      Chance to reply to an event (integer, range [0, 100]).\n"~
       "      Default: %d.\n",
       exec,
-      ZoO_DEFAULT_DATA_FILENAME,
-      ZoO_DEFAULT_IRC_SERVER_ADDR,
-      ZoO_DEFAULT_IRC_SERVER_PORT,
-      ZoO_DEFAULT_IRC_SERVER_CHANNEL,
-      ZoO_DEFAULT_IRC_USERNAME,
-      ZoO_DEFAULT_IRC_REALNAME,
+      ZoO_DEFAULT_DATA_FILENAME.ptr,
+      ZoO_DEFAULT_IRC_SERVER_ADDR.ptr,
+      ZoO_DEFAULT_IRC_SERVER_PORT.ptr,
+      ZoO_DEFAULT_IRC_SERVER_CHANNEL.ptr,
+      ZoO_DEFAULT_IRC_USERNAME.ptr,
+      ZoO_DEFAULT_IRC_REALNAME.ptr,
       ZoO_DEFAULT_REPLY_RATE
    );
 }
 
-static int parse_string_arg
+int parse_string_arg
 (
-   const char * restrict dest [const restrict static 1],
-   int const i,
-   const char * restrict argv [const restrict static 1],
-   int const argc
+   const(char)** dest,
+   const int i,
+   const char** argv,
+   const int argc
 )
 {
    if (i == argc)
@@ -97,17 +99,18 @@ static int parse_string_arg
    return 0;
 }
 
-static int parse_integer_arg
+
+int parse_integer_arg
 (
-   int dest [const restrict static 1],
-   int const i,
-   const char * argv [const restrict static 1],
-   int const argc,
-   int const min_val,
-   int const max_val
+   int* dest,
+   const int i,
+   const char** argv,
+   const int argc,
+   const int min_val,
+   const int max_val
 )
 {
-   long int result;
+   long result;
    char * endptr;
    const int old_errno = errno;
 
@@ -125,7 +128,7 @@ static int parse_integer_arg
 
    errno = 0;
 
-   result = strtol(argv[i], &endptr, 10);
+   result = strtol(cast(char*)argv[i], &endptr, 10);
 
    if
    (
@@ -137,7 +140,7 @@ static int parse_integer_arg
    {
       ZoO_FATAL
       (
-         "Invalid or missing value for parameter '%s', accepted range is "
+         "Invalid or missing value for parameter '%s', accepted range is "~
          "[%d, %d] (integer).",
          /* Safe: i > 1 */
          argv[i - 1],
@@ -150,7 +153,7 @@ static int parse_integer_arg
       return -1;
    }
 
-   *dest = (int) result;
+   *dest = cast(int) result;
 
    errno = old_errno;
 
@@ -159,9 +162,9 @@ static int parse_integer_arg
 
 int ZoO_parameters_initialize
 (
-   struct ZoO_parameters param [const restrict static 1],
-   int const argc,
-   const char * argv [const restrict static argc]
+   ZoO_parameters* param,
+   const int argc,
+   const char** argv
 )
 {
    int i;
@@ -182,7 +185,7 @@ int ZoO_parameters_initialize
          (
             parse_string_arg
             (
-               &(param->data_filename),
+               &(param.data_filename),
                i,
                argv,
                argc
@@ -204,7 +207,7 @@ int ZoO_parameters_initialize
          (
             parse_string_arg
             (
-               &(param->new_data_filename),
+               &(param.new_data_filename),
                i,
                argv,
                argc
@@ -226,7 +229,7 @@ int ZoO_parameters_initialize
          (
             parse_string_arg
             (
-               &(param->irc_server_addr),
+               &(param.irc_server_addr),
                i,
                argv,
                argc
@@ -248,7 +251,7 @@ int ZoO_parameters_initialize
          (
             parse_string_arg
             (
-               &(param->irc_server_port),
+               &(param.irc_server_port),
                i,
                argv,
                argc
@@ -270,7 +273,7 @@ int ZoO_parameters_initialize
          (
             parse_string_arg
             (
-               &(param->irc_server_channel),
+               &(param.irc_server_channel),
                i,
                argv,
                argc
@@ -292,7 +295,7 @@ int ZoO_parameters_initialize
          (
             parse_string_arg
             (
-               &(param->irc_username),
+               &(param.irc_username),
                i,
                argv,
                argc
@@ -314,7 +317,7 @@ int ZoO_parameters_initialize
          (
             parse_string_arg
             (
-               &(param->irc_realname),
+               &(param.irc_realname),
                i,
                argv,
                argc
@@ -336,7 +339,7 @@ int ZoO_parameters_initialize
          (
             parse_integer_arg
             (
-               &(param->reply_rate),
+               &(param.reply_rate),
                i,
                argv,
                argc,
@@ -373,12 +376,12 @@ int ZoO_parameters_initialize
       return -1;
    }
 
-   param->aliases_count = (argc - i);
-   param->aliases = (argv + i);
+   param.aliases_count = (argc - i);
+   param.aliases = &argv[i];
 
-   if (param->new_data_filename == (char *) NULL)
+   if (param.new_data_filename == cast(char *) null)
    {
-      param->new_data_filename = param->data_filename;
+      param.new_data_filename = param.data_filename;
    }
 
    return 1;

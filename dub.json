@@ -1,0 +1,9 @@
+{
+	"description": "K-order Markov chain reply bot for IRC",
+	"license": "bsd",
+	"authors": [
+		"penguin"
+	],
+	"copyright": "Copyright © 2018, penguin",
+	"name": "zero-of-one"
+}

@@ -1,21 +1,24 @@
-#include "./sorted_list.h"
+module tool.sorted_list;
 
+import pervasive;
+
+alias CompareFunc = extern(C) int function(const void *, const void *, const void *);
+
+extern(C):
 int ZoO_sorted_list_index_of
 (
-   ZoO_index const list_length,
-   const void * const sorted_list,
-   const void * const elem,
-   size_t const type_size,
-   int (*compare) (const void *, const void *, const void *),
-   const void * const other,
-   ZoO_index result [const restrict static 1]
+   const ZoO_index list_length,
+   const void* sorted_list,
+   const void* elem,
+   const size_t type_size,
+   CompareFunc compare,
+   const void * other,
+   ZoO_index* result
 )
 {
    int cmp;
    ZoO_index i, current_min, current_max;
-   const char * sorted_list_access;
-
-   sorted_list_access = (char *) sorted_list;
+   const char * sorted_list_access = cast(char *) sorted_list;
 
    /* This is a binary search. */
 
