@@ -60,11 +60,11 @@ int add_sequence
    new_p =
       cast(ZoO_index *) realloc
       (
-         cast(void *) link.targets,
+         link.targets,
          (ZoO_index.sizeof * link.targets_count)
       );
 
-   if (new_p == cast(ZoO_index *)null)
+   if (new_p == null)
    {
       link.targets_count -= 1;
 
@@ -78,11 +78,11 @@ int add_sequence
    new_p =
       cast(ZoO_index *) realloc
       (
-         cast(void *) link.targets_occurrences,
+         link.targets_occurrences,
          (ZoO_index.sizeof * link.targets_count)
       );
 
-   if (new_p == cast(ZoO_index *) null)
+   if (new_p == null)
    {
       link.targets_count -= 1;
 
@@ -255,8 +255,8 @@ int ZoO_knowledge_assimilate
 
       memmove
       (
-         cast(void *) sequence.ptr,
-         cast(const void *) (sequence.ptr + 1),
+         sequence.ptr,
+         sequence.ptr + 1,
          /* Accepts 0. */
          (ZoO_index.sizeof * (ZoO_MARKOV_ORDER * 2))
       );

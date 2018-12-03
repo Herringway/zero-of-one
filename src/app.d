@@ -78,7 +78,7 @@ int load_data_file(ZoO_state* s)
       ) == 0
    )
    {
-      cast(void) ZoO_knowledge_assimilate
+      ZoO_knowledge_assimilate
       (
          &(s.knowledge),
          &(input.string),
@@ -177,7 +177,7 @@ void handle_user_join
       ZoO_strings_parse
       (
          string_,
-         cast(size_t) msg_size,
+         msg_size,
          (&s.network.in_[msg_offset]),
          cast(uint*)&ZoO_knowledge_punctuation_chars_count,
          cast(char*)&ZoO_knowledge_punctuation_chars
@@ -208,9 +208,9 @@ void handle_user_join
          ZoO_knowledge_extend
          (
             &(s.knowledge),
-            cast(ZoO_strings *) null,
+            null,
             0,
-            cast(const char **) null,
+            null,
             &line
          ) == 0
       )
@@ -224,7 +224,7 @@ void handle_user_join
             strcpy((s.network.out_.ptr), line);
          }
 
-         free(cast(void *) line);
+         free(line);
 
          ZoO_network_send(&(s.network));
       }
@@ -238,7 +238,7 @@ void handle_user_join
             &(s.knowledge),
             string_,
             0,
-            cast(const char **) null,
+            null,
             &line
          ) == 0
       )
@@ -252,7 +252,7 @@ void handle_user_join
             strcpy((s.network.out_.ptr), line);
          }
 
-         free(cast(void *) line);
+         free(line);
 
          ZoO_network_send(&(s.network));
       }
@@ -278,10 +278,10 @@ void handle_message
       ZoO_strings_parse
       (
          string_,
-         cast(size_t) msg_size,
+         msg_size,
          (&s.network.in_[msg_offset]),
-         cast(uint*)&ZoO_knowledge_punctuation_chars_count,
-         cast(char*)ZoO_knowledge_punctuation_chars.ptr
+         &ZoO_knowledge_punctuation_chars_count,
+         ZoO_knowledge_punctuation_chars.ptr
       ) < 0
    )
    {
@@ -303,11 +303,11 @@ void handle_message
        * It would be best to do that after replying, but by then we no longer
        * have the string in 's.network.in'.
        */
-      cast(void) ZoO_data_output_write_line
+      ZoO_data_output_write_line
       (
          s.param.new_data_filename,
          (&s.network.in_[msg_offset]),
-         cast(size_t) (msg_size + 1)
+         msg_size + 1
       );
    }
 
@@ -336,14 +336,14 @@ void handle_message
          strcpy((s.network.out_.ptr), line);
       }
 
-      free(cast(void *) line);
+      free(line);
 
       ZoO_network_send(&(s.network));
    }
 
    if (learn)
    {
-      cast(void) ZoO_knowledge_assimilate
+      ZoO_knowledge_assimilate
       (
          &(s.knowledge),
          string_,
@@ -422,7 +422,7 @@ extern(C) int main(const int argc, const char** argv)
       goto CRASH;
    }
 
-   cast(void) finalize(&s);
+   finalize(&s);
 
    ZoO_S_DEBUG(ZoO_DEBUG_PROGRAM_FLOW, "Zero of One terminated normally.");
 
@@ -430,7 +430,7 @@ extern(C) int main(const int argc, const char** argv)
 
    CRASH:
    {
-      cast(void) finalize(&s);
+      finalize(&s);
 
       ZoO_S_DEBUG
       (

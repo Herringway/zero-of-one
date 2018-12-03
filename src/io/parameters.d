@@ -17,7 +17,7 @@ void load_default_parameters
 )
 {
    param.data_filename        = ZoO_DEFAULT_DATA_FILENAME;
-   param.new_data_filename    = cast(char *) null;
+   param.new_data_filename    = null;
 
    param.irc_server_addr     = ZoO_DEFAULT_IRC_SERVER_ADDR;
    param.irc_server_port     = ZoO_DEFAULT_IRC_SERVER_PORT;
@@ -379,7 +379,7 @@ int ZoO_parameters_initialize
    param.aliases_count = (argc - i);
    param.aliases = &argv[i];
 
-   if (param.new_data_filename == cast(char *) null)
+   if (param.new_data_filename == null)
    {
       param.new_data_filename = param.data_filename;
    }

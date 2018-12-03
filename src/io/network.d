@@ -54,8 +54,8 @@ int re_create_socket (ZoO_network* net)
             net.connection,
             SOL_SOCKET,
             SO_RCVTIMEO,
-            cast(const void *) &timeout,
-            cast(socklen_t) timeval.sizeof
+            &timeout,
+            timeval.sizeof
          ) < 0
       )
       ||
@@ -65,8 +65,8 @@ int re_create_socket (ZoO_network* net)
             net.connection,
             SOL_SOCKET,
             SO_SNDTIMEO,
-            cast(const void *) &timeout,
-            cast(socklen_t) timeval.sizeof
+            &timeout,
+            timeval.sizeof
          ) < 0
       )
    )
@@ -275,8 +275,8 @@ PARSE_READ:
          {
             memmove
             (
-               cast(void *) net.buffer,
-               cast(const void *) (net.buffer.ptr + (i + 1)),
+               net.buffer.ptr,
+               net.buffer.ptr + (i + 1),
                net.buffer_remaining
             );
          }

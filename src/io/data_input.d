@@ -23,7 +23,7 @@ int ZoO_data_input_open
 
    di.file = fopen(filename, "r");
 
-   if (di.file == cast(FILE *) null)
+   if (di.file == null)
    {
       ZoO_ERROR
       (
@@ -50,14 +50,14 @@ int ZoO_data_input_read_line
    /* prevents di [restrict] */
    ZoO_strings_finalize(&(di.string));
 
-   line = cast(ZoO_char *) null;
+   line = null;
    line_size = 0;
 
    /* XXX: assumed compatible with ZoO_char */
 
    if (getline(&line, &line_size, di.file) < 1)
    {
-      free(cast(void *) line);
+      free(line);
 
       return -1;
    }
@@ -79,12 +79,12 @@ int ZoO_data_input_read_line
       ) < 0
    )
    {
-      free(cast(void *) line);
+      free(line);
 
       return -1;
    }
 
-   free(cast(void *) line);
+   free(line);
 
    return 0;
 }
@@ -92,11 +92,11 @@ int ZoO_data_input_read_line
 
 void ZoO_data_input_close (ZoO_data_input* di)
 {
-   if (di.file != cast(FILE *) null)
+   if (di.file != null)
    {
       fclose(di.file);
 
-      di.file = cast(FILE *) null;
+      di.file = null;
    }
 
    /* prevents di [restrict] */

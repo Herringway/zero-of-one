@@ -20,7 +20,7 @@ int ZoO_data_output_write_line
 
    file = fopen(filename, "a");
 
-   if (file == cast(FILE *)null)
+   if (file == null)
    {
       ZoO_ERROR
       (
@@ -37,7 +37,7 @@ int ZoO_data_output_write_line
    (
       fwrite
       (
-         cast(const void *) line,
+         line,
          char.sizeof,
          line_size,
          file

@@ -42,7 +42,7 @@ ZoO_index pick_index
     */
    accumulator = links_occurrences[0];
 
-   random_number = ((cast(ZoO_index) rand()) % occurrences);
+   random_number = rand() % occurrences;
 
    while (accumulator < random_number)
    {
@@ -141,7 +141,7 @@ char* extend_left
             ZoO_char.sizeof
          );
 
-      if (next_sentence == cast(ZoO_char *) null)
+      if (next_sentence == null)
       {
          ZoO_S_ERROR("Could not allocate memory to store new sentence.");
 
@@ -192,15 +192,15 @@ char* extend_left
             break;
       }
 
-      free(cast(void *) current_sentence);
+      free(current_sentence);
 
       /* prevents current_sentence [const] */
       current_sentence = next_sentence;
 
       memmove
       (
-         cast(void *) (sequence + 1),
-         cast(const void *) sequence,
+         sequence + 1,
+         sequence,
          /* Accepts 0. */
          (ZoO_index.sizeof * (ZoO_MARKOV_ORDER - 1))
       );
@@ -307,7 +307,7 @@ char* extend_right
             ZoO_char.sizeof
          );
 
-      if (next_sentence == cast(ZoO_char *) null)
+      if (next_sentence == null)
       {
          ZoO_S_ERROR("Could not allocate memory to store new sentence.");
 
@@ -350,15 +350,15 @@ char* extend_right
             break;
       }
 
-      free(cast(void *) current_sentence);
+      free(current_sentence);
 
       /* prevents current_sentence [const] */
       current_sentence = next_sentence;
 
       memmove
       (
-         cast(void *) sequence,
-         cast(const void *) (sequence + 1),
+         sequence,
+         sequence + 1,
          /* Accepts 0. */
          (ZoO_index.sizeof * (ZoO_MARKOV_ORDER - 1))
       );
@@ -404,7 +404,7 @@ ZoO_index select_first_word
    ZoO_index i, j, word_id, word_min_score, word_min_id;
    ZoO_index word_found;
 
-   if (string == cast(ZoO_strings *) null)
+   if (string == null)
    {
       return word_min_id = (rand() % k.words_count);
    }
@@ -504,7 +504,7 @@ void init_sequence_
    i = 0;
    accumulator = fiw.forward_links[0].occurrences;
 
-   random_number = ((cast(ZoO_index) rand()) % fiw.occurrences);
+   random_number = rand() % fiw.occurrences;
 
    while (accumulator < random_number)
    {
@@ -519,7 +519,7 @@ void init_sequence_
    /* is chosen aftewards. */
    memcpy
    (
-      cast(void *) (sequence.ptr + ZoO_MARKOV_ORDER + 1),
+      sequence.ptr + ZoO_MARKOV_ORDER + 1,
       fiw.forward_links[i].sequence.ptr,
       ZoO_index.sizeof * (ZoO_MARKOV_ORDER - 1)
    );
@@ -634,7 +634,7 @@ int ZoO_knowledge_extend
 
    *result = cast(ZoO_char *) calloc(sentence_size, ZoO_char.sizeof);
 
-   if (*result == cast(ZoO_char *) null)
+   if (*result == null)
    {
       ZoO_S_ERROR("Could not allocate memory to start sentence.");
 
@@ -695,7 +695,7 @@ int ZoO_knowledge_extend
          &credits
       );
 
-   if (*result == cast(ZoO_char *) null)
+   if (*result == null)
    {
       return -2;
    }
@@ -710,7 +710,7 @@ int ZoO_knowledge_extend
          &credits
       );
 
-   if (*result == cast(ZoO_char *) null)
+   if (*result == null)
    {
       return -2;
    }

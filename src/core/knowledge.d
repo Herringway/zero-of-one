@@ -94,8 +94,8 @@ int add_punctuation_nodes
 int ZoO_knowledge_initialize (ZoO_knowledge* k)
 {
    k.words_count = 0;
-   k.words = cast(ZoO_knowledge_word *) null;
-   k.sorted_indices = cast(ZoO_index *) null;
+   k.words = null;
+   k.sorted_indices = null;
 
    if (add_punctuation_nodes(k) < -1)
    {
@@ -118,8 +118,8 @@ void finalize_links
 
    for (i = 0; i < count; ++i)
    {
-      free(cast(void *) links[i].targets_occurrences);
-      free(cast(void *) links[i].targets);
+      free(links[i].targets_occurrences);
+      free(links[i].targets);
    }
 }
 
@@ -132,29 +132,29 @@ void finalize_word
    ZoO_knowledge_word* w
 )
 {
-   if (w.word != cast(ZoO_char *) null)
+   if (w.word != null)
    {
-      free(cast(void *) w.word);
+      free(w.word);
 
-      w.word = cast(ZoO_char *) null;
+      w.word = null;
    }
 
-   if (w.forward_links != cast(ZoO_knowledge_link *) null)
+   if (w.forward_links != null)
    {
       finalize_links(w.forward_links_count, w.forward_links);
 
-      free(cast(void *) w.forward_links);
+      free(w.forward_links);
 
-      w.forward_links = cast(ZoO_knowledge_link *) null;
+      w.forward_links = null;
    }
 
-   if (w.backward_links != cast(ZoO_knowledge_link *) null)
+   if (w.backward_links != null)
    {
       finalize_links(w.backward_links_count, w.backward_links);
 
-      free(cast(void *) w.backward_links);
+      free(w.backward_links);
 
-      w.backward_links = cast(ZoO_knowledge_link *) null;
+      w.backward_links = null;
    }
 
    w.forward_links_count  = 0;
@@ -176,18 +176,18 @@ void ZoO_knowledge_finalize (ZoO_knowledge* k)
 
    k.words_count = 0;
 
-   if (k.words != cast(ZoO_knowledge_word *) null)
+   if (k.words != null)
    {
-      free(cast(void *) k.words);
+      free(k.words);
 
-      k.words = cast(ZoO_knowledge_word *) null;
+      k.words = null;
    }
 
-   if (k.sorted_indices != cast(ZoO_index *) null)
+   if (k.sorted_indices != null)
    {
-      free(cast(void *) k.sorted_indices);
+      free(k.sorted_indices);
 
-      k.sorted_indices = cast(ZoO_index *) null;
+      k.sorted_indices = null;
    }
 }
 
@@ -204,8 +204,8 @@ int cmp_word
 
    return strcmp
    (
-      cast(const char *) word,
-      cast(const char *) k.words[*sorted_index].word
+      word,
+      k.words[*sorted_index].word
    );
 }
 
@@ -234,11 +234,11 @@ int ZoO_knowledge_find
       ZoO_sorted_list_index_of
       (
          k.words_count,
-         cast(const void*) k.sorted_indices,
-         cast(const void*) word,
+         k.sorted_indices,
+         word,
          ZoO_index.sizeof,
          &cmp_word,
-         cast(const void*) k,
+         k,
          &r
       )
       == 0
@@ -257,13 +257,13 @@ int ZoO_knowledge_find
 void word_init (ZoO_knowledge_word* w)
 {
    w.word_size = 0;
-   w.word = cast(ZoO_char *) null;
+   w.word = null;
    w.special = ZoO_knowledge_special_effect.ZoO_WORD_HAS_NO_EFFECT;
    w.occurrences = 1;
    w.forward_links_count  = 0;
    w.backward_links_count = 0;
-   w.forward_links  = cast(ZoO_knowledge_link *) null;
-   w.backward_links = cast(ZoO_knowledge_link *) null;
+   w.forward_links  = null;
+   w.backward_links = null;
 }
 
 /*
@@ -320,17 +320,17 @@ int ZoO_knowledge_learn
    new_wordlist =
       cast(ZoO_knowledge_word *) realloc
       (
-         cast(void *) k.words,
+         k.words,
          (
             (
                /* overflow-safe: (< k.words_count ZoO_INDEX_MAX) */
-               cast(size_t) (k.words_count + 1)
+               k.words_count + 1
             )
             * ZoO_knowledge_word.sizeof
          )
       );
 
-   if (new_wordlist == cast(ZoO_knowledge_word *) null)
+   if (new_wordlist == null)
    {
       ZoO_ERROR
       (
@@ -346,17 +346,17 @@ int ZoO_knowledge_learn
    new_sorted_indices =
       cast(ZoO_index *) realloc
       (
-         cast(void *) k.sorted_indices,
+         k.sorted_indices,
          (
             (
                /* overflow-safe: (< k.words_count ZoO_INDEX_MAX) */
-               cast(size_t) (k.words_count + 1)
+               k.words_count + 1
             )
             * ZoO_index.sizeof
          )
       );
 
-   if (new_sorted_indices == cast(ZoO_index *) null)
+   if (new_sorted_indices == null)
    {
       ZoO_ERROR
       (
@@ -387,13 +387,13 @@ int ZoO_knowledge_learn
           *    (< (+ *result 1) (length k.sorted_indices))
           * )
           */
-         cast(void *) (k.sorted_indices + *result + 1),
+         k.sorted_indices + *result + 1,
          /* Safe: see above */
-         cast(const void *) (k.sorted_indices + *result),
+         k.sorted_indices + *result,
          (
             (
                /* Safe: (< *result k.words_count) */
-               cast(size_t) (k.words_count - *result)
+               k.words_count - *result
             )
             * ZoO_index.sizeof
          )
@@ -433,7 +433,7 @@ int ZoO_knowledge_learn
          ZoO_char.sizeof
       );
 
-   if (k.words[*result].word == cast(ZoO_char *) null)
+   if (k.words[*result].word == null)
    {
       ZoO_S_ERROR
       (

@@ -12,8 +12,8 @@ extern(C):
 void ZoO_strings_initialize (ZoO_strings* s)
 {
    s.words_count = 0;
-   s.words = cast(ZoO_char **) null;
-   s.word_sizes = cast(size_t *) null;
+   s.words = null;
+   s.word_sizes = null;
 }
 
 void ZoO_strings_finalize (ZoO_strings* s)
@@ -24,16 +24,16 @@ void ZoO_strings_finalize (ZoO_strings* s)
 
       for (i = 0; i < s.words_count; ++i)
       {
-         free(cast(void *) s.words[i]);
+         free(s.words[i]);
       }
 
       s.words_count = 0;
 
-      free(cast(void *) s.words);
-      free(cast(void *) s.word_sizes);
+      free(s.words);
+      free(s.word_sizes);
 
-      s.words = cast(ZoO_char **) null;
-      s.word_sizes = cast(size_t *) null;
+      s.words = null;
+      s.word_sizes = null;
    }
 }
 
@@ -58,31 +58,31 @@ int add_word
    /* overflow-safe, as line_size < SIZE_MAX */
    new_word = cast(ZoO_char *) calloc((line_size + 1), ZoO_char.sizeof);
 
-   if (new_word == cast(ZoO_char *) null)
+   if (new_word == null)
    {
       ZoO_S_WARNING("Unable to allocate memory to extract new word.");
 
       return -1;
    }
 
-   memcpy(cast(void *) new_word, cast(const void *) line, line_size);
+   memcpy(new_word, line, line_size);
 
    new_word[line_size] = '\0';
 
    new_s_words =
       cast(ZoO_char **) realloc
       (
-         cast(void *) s.words,
+         s.words,
          /* XXX: (sizeof() * _) assumed overflow-safe. */
          /* (di.words_count + 1) overflow-safe */
          ((ZoO_char *).sizeof * (s.words_count + 1))
       );
 
-   if (new_s_words == cast(ZoO_char **) null)
+   if (new_s_words == null)
    {
       ZoO_S_WARNING("Unable to reallocate memory to extract new word.");
 
-      free(cast(void *) new_word);
+      free(new_word);
 
       return -1;
    }
@@ -92,17 +92,17 @@ int add_word
    new_s_word_sizes =
       cast(size_t *) realloc
       (
-         cast(void *) s.word_sizes,
+         s.word_sizes,
          /* XXX: (sizeof() * _) assumed overflow-safe. */
          /* (di.words_count + 1) overflow-safe */
          (size_t.sizeof * (s.words_count + 1))
       );
 
-   if (new_s_word_sizes == cast(size_t *) null)
+   if (new_s_word_sizes == null)
    {
       ZoO_S_WARNING("Unable to reallocate memory to extract new word.");
 
-      free(cast(void *) new_word);
+      free(new_word);
 
       return -1;
    }

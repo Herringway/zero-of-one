@@ -49,11 +49,11 @@ int ZoO_knowledge_find_link
       ZoO_sorted_list_index_of
       (
          links_count,
-         cast(const void*) links,
-         cast(const void*) sequence,
+         links,
+         sequence,
          ZoO_knowledge_link.sizeof,
          &cmp_seq_link,
-         cast(const void*) null,
+         null,
          result
       );
 }
@@ -73,11 +73,11 @@ int ZoO_knowledge_get_link
       ZoO_sorted_list_index_of
       (
          *links_count,
-         cast(const void*) *links,
-         cast(const void*) sequence,
+         *links,
+         sequence,
          ZoO_knowledge_link.sizeof,
          &cmp_seq_link,
-         cast(const void*) null,
+         null,
          result
       ) == 0
    )
@@ -90,11 +90,11 @@ int ZoO_knowledge_get_link
    new_p =
       cast(ZoO_knowledge_link *) realloc
       (
-         cast(void *) *links,
+         *links,
          (ZoO_knowledge_link.sizeof * (*links_count))
       );
 
-   if (new_p == cast(ZoO_knowledge_link *) null)
+   if (new_p == null)
    {
       *links_count -= 1;
 
@@ -104,8 +104,8 @@ int ZoO_knowledge_get_link
    if (*result < (*links_count - 1))
    {
       memmove(
-         cast(void *) (new_p + *result + 1),
-         cast(const void *) (new_p + *result),
+         new_p + *result + 1,
+         new_p + *result,
          (ZoO_knowledge_link.sizeof * (*links_count - 1 - *result))
       );
    }
@@ -116,16 +116,16 @@ int ZoO_knowledge_get_link
 
    memcpy
    (
-      cast(void *) new_p.sequence,
-      cast(const void*) sequence,
+      new_p.sequence.ptr,
+      sequence,
       /* can be zero */
       (ZoO_index.sizeof * ZoO_SEQUENCE_SIZE)
    );
 
    new_p.occurrences = 0;
    new_p.targets_count = 0;
-   new_p.targets_occurrences = cast(ZoO_index *) null;
-   new_p.targets = cast(ZoO_index *) null;
+   new_p.targets_occurrences = null;
+   new_p.targets = null;
 
    return 0;
 }
