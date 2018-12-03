@@ -9,17 +9,14 @@ should not cause any issues.
 
 ## Dependencies
 - POSIX compliant OS.
-- C compiler (with C99 support).
-- CMake.
+- D compiler.
+- Dub.
 
 ## Quick setup guide
 ```
-$ git clone https://github.com/nsensfel/zero-of-one.git
+$ git clone https://github.com/herringway/zero-of-one.git
 $ cd zero-of-one
-$ mkdir build
-$ cd build
-$ cmake ..
-$ make
+$ dub build
 $ ./zero_of_one -h
 Usage: ./zero_of_one [option_1 option_2 ...] NICKNAME [ALIAS_1 ALIAS_2 ...]
 NICKNAME is used as the IRC nickname value.
