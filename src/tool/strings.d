@@ -7,8 +7,6 @@ import tool.strings_types;
 import core.stdc.stdlib;
 import core.stdc.string;
 
-extern(C):
-
 void ZoO_strings_initialize (ZoO_strings* s)
 {
    s.words_count = 0;

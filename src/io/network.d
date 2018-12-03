@@ -15,8 +15,6 @@ import core.sys.posix.sys.time;
 import core.sys.posix.unistd;
 import core.sys.posix.netdb;
 
-extern(C):
-
 int re_create_socket (ZoO_network* net)
 {
    timeval timeout;

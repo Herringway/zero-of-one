@@ -11,7 +11,6 @@ import io.error;
 
 import pervasive;
 
-extern(C):
 int ZoO_data_input_open
 (
    ZoO_data_input* di,

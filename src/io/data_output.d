@@ -6,8 +6,6 @@ import core.stdc.string;
 
 import io.error;
 
-extern(C):
-
 int ZoO_data_output_write_line
 (
    const char* filename,

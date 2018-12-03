@@ -11,8 +11,6 @@ import core.sequence;
 import pervasive;
 import tool.strings_types;
 
-extern(C):
-
 /** Functions to assimilate sentences using a ZoO_knowledge structure *********/
 
 int add_sequence

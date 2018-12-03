@@ -12,13 +12,6 @@ else
 
 enum ZoO_S_LINK_SIZE = ZoO_SEQUENCE_SIZE + 1;
 
-/* XXX: are we as close to immutable as we want to be? */
-//extern(C) extern const uint ZoO_knowledge_punctuation_chars_count;
-//extern(C) extern const ZoO_char ZoO_knowledge_punctuation_chars[8];
-//extern(C) extern const uint ZoO_knowledge_forbidden_chars_count;
-//extern(C) extern const ZoO_char ZoO_knowledge_forbidden_chars[8];
-
-
 enum ZoO_knowledge_special_effect
 {
    ZoO_WORD_HAS_NO_EFFECT,

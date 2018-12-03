@@ -2,9 +2,8 @@ module tool.sorted_list;
 
 import pervasive;
 
-alias CompareFunc = extern(C) int function(const void *, const void *, const void *);
+alias CompareFunc = int function(const void *, const void *, const void *);
 
-extern(C):
 int ZoO_sorted_list_index_of
 (
    const ZoO_index list_length,

@@ -10,8 +10,6 @@ import tool.sorted_list;
 import io.error;
 import pervasive;
 
-extern(C):
-
 /** Basic functions of the ZoO_knowledge structure ****************************/
 
 /*

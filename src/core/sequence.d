@@ -9,8 +9,6 @@ import tool.sorted_list;
 
 import pervasive;
 
-extern(C):
-
 int cmp_seq_link
 (
    const void* a,

@@ -10,7 +10,6 @@ import io.error;
 
 import pervasive;
 
-extern(C):
 void load_default_parameters
 (
    ZoO_parameters* param

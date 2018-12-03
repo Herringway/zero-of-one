@@ -13,8 +13,6 @@ import io.error;
 import tool.strings_types;
 import pervasive;
 
-extern(C):
-
 /** Functions to create sentences using a ZoO_knowledge structure *************/
 
 /*
