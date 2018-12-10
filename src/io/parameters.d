@@ -31,7 +31,7 @@ void load_default_parameters
    param.aliases = null;
 }
 
-void print_help (const char* exec)
+void print_help (const string exec)
 {
    printf
    (
@@ -63,7 +63,7 @@ void print_help (const char* exec)
       "   [--reply-rate | -rr] REPLY_RATE\n"~
       "      Chance to reply to an event (integer, range [0, 100]).\n"~
       "      Default: %d.\n",
-      exec,
+      exec.toStringz,
       ZoO_DEFAULT_DATA_FILENAME.ptr,
       ZoO_DEFAULT_IRC_SERVER_ADDR.ptr,
       ZoO_DEFAULT_IRC_SERVER_PORT.ptr,
@@ -78,23 +78,22 @@ int parse_string_arg
 (
    string* dest,
    const int i,
-   const char** argv,
-   const int argc
+   const string[] args
 )
 {
-   if (i == argc)
+   if (i == args.length)
    {
       ZoO_FATAL
       (
          "Missing value for parameter '%s'.",
          /* Safe: i > 1 */
-         argv[i - 1]
+         args[i - 1]
       );
 
       return -1;
    }
 
-   *dest = argv[i].fromStringz.idup;
+   *dest = args[i];
 
    return 0;
 }
@@ -104,8 +103,7 @@ int parse_integer_arg
 (
    int* dest,
    const int i,
-   const char** argv,
-   const int argc,
+   const string[] args,
    const int min_val,
    const int max_val
 )
@@ -114,13 +112,13 @@ int parse_integer_arg
    char * endptr;
    const int old_errno = errno;
 
-   if (i == argc)
+   if (i == args.length)
    {
       ZoO_FATAL
       (
          "Missing value for parameter '%s'.",
          /* Safe: i > 1 */
-         argv[i - 1]
+         args[i - 1]
       );
 
       return -1;
@@ -128,7 +126,7 @@ int parse_integer_arg
 
    errno = 0;
 
-   result = strtol(cast(char*)argv[i], &endptr, 10);
+   result = strtol(cast(char*)args[i].toStringz, &endptr, 10);
 
    if
    (
@@ -143,7 +141,7 @@ int parse_integer_arg
          "Invalid or missing value for parameter '%s', accepted range is "~
          "[%d, %d] (integer).",
          /* Safe: i > 1 */
-         argv[i - 1],
+         args[i - 1],
          min_val,
          max_val
       );
@@ -163,20 +161,19 @@ int parse_integer_arg
 int ZoO_parameters_initialize
 (
    ZoO_parameters* param,
-   const int argc,
-   const char** argv
+   const string[] args
 )
 {
    int i;
 
    load_default_parameters(param);
 
-   for (i = 1; i < argc; ++i)
+   for (i = 1; i < args.length; ++i)
    {
       if
       (
-         (strcmp(argv[i], "--data-filename") == 0)
-         || (strcmp(argv[i], "-df") == 0)
+         (strcmp(args[i].ptr, "--data-filename") == 0)
+         || (strcmp(args[i].ptr, "-df") == 0)
       )
       {
          i += 1;
@@ -187,8 +184,7 @@ int ZoO_parameters_initialize
             (
                &(param.data_filename),
                i,
-               argv,
-               argc
+               args
             ) < 0
          )
          {
@@ -197,8 +193,8 @@ int ZoO_parameters_initialize
       }
       else if
       (
-         (strcmp(argv[i], "--new-data-filename") == 0)
-         || (strcmp(argv[i], "-ndf") == 0)
+         (strcmp(args[i].ptr, "--new-data-filename") == 0)
+         || (strcmp(args[i].ptr, "-ndf") == 0)
       )
       {
          i += 1;
@@ -209,8 +205,7 @@ int ZoO_parameters_initialize
             (
                &(param.new_data_filename),
                i,
-               argv,
-               argc
+               args
             ) < 0
          )
          {
@@ -219,8 +214,8 @@ int ZoO_parameters_initialize
       }
       else if
       (
-         (strcmp(argv[i], "--irc-server-addr") == 0)
-         || (strcmp(argv[i], "-isa") == 0)
+         (strcmp(args[i].ptr, "--irc-server-addr") == 0)
+         || (strcmp(args[i].ptr, "-isa") == 0)
       )
       {
          i += 1;
@@ -231,8 +226,7 @@ int ZoO_parameters_initialize
             (
                &(param.irc_server_addr),
                i,
-               argv,
-               argc
+               args
             ) < 0
          )
          {
@@ -241,8 +235,8 @@ int ZoO_parameters_initialize
       }
       else if
       (
-         (strcmp(argv[i], "--irc-server-port") == 0)
-         || (strcmp(argv[i], "-isp") == 0)
+         (strcmp(args[i].ptr, "--irc-server-port") == 0)
+         || (strcmp(args[i].ptr, "-isp") == 0)
       )
       {
          i += 1;
@@ -253,8 +247,7 @@ int ZoO_parameters_initialize
             (
                &(param.irc_server_port),
                i,
-               argv,
-               argc
+               args
             ) < 0
          )
          {
@@ -263,8 +256,8 @@ int ZoO_parameters_initialize
       }
       else if
       (
-         (strcmp(argv[i], "--irc-server-channel") == 0)
-         || (strcmp(argv[i], "-isc") == 0)
+         (strcmp(args[i].ptr, "--irc-server-channel") == 0)
+         || (strcmp(args[i].ptr, "-isc") == 0)
       )
       {
          i += 1;
@@ -275,8 +268,7 @@ int ZoO_parameters_initialize
             (
                &(param.irc_server_channel),
                i,
-               argv,
-               argc
+               args
             ) < 0
          )
          {
@@ -285,8 +277,8 @@ int ZoO_parameters_initialize
       }
       else if
       (
-         (strcmp(argv[i], "--irc-username") == 0)
-         || (strcmp(argv[i], "-iu") == 0)
+         (strcmp(args[i].ptr, "--irc-username") == 0)
+         || (strcmp(args[i].ptr, "-iu") == 0)
       )
       {
          i += 1;
@@ -297,8 +289,7 @@ int ZoO_parameters_initialize
             (
                &(param.irc_username),
                i,
-               argv,
-               argc
+               args
             ) < 0
          )
          {
@@ -307,8 +298,8 @@ int ZoO_parameters_initialize
       }
       else if
       (
-         (strcmp(argv[i], "--irc-realname") == 0)
-         || (strcmp(argv[i], "-in") == 0)
+         (strcmp(args[i].ptr, "--irc-realname") == 0)
+         || (strcmp(args[i].ptr, "-in") == 0)
       )
       {
          i += 1;
@@ -319,8 +310,7 @@ int ZoO_parameters_initialize
             (
                &(param.irc_realname),
                i,
-               argv,
-               argc
+               args
             ) < 0
          )
          {
@@ -329,8 +319,8 @@ int ZoO_parameters_initialize
       }
       else if
       (
-         (strcmp(argv[i], "--reply-rate") == 0)
-         || (strcmp(argv[i], "-rr") == 0)
+         (strcmp(args[i].ptr, "--reply-rate") == 0)
+         || (strcmp(args[i].ptr, "-rr") == 0)
       )
       {
          i += 1;
@@ -341,8 +331,7 @@ int ZoO_parameters_initialize
             (
                &(param.reply_rate),
                i,
-               argv,
-               argc,
+               args,
                0,
                100
             ) < 0
@@ -353,11 +342,11 @@ int ZoO_parameters_initialize
       }
       else if
       (
-         (strcmp(argv[i], "--help") == 0)
-         || (strcmp(argv[i], "-h") == 0)
+         (strcmp(args[i].ptr, "--help") == 0)
+         || (strcmp(args[i].ptr, "-h") == 0)
       )
       {
-         print_help(argv[0]);
+         print_help(args[0]);
 
          return 0;
       }
@@ -367,17 +356,23 @@ int ZoO_parameters_initialize
       }
    }
 
-   if (i == argc)
+   if (i == args.length)
    {
       ZoO_S_FATAL("Missing argument: NICKNAME");
 
-      print_help(argv[0]);
+      print_help(args[0]);
 
       return -1;
    }
 
-   param.aliases_count = (argc - i);
-   param.aliases = &argv[i];
+   param.aliases_count = (cast(uint)args.length - i);
+
+   //temporary hack - remove when aliases are string[]'d
+   const(char*)[] tmp;
+   foreach (arg; args[i..$]) {
+      tmp ~= arg.toStringz;
+   }
+   param.aliases = tmp.ptr;
 
    if (param.new_data_filename == null)
    {
@@ -385,4 +380,63 @@ int ZoO_parameters_initialize
    }
 
    return 1;
+}
+
+unittest {
+   {
+      auto parms = new ZoO_parameters();
+      ZoO_parameters_initialize(parms, ["testexec", "--data-filename", "hello", "testnickname"]);
+      assert(parms.data_filename == "hello");
+      assert(parms.new_data_filename == "hello");
+      assert(parms.aliases[0].fromStringz == "testnickname");
+   }
+   {
+      auto parms = new ZoO_parameters();
+      ZoO_parameters_initialize(parms, ["testexec", "--new-data-filename", "hello", "testnickname"]);
+      assert(parms.new_data_filename == "hello");
+      assert(parms.aliases[0].fromStringz == "testnickname");
+   }
+   {
+      auto parms = new ZoO_parameters();
+      ZoO_parameters_initialize(parms, ["testexec", "--irc-server-addr", "example.com", "testnickname"]);
+      assert(parms.irc_server_addr == "example.com");
+      assert(parms.aliases[0].fromStringz == "testnickname");
+   }
+   {
+      auto parms = new ZoO_parameters();
+      ZoO_parameters_initialize(parms, ["testexec", "--irc-server-port", "420", "testnickname"]);
+      assert(parms.irc_server_port == "420");
+      assert(parms.aliases[0].fromStringz == "testnickname");
+   }
+   {
+      auto parms = new ZoO_parameters();
+      ZoO_parameters_initialize(parms, ["testexec", "--irc-server-channel", "#testchan", "testnickname"]);
+      assert(parms.irc_server_channel == "#testchan");
+      assert(parms.aliases[0].fromStringz == "testnickname");
+   }
+   {
+      auto parms = new ZoO_parameters();
+      ZoO_parameters_initialize(parms, ["testexec", "--irc-realname", "testname", "testnickname"]);
+      assert(parms.irc_realname == "testname");
+      assert(parms.aliases[0].fromStringz == "testnickname");
+   }
+   {
+      auto parms = new ZoO_parameters();
+      ZoO_parameters_initialize(parms, ["testexec", "--irc-username", "hello", "testnickname"]);
+      assert(parms.irc_username == "hello");
+      assert(parms.aliases[0].fromStringz == "testnickname");
+   }
+   {
+      auto parms = new ZoO_parameters();
+      ZoO_parameters_initialize(parms, ["testexec", "--reply-rate", "50", "testnickname"]);
+      assert(parms.reply_rate == 50);
+      assert(parms.aliases[0].fromStringz == "testnickname");
+   }
+   {
+      auto parms = new ZoO_parameters();
+      ZoO_parameters_initialize(parms, ["testexec", "testnickname", "testalias1", "testalias2"]);
+      assert(parms.aliases[0].fromStringz == "testnickname");
+      assert(parms.aliases[1].fromStringz == "testalias1");
+      assert(parms.aliases[2].fromStringz == "testalias2");
+   }
 }

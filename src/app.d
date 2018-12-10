@@ -38,7 +38,7 @@ void request_termination (const int signo)
    }
 }
 
-int initialize(ZoO_state* s, const int argc, const char** argv)
+int initialize(ZoO_state* s, const string[] args)
 {
    ZoO_S_DEBUG(ZoO_DEBUG_PROGRAM_FLOW, "Zero of One is initializing...");
 
@@ -50,7 +50,7 @@ int initialize(ZoO_state* s, const int argc, const char** argv)
       return -1;
    }
 
-   if (ZoO_parameters_initialize(&(s.param), argc, argv) < 1)
+   if (ZoO_parameters_initialize(&(s.param), args) < 1)
    {
       ZoO_knowledge_finalize(&(s.knowledge));
 
@@ -400,11 +400,11 @@ int main_loop(ZoO_state* s)
    return 0;
 }
 
-extern(C) int main(const int argc, const char** argv)
+int main(string[] args)
 {
    ZoO_state s = void;
 
-   if (initialize(&s, argc, argv) < 0)
+   if (initialize(&s, args) < 0)
    {
       return -1;
    }
