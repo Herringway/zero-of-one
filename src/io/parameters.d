@@ -27,8 +27,7 @@ void load_default_parameters
 
    param.reply_rate          = ZoO_DEFAULT_REPLY_RATE;
 
-   param.aliases_count = 0;
-   param.aliases = null;
+   param.aliases = [];
 }
 
 void print_help (const string exec)
@@ -365,14 +364,7 @@ int ZoO_parameters_initialize
       return -1;
    }
 
-   param.aliases_count = (cast(uint)args.length - i);
-
-   //temporary hack - remove when aliases are string[]'d
-   const(char*)[] tmp;
-   foreach (arg; args[i..$]) {
-      tmp ~= arg.toStringz;
-   }
-   param.aliases = tmp.ptr;
+   param.aliases = args[i..$];
 
    if (param.new_data_filename == null)
    {
@@ -388,55 +380,55 @@ unittest {
       ZoO_parameters_initialize(parms, ["testexec", "--data-filename", "hello", "testnickname"]);
       assert(parms.data_filename == "hello");
       assert(parms.new_data_filename == "hello");
-      assert(parms.aliases[0].fromStringz == "testnickname");
+      assert(parms.aliases[0] == "testnickname");
    }
    {
       auto parms = new ZoO_parameters();
       ZoO_parameters_initialize(parms, ["testexec", "--new-data-filename", "hello", "testnickname"]);
       assert(parms.new_data_filename == "hello");
-      assert(parms.aliases[0].fromStringz == "testnickname");
+      assert(parms.aliases[0] == "testnickname");
    }
    {
       auto parms = new ZoO_parameters();
       ZoO_parameters_initialize(parms, ["testexec", "--irc-server-addr", "example.com", "testnickname"]);
       assert(parms.irc_server_addr == "example.com");
-      assert(parms.aliases[0].fromStringz == "testnickname");
+      assert(parms.aliases[0] == "testnickname");
    }
    {
       auto parms = new ZoO_parameters();
       ZoO_parameters_initialize(parms, ["testexec", "--irc-server-port", "420", "testnickname"]);
       assert(parms.irc_server_port == "420");
-      assert(parms.aliases[0].fromStringz == "testnickname");
+      assert(parms.aliases[0] == "testnickname");
    }
    {
       auto parms = new ZoO_parameters();
       ZoO_parameters_initialize(parms, ["testexec", "--irc-server-channel", "#testchan", "testnickname"]);
       assert(parms.irc_server_channel == "#testchan");
-      assert(parms.aliases[0].fromStringz == "testnickname");
+      assert(parms.aliases[0] == "testnickname");
    }
    {
       auto parms = new ZoO_parameters();
       ZoO_parameters_initialize(parms, ["testexec", "--irc-realname", "testname", "testnickname"]);
       assert(parms.irc_realname == "testname");
-      assert(parms.aliases[0].fromStringz == "testnickname");
+      assert(parms.aliases[0] == "testnickname");
    }
    {
       auto parms = new ZoO_parameters();
       ZoO_parameters_initialize(parms, ["testexec", "--irc-username", "hello", "testnickname"]);
       assert(parms.irc_username == "hello");
-      assert(parms.aliases[0].fromStringz == "testnickname");
+      assert(parms.aliases[0] == "testnickname");
    }
    {
       auto parms = new ZoO_parameters();
       ZoO_parameters_initialize(parms, ["testexec", "--reply-rate", "50", "testnickname"]);
       assert(parms.reply_rate == 50);
-      assert(parms.aliases[0].fromStringz == "testnickname");
+      assert(parms.aliases[0] == "testnickname");
    }
    {
       auto parms = new ZoO_parameters();
       ZoO_parameters_initialize(parms, ["testexec", "testnickname", "testalias1", "testalias2"]);
-      assert(parms.aliases[0].fromStringz == "testnickname");
-      assert(parms.aliases[1].fromStringz == "testalias1");
-      assert(parms.aliases[2].fromStringz == "testalias2");
+      assert(parms.aliases[0] == "testnickname");
+      assert(parms.aliases[1] == "testalias1");
+      assert(parms.aliases[2] == "testalias2");
    }
 }

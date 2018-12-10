@@ -395,8 +395,7 @@ ZoO_index select_first_word
 (
    ZoO_knowledge* k,
    const ZoO_strings* string,
-   const ZoO_index aliases_count,
-   const char** aliases
+   const string[] aliases
 )
 {
    ZoO_index i, j, word_id, word_min_score, word_min_id;
@@ -411,9 +410,9 @@ ZoO_index select_first_word
 
    for (i = 0; i < string.words_count; ++i)
    {
-      for (j = 0; j < aliases_count; ++j)
+      for (j = 0; j < aliases.length; ++j)
       {
-         if (strncmp(aliases[j], string.words[i], strlen(aliases[j])) == 0)
+         if (strncmp(aliases[j].toStringz, string.words[i], strlen(aliases[j].toStringz)) == 0)
          {
             goto NEXT_WORD;
          }
@@ -438,9 +437,9 @@ ZoO_index select_first_word
 
    for (; i < string.words_count; ++i)
    {
-      for (j = 0; j < aliases_count; ++j)
+      for (j = 0; j < aliases.length; ++j)
       {
-         if (strncmp(aliases[j], string.words[i], strlen(aliases[j])) == 0)
+         if (strncmp(aliases[j].toStringz, string.words[i], strlen(aliases[j].toStringz)) == 0)
          {
             goto NEXT_WORD_BIS;
          }
@@ -467,8 +466,7 @@ void init_sequence_
 (
    ZoO_knowledge* k,
    const ZoO_strings* string,
-   const ZoO_index aliases_count,
-   const char** aliases,
+   const string[] aliases,
    ZoO_index[(ZoO_MARKOV_ORDER * 2) + 1] sequence
 )
 {
@@ -479,7 +477,6 @@ void init_sequence_
       select_first_word(
          k,
          string,
-         aliases_count,
          aliases
       );
 
@@ -588,8 +585,7 @@ int ZoO_knowledge_extend
 (
    ZoO_knowledge* k,
    const ZoO_strings* string,
-   const ZoO_index aliases_count,
-   const char ** aliases,
+   const string[] aliases,
    ZoO_char** result
 )
 {
@@ -600,7 +596,7 @@ int ZoO_knowledge_extend
 
    credits = ZoO_MAX_REPLY_WORDS;
 
-   init_sequence_(k, string, aliases_count, aliases, sequence);
+   init_sequence_(k, string, aliases, sequence);
 
    first_word = sequence[ZoO_MARKOV_ORDER];
 

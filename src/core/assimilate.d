@@ -2,6 +2,7 @@ module core.assimilate;
 
 import core.stdc.stdlib;
 import core.stdc.string;
+import std.string;
 
 import io.error;
 
@@ -127,8 +128,7 @@ int add_word_occurrence
 int should_assimilate
 (
    ZoO_strings* string,
-   const ZoO_index aliases_count,
-   const char ** aliases
+   const string[] aliases
 )
 {
    ZoO_index i;
@@ -140,9 +140,9 @@ int should_assimilate
    }
 
    /* Don't assimilate things that start with our name. */
-   for (i = 0; i < aliases_count; ++i)
+   for (i = 0; i < aliases.length; ++i)
    {
-      if (strncmp(aliases[i], string.words[0], strlen(aliases[i])) == 0)
+      if (strncmp(aliases[i].toStringz, string.words[0], strlen(aliases[i].toStringz)) == 0)
       {
          return 0;
       }
@@ -195,15 +195,14 @@ int ZoO_knowledge_assimilate
 (
    ZoO_knowledge* k,
    ZoO_strings* string,
-   const ZoO_index aliases_count,
-   const char** aliases
+   const string[] aliases
 )
 {
    int error;
    ZoO_index[(ZoO_MARKOV_ORDER * 2) + 1] sequence;
    ZoO_index next_word, new_word, new_word_id;
 
-   if (!should_assimilate(string, aliases_count, aliases))
+   if (!should_assimilate(string, aliases))
    {
       return 0;
    }

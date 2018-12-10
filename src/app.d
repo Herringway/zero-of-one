@@ -84,7 +84,6 @@ int load_data_file(ZoO_state* s)
       (
          &(s.knowledge),
          &(input.string),
-         s.param.aliases_count,
          s.param.aliases
       );
    }
@@ -120,7 +119,7 @@ int network_connect (ZoO_state* s)
          s.param.irc_server_channel,
          s.param.irc_username,
          s.param.irc_realname,
-         s.param.aliases[0].fromStringz.idup
+         s.param.aliases[0]
       );
 }
 
@@ -133,9 +132,9 @@ int should_reply
 {
    ZoO_index i, j;
 
-   for (i = 0; i < param.aliases_count; ++i)
+   for (i = 0; i < param.aliases.length; ++i)
    {
-      if (strncmp(param.aliases[i], string_.words[0], strlen(param.aliases[i])) == 0)
+      if (strncmp(param.aliases[i].toStringz, string_.words[0], strlen(param.aliases[i].toStringz)) == 0)
       {
          *should_learn = 0;
 
@@ -144,7 +143,7 @@ int should_reply
 
       for (j = 1; j < string_.words_count; ++j)
       {
-         if (strncmp(param.aliases[i], string_.words[j], strlen(param.aliases[i])) == 0)
+         if (strncmp(param.aliases[i].toStringz, string_.words[j], strlen(param.aliases[i].toStringz)) == 0)
          {
             *should_learn = 1;
 
@@ -211,7 +210,6 @@ void handle_user_join
          (
             &(s.knowledge),
             null,
-            0,
             null,
             &line
          ) == 0
@@ -239,7 +237,6 @@ void handle_user_join
          (
             &(s.knowledge),
             string_,
-            0,
             null,
             &line
          ) == 0
@@ -322,7 +319,6 @@ void handle_message
          (
             &(s.knowledge),
             string_,
-            s.param.aliases_count,
             s.param.aliases,
             &line
          ) == 0
@@ -349,7 +345,6 @@ void handle_message
       (
          &(s.knowledge),
          string_,
-         s.param.aliases_count,
          s.param.aliases
       );
    }

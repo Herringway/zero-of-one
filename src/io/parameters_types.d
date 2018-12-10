@@ -13,6 +13,5 @@ struct ZoO_parameters
 
    int reply_rate;
 
-   int aliases_count;
-   const(char*)* aliases;
+   const(string)[] aliases;
 }
