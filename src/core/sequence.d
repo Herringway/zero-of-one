@@ -121,7 +121,6 @@ int ZoO_knowledge_get_link
    );
 
    new_p.occurrences = 0;
-   new_p.targets_count = 0;
    new_p.targets_occurrences = null;
    new_p.targets = null;
 

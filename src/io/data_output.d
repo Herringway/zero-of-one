@@ -3,12 +3,13 @@ module io.data_output;
 import core.stdc.errno;
 import core.stdc.stdio;
 import core.stdc.string;
+import std.string;
 
 import io.error;
 
 int ZoO_data_output_write_line
 (
-   const char* filename,
+   const string filename,
    char* line,
    const size_t line_size
 )
@@ -16,14 +17,14 @@ int ZoO_data_output_write_line
    const int old_errno = errno;
    FILE * file;
 
-   file = fopen(filename, "a");
+   file = fopen(filename.toStringz, "a");
 
    if (file == null)
    {
       ZoO_ERROR
       (
          "Could not open file '%s' in appending mode.",
-         filename[0..strlen(filename)]
+         filename[0..strlen(filename.toStringz)]
       );
 
       return -1;
@@ -48,7 +49,7 @@ int ZoO_data_output_write_line
       (
          "Could not store line '%s' in %s.",
          line[0..strlen(line)],
-         filename[0..strlen(filename)]
+         filename
       );
 
       fclose(file);

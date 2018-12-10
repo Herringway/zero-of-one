@@ -2,14 +2,14 @@ module io.parameters_types;
 
 struct ZoO_parameters
 {
-   const(char)* data_filename;
-   const(char)* new_data_filename;
+   string data_filename;
+   string new_data_filename;
 
-   const(char)* irc_server_addr;
-   const(char)* irc_server_port;
-   const(char)* irc_server_channel;
-   const(char)* irc_username;
-   const(char)* irc_realname;
+   string irc_server_addr;
+   string irc_server_port;
+   string irc_server_channel;
+   string irc_username;
+   string irc_realname;
 
    int reply_rate;
 

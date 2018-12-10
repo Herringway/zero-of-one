@@ -117,14 +117,14 @@ int reconnect (ZoO_network* net)
       return -1;
    }
 
-   snprintf(net.out_.ptr, 512, "USER %s 8 * :%s\r\n", net.user, net.name);
+   snprintf(net.out_.ptr, 512, "USER %s 8 * :%s\r\n", net.user.toStringz, net.name.toStringz);
 
    if (write(net.connection, net.out_.ptr, strlen(net.out_.ptr)) < 1)
    {
       goto RETURN_WRITE_FAILED;
    }
 
-   snprintf(net.out_.ptr, 512, "NICK %s\r\n", net.nick);
+   snprintf(net.out_.ptr, 512, "NICK %s\r\n", net.nick.toStringz);
 
    if (write(net.connection, net.out_.ptr, strlen(net.out_.ptr)) < 1)
    {
@@ -155,12 +155,12 @@ RETURN_WRITE_FAILED:
 int ZoO_network_connect
 (
    ZoO_network* net,
-   const(char)* host,
-   const(char)* port,
-   const(char)* channel,
-   const(char)* user,
-   const(char)* name,
-   const(char)* nick
+   string host,
+   string port,
+   string channel,
+   string user,
+   string name,
+   string nick
 )
 {
    int error;
@@ -185,7 +185,7 @@ int ZoO_network_connect
 
    errno = 0;
 
-   error = getaddrinfo(host, port, &hints, &(net.addrinfo));
+   error = getaddrinfo(host.toStringz, port.toStringz, &hints, &(net.addrinfo));
 
    if (error != 0)
    {
@@ -409,7 +409,7 @@ READ_NEW_MSG:
             net.out_.ptr,
             512,
             "JOIN :%s\r\n",
-            net.channel
+            net.channel.toStringz
          );
 
          errno = 0;
@@ -518,7 +518,7 @@ int ZoO_network_send (ZoO_network* net)
          net.in_.ptr,
          512,
          "PRIVMSG %s :%s\001\r\n",
-         net.channel,
+         net.channel.toStringz,
          net.out_.ptr
       );
    }
@@ -529,7 +529,7 @@ int ZoO_network_send (ZoO_network* net)
          net.in_.ptr,
          512,
          "PRIVMSG %s :%s\r\n",
-         net.channel,
+         net.channel.toStringz,
          net.out_.ptr
       );
    }

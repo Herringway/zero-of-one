@@ -117,7 +117,6 @@ void finalize_links
    for (i = 0; i < count; ++i)
    {
       free(links[i].targets_occurrences);
-      free(links[i].targets);
    }
 }
 

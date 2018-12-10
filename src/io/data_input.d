@@ -4,6 +4,7 @@ import core.stdc.stdio;
 import core.stdc.stdlib;
 import core.stdc.string;
 import core.sys.posix.stdio: getline;
+import std.string;
 
 import tool.strings;
 import io.data_input_types;
@@ -14,20 +15,20 @@ import pervasive;
 int ZoO_data_input_open
 (
    ZoO_data_input* di,
-   const char* filename
+   const string filename
 )
 {
    /* prevents di [restrict] */
    ZoO_strings_initialize(&(di.string));
 
-   di.file = fopen(filename, "r");
+   di.file = fopen(filename.toStringz, "r");
 
    if (di.file == null)
    {
       ZoO_ERROR
       (
          "Could not open file '%s' in readonly mode.",
-         filename[0..strlen(filename)]
+         filename
       );
 
       return -1;

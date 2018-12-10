@@ -43,7 +43,7 @@ int add_sequence
    link = (*links + link_index);
    link.occurrences += 1;
 
-   for (i = 0; i < link.targets_count; ++i)
+   for (i = 0; i < link.targets.length; ++i)
    {
       if (link.targets[i] == sequence[target_i])
       {
@@ -53,43 +53,35 @@ int add_sequence
       }
    }
 
-   link.targets_count += 1;
-
-   new_p =
-      cast(ZoO_index *) realloc
-      (
-         link.targets,
-         (ZoO_index.sizeof * link.targets_count)
-      );
+   link.targets.length += 1;
 
    if (new_p == null)
    {
-      link.targets_count -= 1;
+      link.targets.length -= 1;
 
       /* TODO: err. */
       return -1;
    }
 
-   link.targets = new_p;
-   link.targets[link.targets_count - 1] = sequence[target_i];
+   link.targets[link.targets.length - 1] = sequence[target_i];
 
    new_p =
       cast(ZoO_index *) realloc
       (
          link.targets_occurrences,
-         (ZoO_index.sizeof * link.targets_count)
+         (ZoO_index.sizeof * link.targets.length)
       );
 
    if (new_p == null)
    {
-      link.targets_count -= 1;
+      link.targets.length -= 1;
 
       /* TODO: err. */
       return -1;
    }
 
    link.targets_occurrences = new_p;
-   link.targets_occurrences[link.targets_count - 1] = 1;
+   link.targets_occurrences[link.targets.length - 1] = 1;
 
    return 0;
 }

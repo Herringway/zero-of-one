@@ -20,8 +20,8 @@ struct ZoO_network
    ZoO_char[513] in_;
    ZoO_char[513] out_;
    int connection;
-   const(char)* channel;
-   const(char)* user;
-   const(char)* name;
-   const(char)* nick;
+   string channel;
+   string user;
+   string name;
+   string nick;
 }

@@ -4,6 +4,7 @@ import core.stdc.string;
 import core.stdc.stdio;
 import core.stdc.stdlib;
 import core.stdc.errno;
+import std.string;
 
 import io.parameters_types;
 import io.error;
@@ -75,7 +76,7 @@ void print_help (const char* exec)
 
 int parse_string_arg
 (
-   const(char)** dest,
+   string* dest,
    const int i,
    const char** argv,
    const int argc
@@ -93,7 +94,7 @@ int parse_string_arg
       return -1;
    }
 
-   *dest = argv[i];
+   *dest = argv[i].fromStringz.idup;
 
    return 0;
 }

@@ -25,9 +25,8 @@ struct ZoO_knowledge_link
 {
    ZoO_index[ZoO_SEQUENCE_SIZE] sequence;
    ZoO_index occurrences;
-   ZoO_index targets_count;
    ZoO_index* targets_occurrences;
-   ZoO_index* targets;
+   ZoO_index[] targets;
 };
 
 struct ZoO_knowledge_word

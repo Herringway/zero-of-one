@@ -5,6 +5,8 @@ import core.stdc.stdlib;
 import core.stdc.string;
 import core.stdc.time;
 
+import std.string;
+
 import tool.strings;
 import tool.strings_types;
 
@@ -118,7 +120,7 @@ int network_connect (ZoO_state* s)
          s.param.irc_server_channel,
          s.param.irc_username,
          s.param.irc_realname,
-         s.param.aliases[0]
+         s.param.aliases[0].fromStringz.idup
       );
 }
 
