@@ -20,15 +20,6 @@ enum ZoO_ENABLE_RUNTIME_ERRORS_OUTPUT = 1;
 enum ZoO_ENABLE_PROGRAMMING_ERRORS_OUTPUT = 1;
 enum ZoO_ENABLE_FATAL_ERROR_OUTPUT = 1;
 
-// #ifdef ZoO_ENABLE_ERROR_LOCATION
-//    #define ZoO_LOCATION "[" __FILE__ "][" ZoO_TO_STRING(__LINE__) "]"
-// #else
-//    #define ZoO_LOCATION ""
-// #endif
-
-// #define ZoO_PRINT_STDERR(symbol, str, ...)\
-   //fprintf(stderr, "[" symbol "]" ZoO_LOCATION " " str "\n", __VA_ARGS__);
-
 /*
  * Given that we use preprocessor contants as flags, we can expect the compilers
  * to remove the test condition for disabled flags. No need to be shy about
@@ -36,25 +27,25 @@ enum ZoO_ENABLE_FATAL_ERROR_OUTPUT = 1;
  */
 
 void ZoO_DEBUG(T...)(bool flag, string fmt, T args) {
-   if (flag) {
-      stderr.writefln("[D] "~fmt, args);
-   }
+	if (flag) {
+		stderr.writefln("[D] "~fmt, args);
+	}
 }
 
 void ZoO_WARNING(T...)(string fmt, T args) {
-   stderr.writefln("[W] "~fmt, args);
+	stderr.writefln("[W] "~fmt, args);
 }
 
 void ZoO_ERROR(T...)(string fmt, T args) {
-   stderr.writefln("[E] "~fmt, args);
+	stderr.writefln("[E] "~fmt, args);
 }
 
 void ZoO_PROG_ERROR(T...)(string fmt, T args) {
-   stderr.writefln("[P] "~fmt, args);
+	stderr.writefln("[P] "~fmt, args);
 }
 
 void ZoO_FATAL(T...)(string fmt, T args) {
-   stderr.writefln("[F] "~fmt, args);
+	stderr.writefln("[F] "~fmt, args);
 }
 
 /* For outputs without dynamic content (static). ******************************/
@@ -63,23 +54,23 @@ void ZoO_FATAL(T...)(string fmt, T args) {
 //    fprintf(stderr, "[" symbol "]" ZoO_LOCATION " " str "\n");
 
 void ZoO_S_DEBUG(bool flag, string str) {
-   if (flag) {
-      stderr.writeln("[D] ", str);
-   }
+	if (flag) {
+		stderr.writeln("[D] ", str);
+	}
 }
 
 void ZoO_S_WARNING(string str) {
-   stderr.writeln("[W] ", str);
+	stderr.writeln("[W] ", str);
 }
 
 void ZoO_S_ERROR(string str) {
-   stderr.writeln("[E] ", str);
+	stderr.writeln("[E] ", str);
 }
 
 void ZoO_S_PROG_ERROR(string str) {
-   stderr.writeln("[P] ", str);
+	stderr.writeln("[P] ", str);
 }
 
 void ZoO_S_FATAL(string str) {
-   stderr.writeln("[F] ", str);
+	stderr.writeln("[F] ", str);
 }

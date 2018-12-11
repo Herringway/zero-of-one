@@ -7,8 +7,7 @@ import pervasive;
 import tool.strings;
 import tool.strings_types;
 
-struct ZoO_data_input
-{
-   FILE* file;
-   ZoO_strings string;
+struct ZoO_data_input {
+	FILE* file;
+	ZoO_strings string;
 };

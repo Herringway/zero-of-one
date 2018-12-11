@@ -27,12 +27,3 @@ enum ZoO_INDEX_MAX = uint.max;
 alias ZoO_char = char;
 /* Functions that can handle UTF-8 'char' will use this symbol. */
 enum ZoO_CHAR_STRING_SYMBOL = "%s";
-
-//#define ZoO__TO_STRING(x) #x
-//#define ZoO_TO_STRING(x) ZoO__TO_STRING(x)
-//#define ZoO_ISOLATE(a) do {a} while (0)
-
-/* strncmp stops at '\0' and strlen does not count '\0'. */
-//#define ZoO_IS_PREFIX(a, b) (strncmp(a, b, strlen(a)) == 0)
-
-//#define ZoO_STRING_EQUALS(a, b) (strcmp(a, b) == 0)
