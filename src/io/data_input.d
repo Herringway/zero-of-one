@@ -19,7 +19,7 @@ struct ZoO_data_input {
 		try {
 			file = File(filename, "r");
 		} catch (Exception) {
-			error("Could not open file '%s' in readonly mode.", filename);
+			errorf("Could not open file '%s' in readonly mode.", filename);
 
 			return -1;
 		}
