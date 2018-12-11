@@ -46,7 +46,7 @@ int initialize(ZoO_state* s, const string[] args) {
 		return -1;
 	}
 
-	if (ZoO_parameters_initialize(&(s.param), args) < 1) {
+	if (ZoO_parameters_initialize(s.param, args) < 1) {
 		ZoO_knowledge_finalize(&(s.knowledge));
 
 		return -1;
