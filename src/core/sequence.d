@@ -3,7 +3,7 @@ module core.sequence;
 import core.stdc.stdlib;
 import core.stdc.string;
 
-import core.knowledge_types;
+import core.knowledge;
 
 import tool.sorted_list;
 

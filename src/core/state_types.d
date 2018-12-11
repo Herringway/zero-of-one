@@ -3,7 +3,7 @@ module core.state_types;
 import io.parameters_types;
 import io.network_types;
 
-import core.knowledge_types;
+import core.knowledge;
 
 struct ZoO_state {
 	ZoO_parameters param;

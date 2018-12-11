@@ -40,12 +40,12 @@ int initialize(ZoO_state* s, const string[] args) {
 
 	srand(cast(uint)time(null));
 
-	if (ZoO_knowledge_initialize(&(s.knowledge)) < 0) {
+	if (s.knowledge.initialize() < 0) {
 		return -1;
 	}
 
 	if (ZoO_parameters_initialize(s.param, args) < 1) {
-		ZoO_knowledge_finalize(&(s.knowledge));
+		s.knowledge.finalize();
 
 		return -1;
 	}
@@ -78,7 +78,7 @@ int finalize(ZoO_state* s) {
 
 	error = 0;
 
-	ZoO_knowledge_finalize(&(s.knowledge));
+	s.knowledge.finalize();
 
 	return error;
 }
@@ -125,7 +125,7 @@ void handle_user_join(ZoO_state* s, ZoO_strings* string_, const ssize_t msg_offs
 		return;
 	}
 
-	if ((ZoO_knowledge_find(&(s.knowledge), string_.words[0], &loc) < 0) || (s.knowledge.words[loc].backward_links_count <= 3) || (s.knowledge.words[loc].forward_links_count <= 3)) {
+	if ((s.knowledge.find(string_.words[0], &loc) < 0) || (s.knowledge.words[loc].backward_links_count <= 3) || (s.knowledge.words[loc].forward_links_count <= 3)) {
 		if (ZoO_knowledge_extend(&(s.knowledge), null, null, &line) == 0) {
 			if (line[0] == ' ') {
 				strcpy((s.network.out_.ptr), (line + 1));
