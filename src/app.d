@@ -19,7 +19,6 @@ import io.network;
 import core.assimilate;
 import core.create_sentences;
 import core.knowledge;
-import core.state_types;
 
 import pervasive;
 
@@ -31,6 +30,12 @@ void request_termination (const int signo) {
 	if ((signo == SIGINT) || (signo == SIGTERM)) {
 		run = 0;
 	}
+}
+
+struct ZoO_state {
+	ZoO_parameters param;
+	ZoO_knowledge knowledge;
+	ZoO_network network;
 }
 
 int initialize(ZoO_state* s, const string[] args) {
