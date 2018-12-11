@@ -118,63 +118,63 @@ int ZoO_parameters_initialize(ZoO_parameters* param, const string[] args) {
 	load_default_parameters(param);
 
 	for (i = 1; i < args.length; ++i) {
-		if ((strcmp(args[i].ptr, "--data-filename") == 0) || (strcmp(args[i].ptr, "-df") == 0)) {
+		if ((args[i] == "--data-filename") || (args[i] == "-df")) {
 			i += 1;
 
 			if (parse_string_arg(&(param.data_filename), i, args) < 0) {
 				return -1;
 			}
 		}
-		else if ((strcmp(args[i].ptr, "--new-data-filename") == 0) || (strcmp(args[i].ptr, "-ndf") == 0)) {
+		else if ((args[i] == "--new-data-filename") || (args[i] == "-ndf")) {
 			i += 1;
 
 			if (parse_string_arg(&(param.new_data_filename), i, args) < 0) {
 				return -1;
 			}
 		}
-		else if ((strcmp(args[i].ptr, "--irc-server-addr") == 0) || (strcmp(args[i].ptr, "-isa") == 0)) {
+		else if ((args[i] == "--irc-server-addr") || (args[i] == "-isa")) {
 			i += 1;
 
 			if (parse_string_arg(&(param.irc_server_addr), i, args) < 0) {
 				return -1;
 			}
 		}
-		else if ((strcmp(args[i].ptr, "--irc-server-port") == 0) || (strcmp(args[i].ptr, "-isp") == 0)) {
+		else if ((args[i] == "--irc-server-port") || (args[i] == "-isp")) {
 			i += 1;
 
 			if (parse_string_arg(&(param.irc_server_port), i, args) < 0) {
 				return -1;
 			}
 		}
-		else if ((strcmp(args[i].ptr, "--irc-server-channel") == 0) || (strcmp(args[i].ptr, "-isc") == 0)) {
+		else if ((args[i] == "--irc-server-channel") || (args[i] == "-isc")) {
 			i += 1;
 
 			if (parse_string_arg(&(param.irc_server_channel), i, args) < 0) {
 				return -1;
 			}
 		}
-		else if ((strcmp(args[i].ptr, "--irc-username") == 0) || (strcmp(args[i].ptr, "-iu") == 0)) {
+		else if ((args[i] == "--irc-username") || (args[i] == "-iu")) {
 			i += 1;
 
 			if (parse_string_arg(&(param.irc_username), i, args ) < 0) {
 				return -1;
 			}
 		}
-		else if ((strcmp(args[i].ptr, "--irc-realname") == 0) || (strcmp(args[i].ptr, "-in") == 0)) {
+		else if ((args[i] == "--irc-realname") || (args[i] == "-in")) {
 			i += 1;
 
 			if (parse_string_arg(&(param.irc_realname), i, args) < 0) {
 				return -1;
 			}
 		}
-		else if ((strcmp(args[i].ptr, "--reply-rate") == 0) || (strcmp(args[i].ptr, "-rr") == 0)) {
+		else if ((args[i] == "--reply-rate") || (args[i] == "-rr")) {
 			i += 1;
 
 			if (parse_integer_arg(&(param.reply_rate), i, args, 0, 100) < 0) {
 				return -1;
 			}
 		}
-		else if ((strcmp(args[i].ptr, "--help") == 0) || (strcmp(args[i].ptr, "-h") == 0)) {
+		else if ((args[i] == "--help") || (args[i] == "-h")) {
 			print_help(args[0]);
 
 			return 0;
