@@ -14,7 +14,6 @@ import io.error;
 import io.parameters;
 import io.parameters_types;
 import io.data_input;
-import io.data_input_types;
 import io.data_output;
 import io.network;
 import io.network_types;
@@ -58,15 +57,15 @@ int load_data_file(ZoO_state* s) {
 	ZoO_data_input input;
 	char* result;
 
-	if (ZoO_data_input_open(&input, s.param.data_filename) < 0) {
+	if (input.ZoO_data_input_open(s.param.data_filename) < 0) {
 		return -1;
 	}
 
-	while (ZoO_data_input_read_line(&input, ZoO_knowledge_punctuation_chars_count, ZoO_knowledge_punctuation_chars.ptr) == 0) {
-		ZoO_knowledge_assimilate(&(s.knowledge), &(input.string), s.param.aliases);
+	while (input.ZoO_data_input_read_line(ZoO_knowledge_punctuation_chars_count, ZoO_knowledge_punctuation_chars.ptr) == 0) {
+		ZoO_knowledge_assimilate(&(s.knowledge), &(input.str), s.param.aliases);
 	}
 
-	ZoO_data_input_close(&input);
+	input.ZoO_data_input_close();
 
 	return 0;
 }
