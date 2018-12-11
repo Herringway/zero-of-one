@@ -16,7 +16,6 @@ import io.parameters_types;
 import io.data_input;
 import io.data_output;
 import io.network;
-import io.network_types;
 
 import core.assimilate;
 import core.create_sentences;
@@ -84,7 +83,7 @@ int finalize(ZoO_state* s) {
 }
 
 int network_connect (ZoO_state* s) {
-	return ZoO_network_connect(&(s.network), s.param.irc_server_addr, s.param.irc_server_port, s.param.irc_server_channel, s.param.irc_username, s.param.irc_realname, s.param.aliases[0]	);
+	return s.network.connect(s.param.irc_server_addr, s.param.irc_server_port, s.param.irc_server_channel, s.param.irc_username, s.param.irc_realname, s.param.aliases[0]	);
 }
 
 int should_reply(ZoO_parameters* param, ZoO_strings* string_, int* should_learn) {
@@ -135,7 +134,7 @@ void handle_user_join(ZoO_state* s, ZoO_strings* string_, const ssize_t msg_offs
 
 			free(line);
 
-			ZoO_network_send(&(s.network));
+			s.network.send();
 		}
 	} else {
 		if (ZoO_knowledge_extend(&(s.knowledge), string_, null, &line ) == 0) {
@@ -147,7 +146,7 @@ void handle_user_join(ZoO_state* s, ZoO_strings* string_, const ssize_t msg_offs
 
 			free(line);
 
-			ZoO_network_send(&(s.network));
+			s.network.send();
 		}
 	}
 }
@@ -185,7 +184,7 @@ void handle_message(ZoO_state* s, ZoO_strings* string_, const ssize_t msg_offset
 
 		free(line);
 
-		ZoO_network_send(&(s.network));
+		s.network.send();
 	}
 
 	if (learn) {
@@ -204,7 +203,7 @@ int main_loop(ZoO_state* s) {
 	string_.initialize();
 
 	while (run) {
-		if (ZoO_network_receive(&(s.network), cast(ulong*)&msg_offset, cast(ulong*)&msg_size, &msg_type) == 0) {
+		if (s.network.receive(cast(ulong*)&msg_offset, cast(ulong*)&msg_size, &msg_type) == 0) {
 			switch (msg_type) {
 				case ZoO_msg_type.ZoO_JOIN:
 					handle_user_join(s, &string_, msg_offset, msg_size);
@@ -220,7 +219,7 @@ int main_loop(ZoO_state* s) {
 
 	string_.finalize();
 
-	ZoO_network_disconnect(&(s.network));
+	s.network.disconnect();
 
 	return 0;
 }
