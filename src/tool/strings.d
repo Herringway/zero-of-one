@@ -6,6 +6,7 @@ import tool.strings_types;
 
 import core.stdc.stdlib;
 import core.stdc.string;
+import std.experimental.logger;
 
 void ZoO_strings_initialize(ZoO_strings* s) {
 	s.words_count = 0;
@@ -37,7 +38,7 @@ int add_word(ZoO_strings* s, const size_t line_size, const ZoO_char* line) {
 	ZoO_char** new_s_words;
 
 	if (s.words_count == ZoO_INDEX_MAX) {
-		ZoO_S_WARNING("Data input sentence has too many words.");
+		warning("Data input sentence has too many words.");
 
 		return -1;
 	}
@@ -46,7 +47,7 @@ int add_word(ZoO_strings* s, const size_t line_size, const ZoO_char* line) {
 	new_word = cast(ZoO_char *) calloc((line_size + 1), ZoO_char.sizeof);
 
 	if (new_word == null) {
-		ZoO_S_WARNING("Unable to allocate memory to extract new word.");
+		warning("Unable to allocate memory to extract new word.");
 
 		return -1;
 	}
@@ -58,7 +59,7 @@ int add_word(ZoO_strings* s, const size_t line_size, const ZoO_char* line) {
 	new_s_words = cast(ZoO_char **) realloc(s.words, ((ZoO_char *).sizeof * (s.words_count + 1)));
 
 	if (new_s_words == null) {
-		ZoO_S_WARNING("Unable to reallocate memory to extract new word.");
+		warning("Unable to reallocate memory to extract new word.");
 
 		free(new_word);
 
@@ -70,7 +71,7 @@ int add_word(ZoO_strings* s, const size_t line_size, const ZoO_char* line) {
 	new_s_word_sizes = cast(size_t *) realloc(s.word_sizes, (size_t.sizeof * (s.words_count + 1))	);
 
 	if (new_s_word_sizes == null) {
-		ZoO_S_WARNING("Unable to reallocate memory to extract new word.");
+		warning("Unable to reallocate memory to extract new word.");
 
 		free(new_word);
 
@@ -174,7 +175,7 @@ int ZoO_strings_parse(ZoO_strings* s, size_t input_size, ZoO_char* input, const 
 		if ((input_size >= 1) && (input[input_size - 1] == '\001')) {
 			input[input_size - 1] = ' ';
 		} else {
-			ZoO_WARNING("CTCP sequence '%s' did not end with a \\001 character.", input);
+			warningf("CTCP sequence '%s' did not end with a \\001 character.", input);
 		}
 	}
 

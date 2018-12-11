@@ -5,6 +5,7 @@ import core.stdc.stdint;
 import core.stdc.stdio;
 import core.stdc.string;
 import std.string;
+import std.experimental.logger;
 
 import core.knowledge_types;
 import core.sequence;
@@ -89,7 +90,7 @@ char* extend_left(ZoO_knowledge* k, ZoO_index* sequence, ZoO_char* current_sente
 				break;
 
 			case ZoO_knowledge_special_effect.ZoO_WORD_ENDS_SENTENCE:
-				ZoO_S_WARNING("END OF LINE should not be prefixable.");
+				warning("END OF LINE should not be prefixable.");
 				return current_sentence;
 
 			case ZoO_knowledge_special_effect.ZoO_WORD_STARTS_SENTENCE:
@@ -104,7 +105,7 @@ char* extend_left(ZoO_knowledge* k, ZoO_index* sequence, ZoO_char* current_sente
 		}
 
 		if (*sentence_size > (SIZE_MAX - addition_size)) {
-			ZoO_S_WARNING("Sentence construction aborted to avoid size_t overflow.");
+			warning("Sentence construction aborted to avoid size_t overflow.");
 
 			return current_sentence;
 		}
@@ -112,7 +113,7 @@ char* extend_left(ZoO_knowledge* k, ZoO_index* sequence, ZoO_char* current_sente
 		next_sentence = cast(ZoO_char *) calloc((*sentence_size + addition_size), ZoO_char.sizeof);
 
 		if (next_sentence == null) {
-			ZoO_S_ERROR("Could not allocate memory to store new sentence.");
+			error("Could not allocate memory to store new sentence.");
 
 			return current_sentence;
 		}
@@ -146,7 +147,7 @@ char* extend_left(ZoO_knowledge* k, ZoO_index* sequence, ZoO_char* current_sente
 		memmove(sequence + 1, sequence, (ZoO_index.sizeof * (ZoO_MARKOV_ORDER - 1)));
 
 		if (ZoO_knowledge_find_link(w.backward_links_count, w.backward_links, (sequence + 1), &j) < 0) {
-			ZoO_S_ERROR("Unexpectedly, no backtracking link was found.");
+			error("Unexpectedly, no backtracking link was found.");
 
 			break;
 		}
@@ -187,7 +188,7 @@ char* extend_right(ZoO_knowledge* k, ZoO_index* sequence, ZoO_char* current_sent
 				return current_sentence;
 
 			case ZoO_knowledge_special_effect.ZoO_WORD_STARTS_SENTENCE:
-				ZoO_S_WARNING("START OF LINE should not be suffixable.");
+				warning("START OF LINE should not be suffixable.");
 				return current_sentence;
 
 			case ZoO_knowledge_special_effect.ZoO_WORD_REMOVES_LEFT_SPACE:
@@ -199,7 +200,7 @@ char* extend_right(ZoO_knowledge* k, ZoO_index* sequence, ZoO_char* current_sent
 		}
 
 		if (*sentence_size > (SIZE_MAX - addition_size)) {
-			ZoO_S_WARNING("Sentence construction aborted to avoid size_t overflow.");
+			warning("Sentence construction aborted to avoid size_t overflow.");
 
 			return current_sentence;
 		}
@@ -207,7 +208,7 @@ char* extend_right(ZoO_knowledge* k, ZoO_index* sequence, ZoO_char* current_sent
 		next_sentence = cast(ZoO_char *) calloc((*sentence_size + addition_size), ZoO_char.sizeof);
 
 		if (next_sentence == null) {
-			ZoO_S_ERROR("Could not allocate memory to store new sentence.");
+			error("Could not allocate memory to store new sentence.");
 
 			return current_sentence;
 		}
@@ -241,7 +242,7 @@ char* extend_right(ZoO_knowledge* k, ZoO_index* sequence, ZoO_char* current_sent
 		memmove(sequence, sequence + 1, (ZoO_index.sizeof * (ZoO_MARKOV_ORDER - 1)));
 
 		if (ZoO_knowledge_find_link(w.forward_links_count, w.forward_links, sequence, &j) < 0) {
-			ZoO_S_ERROR("Unexpectedly, no forward link was found.");
+			error("Unexpectedly, no forward link was found.");
 
 			break;
 		}
@@ -315,7 +316,7 @@ void init_sequence_(ZoO_knowledge* k, const ZoO_strings* string, const string[] 
 	}
 
 	if (fiw.forward_links_count == 0) {
-		ZoO_S_FATAL("First word has no forward links.");
+		critical("First word has no forward links.");
 
 		return;
 	}
@@ -351,11 +352,11 @@ void init_sequence_(ZoO_knowledge* k, const ZoO_strings* string, const string[] 
 		/* finds the backward link corresponding to the words left of the */
 		/* temporary pillar. */
 		if (ZoO_knowledge_find_link(fiw.backward_links_count, fiw.backward_links, sequence.ptr + (ZoO_MARKOV_ORDER - i), &j) < 0) {
-			ZoO_ERROR("Unexpectedly, no back link was found at i=%u, expected to find a backlink with %s, from %s.", i, k.words[sequence[(ZoO_MARKOV_ORDER - i)]].word, fiw.word);
-			ZoO_S_ERROR("Sequence was:");
+			errorf("Unexpectedly, no back link was found at i=%u, expected to find a backlink with %s, from %s.", i, k.words[sequence[(ZoO_MARKOV_ORDER - i)]].word, fiw.word);
+			error("Sequence was:");
 
 			for (j = 0; j <= (ZoO_MARKOV_ORDER * 2); ++j) {
-				ZoO_ERROR("[%u] %s", j, k.words[sequence[j]].word);
+				errorf("[%u] %s", j, k.words[sequence[j]].word);
 			}
 
 			break;
@@ -391,7 +392,7 @@ int ZoO_knowledge_extend(ZoO_knowledge* k, const ZoO_strings* string, const stri
 			break;
 
 		default:
-			ZoO_WARNING("'%s' was unexpectedly selected as pillar.", k.words[first_word].word.fromStringz);
+			warningf("'%s' was unexpectedly selected as pillar.", k.words[first_word].word.fromStringz);
 			/* word + '[' + ']' + ' ' * 2 + '\0' */
 			sentence_size = (strlen(k.words[first_word].word) + 5);
 			break;
@@ -400,7 +401,7 @@ int ZoO_knowledge_extend(ZoO_knowledge* k, const ZoO_strings* string, const stri
 	*result = cast(ZoO_char *) calloc(sentence_size, ZoO_char.sizeof);
 
 	if (*result == null) {
-		ZoO_S_ERROR("Could not allocate memory to start sentence.");
+		error("Could not allocate memory to start sentence.");
 
 		return -2;
 	}

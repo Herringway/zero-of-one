@@ -4,6 +4,8 @@ import core.stdc.stdint;
 import core.stdc.stdlib;
 import core.stdc.string;
 
+import std.experimental.logger;
+
 import tool.strings_types;
 import core.knowledge_types;
 import tool.sorted_list;
@@ -30,7 +32,7 @@ int add_punctuation_nodes(ZoO_knowledge* k) {
 	ZoO_index i, id;
 
 	if (ZoO_knowledge_learn(k, "START OF LINE", &id) < 0) {
-		ZoO_S_FATAL("Could not add 'START OF LINE' to knowledge.");
+		critical("Could not add 'START OF LINE' to knowledge.");
 
 		return -2;
 	}
@@ -39,7 +41,7 @@ int add_punctuation_nodes(ZoO_knowledge* k) {
 	k.words[id].occurrences = 0;
 
 	if (ZoO_knowledge_learn(k, "END OF LINE", &id) < 0) {
-		ZoO_S_FATAL("Could not add 'END OF LINE' to knowledge.");
+		critical("Could not add 'END OF LINE' to knowledge.");
 
 		return -2;
 	}
@@ -55,7 +57,7 @@ int add_punctuation_nodes(ZoO_knowledge* k) {
 		w[0] = ZoO_knowledge_punctuation_chars[i];
 
 		if (ZoO_knowledge_learn(k, w.ptr, &id) < 0) {
-			ZoO_WARNING("Could not add '%s' to knowledge.", w);
+			warningf("Could not add '%s' to knowledge.", w);
 
 			error = -1;
 		} else {
@@ -221,7 +223,7 @@ int ZoO_knowledge_learn(ZoO_knowledge* k, const ZoO_char* word, ZoO_index* resul
 
 	if (ZoO_knowledge_find(k, word, result) == 0) {
 		if (k.words[*result].occurrences == ZoO_INDEX_MAX) {
-			ZoO_WARNING("Maximum number of occurrences has been reached for word '"~ZoO_CHAR_STRING_SYMBOL~"'.", word);
+			warningf("Maximum number of occurrences has been reached for word '"~ZoO_CHAR_STRING_SYMBOL~"'.", word);
 
 			return -1;
 		}
@@ -233,7 +235,7 @@ int ZoO_knowledge_learn(ZoO_knowledge* k, const ZoO_char* word, ZoO_index* resul
 	}
 
 	if (k.words_count == ZoO_INDEX_MAX) {
-		ZoO_S_WARNING("Maximum number of words has been reached.");
+		warning("Maximum number of words has been reached.");
 
 		return -1;
 	}
@@ -241,7 +243,7 @@ int ZoO_knowledge_learn(ZoO_knowledge* k, const ZoO_char* word, ZoO_index* resul
 	new_wordlist = cast(ZoO_knowledge_word *) realloc(k.words, ((k.words_count + 1) * ZoO_knowledge_word.sizeof));
 
 	if (new_wordlist == null) {
-		ZoO_ERROR("Could not learn the word '%s': unable to realloc the word list.", word);
+		error("Could not learn the word '%s': unable to realloc the word list.", word);
 
 		return -1;
 	}
@@ -251,7 +253,7 @@ int ZoO_knowledge_learn(ZoO_knowledge* k, const ZoO_char* word, ZoO_index* resul
 	new_sorted_indices = cast(ZoO_index *) realloc(k.sorted_indices, ((k.words_count + 1) * ZoO_index.sizeof));
 
 	if (new_sorted_indices == null) {
-		ZoO_ERROR("Could not learn the word '"~ZoO_CHAR_STRING_SYMBOL~"': unable to realloc the index list.", word);
+		error("Could not learn the word '"~ZoO_CHAR_STRING_SYMBOL~"': unable to realloc the index list.", word);
 
 		return -1;
 	}
@@ -276,7 +278,7 @@ int ZoO_knowledge_learn(ZoO_knowledge* k, const ZoO_char* word, ZoO_index* resul
 	k.words[*result].word_size = strlen(word);
 
 	if (k.words[*result].word_size == SIZE_MAX) {
-		ZoO_S_WARNING("Could not learn word that had a size too big to store in a '\\0' terminated string. Chances are, this is but a symptom of the real problem.");
+		warning("Could not learn word that had a size too big to store in a '\\0' terminated string. Chances are, this is but a symptom of the real problem.");
 
 		return -1;
 	}
@@ -287,7 +289,7 @@ int ZoO_knowledge_learn(ZoO_knowledge* k, const ZoO_char* word, ZoO_index* resul
 	k.words[*result].word = cast(ZoO_char *) calloc(k.words[*result].word_size, ZoO_char.sizeof);
 
 	if (k.words[*result].word == null) {
-		ZoO_S_ERROR("Could not learn word due to being unable to allocate the memory to store it.");
+		error("Could not learn word due to being unable to allocate the memory to store it.");
 
 		k.words[*result].word_size = 0;
 
@@ -299,7 +301,7 @@ int ZoO_knowledge_learn(ZoO_knowledge* k, const ZoO_char* word, ZoO_index* resul
 	/* Safe: k.words_count < ZoO_INDEX_MAX */
 	k.words_count += 1;
 
-	ZoO_DEBUG(ZoO_DEBUG_LEARNING, "Learned word {'%s', id: %u, rank: %u}", word[0..strlen(word)], *result, temp);
+	tracef(ZoO_DEBUG_LEARNING, "Learned word {'%s', id: %u, rank: %u}", word[0..strlen(word)], *result, temp);
 
 	return 0;
 }

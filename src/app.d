@@ -6,6 +6,7 @@ import core.stdc.string;
 import core.stdc.time;
 
 import std.string;
+import std.experimental.logger;
 
 import tool.strings;
 import tool.strings_types;
@@ -37,7 +38,7 @@ void request_termination (const int signo) {
 }
 
 int initialize(ZoO_state* s, const string[] args) {
-	ZoO_S_DEBUG(ZoO_DEBUG_PROGRAM_FLOW, "Zero of One is initializing...");
+	trace(ZoO_DEBUG_PROGRAM_FLOW, "Zero of One is initializing...");
 
 	srand(cast(uint)time(null));
 
@@ -75,7 +76,7 @@ int load_data_file(ZoO_state* s) {
 int finalize(ZoO_state* s) {
 	int error;
 
-	ZoO_S_DEBUG(ZoO_DEBUG_PROGRAM_FLOW, "Zero of One is finalizing...");
+	trace(ZoO_DEBUG_PROGRAM_FLOW, "Zero of One is finalizing...");
 
 	error = 0;
 
@@ -121,7 +122,7 @@ void handle_user_join(ZoO_state* s, ZoO_strings* string_, const ssize_t msg_offs
 	}
 
 	if (ZoO_strings_parse(string_, msg_size, (&s.network.in_[msg_offset]), cast(uint*)&ZoO_knowledge_punctuation_chars_count, cast(char*)&ZoO_knowledge_punctuation_chars) < 0) {
-		ZoO_S_DEBUG(ZoO_DEBUG_PROGRAM_FLOW, "Could not dissect join username.");
+		trace(ZoO_DEBUG_PROGRAM_FLOW, "Could not dissect join username.");
 
 		return;
 	}
@@ -158,7 +159,7 @@ void handle_message(ZoO_state* s, ZoO_strings* string_, const ssize_t msg_offset
 	int reply, learn;
 
 	if (ZoO_strings_parse (string_, msg_size, (&s.network.in_[msg_offset]), &ZoO_knowledge_punctuation_chars_count, ZoO_knowledge_punctuation_chars.ptr) < 0) {
-		ZoO_S_DEBUG(ZoO_DEBUG_PROGRAM_FLOW, "Could not dissect msg.");
+		trace(ZoO_DEBUG_PROGRAM_FLOW, "Could not dissect msg.");
 
 		return;
 	}
@@ -247,7 +248,7 @@ int main(string[] args) {
 
 	finalize(&s);
 
-	ZoO_S_DEBUG(ZoO_DEBUG_PROGRAM_FLOW, "Zero of One terminated normally.");
+	trace(ZoO_DEBUG_PROGRAM_FLOW, "Zero of One terminated normally.");
 
 	return 0;
 
@@ -255,7 +256,7 @@ int main(string[] args) {
 	{
 		finalize(&s);
 
-		ZoO_S_DEBUG(ZoO_DEBUG_PROGRAM_FLOW, "Zero of One terminated by crashing.");
+		trace(ZoO_DEBUG_PROGRAM_FLOW, "Zero of One terminated by crashing.");
 
 		return -1;
 	}

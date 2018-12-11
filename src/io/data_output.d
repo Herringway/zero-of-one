@@ -4,6 +4,7 @@ import core.stdc.errno;
 import core.stdc.stdio;
 import core.stdc.string;
 import std.string;
+import std.experimental.logger;
 
 import io.error;
 
@@ -14,7 +15,7 @@ int ZoO_data_output_write_line(const string filename, char* line, const size_t l
 	file = fopen(filename.toStringz, "a");
 
 	if (file == null) {
-		ZoO_ERROR("Could not open file '%s' in appending mode.", filename[0..strlen(filename.toStringz)]);
+		error("Could not open file '%s' in appending mode.", filename[0..strlen(filename.toStringz)]);
 
 		return -1;
 	}
@@ -24,7 +25,7 @@ int ZoO_data_output_write_line(const string filename, char* line, const size_t l
 	if (fwrite(line, char.sizeof, line_size, file ) < line_size) {
 		line[line_size - 1] = '\0';
 
-		ZoO_ERROR("Could not store line '%s' in %s.", line[0..strlen(line)], filename);
+		error("Could not store line '%s' in %s.", line[0..strlen(line)], filename);
 
 		fclose(file);
 

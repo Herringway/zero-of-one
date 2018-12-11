@@ -5,6 +5,7 @@ import core.stdc.stdlib;
 import core.stdc.string;
 import core.sys.posix.stdio: getline;
 import std.string;
+import std.experimental.logger;
 
 import tool.strings;
 import io.data_input_types;
@@ -18,7 +19,7 @@ int ZoO_data_input_open (ZoO_data_input* di, const string filename) {
 	di.file = fopen(filename.toStringz, "r");
 
 	if (di.file == null) {
-		ZoO_ERROR("Could not open file '%s' in readonly mode.", filename);
+		error("Could not open file '%s' in readonly mode.", filename);
 
 		return -1;
 	}

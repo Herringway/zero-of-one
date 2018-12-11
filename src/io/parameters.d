@@ -4,7 +4,9 @@ import core.stdc.string;
 import core.stdc.stdio;
 import core.stdc.stdlib;
 import core.stdc.errno;
+import std.stdio;
 import std.string;
+import std.experimental.logger;
 
 import io.parameters_types;
 import io.error;
@@ -27,7 +29,7 @@ void load_default_parameters(ZoO_parameters* param) {
 }
 
 void print_help (const string exec) {
-	printf(
+	writefln(
 		"Usage: %s [option_1 option_2 ...] NICKNAME [ALIAS_1 ALIAS_2 ...] \n"~
 		"NICKNAME is used as the IRC nickname value.\n"~
 		"If NICKNAME or any ALIAS is found in an event, the program will reply.\n"~
@@ -56,20 +58,20 @@ void print_help (const string exec) {
 		"   [--reply-rate | -rr] REPLY_RATE\n"~
 		"      Chance to reply to an event (integer, range [0, 100]).\n"~
 		"      Default: %d.\n",
-		exec.toStringz,
-		ZoO_DEFAULT_DATA_FILENAME.ptr,
-		ZoO_DEFAULT_IRC_SERVER_ADDR.ptr,
-		ZoO_DEFAULT_IRC_SERVER_PORT.ptr,
-		ZoO_DEFAULT_IRC_SERVER_CHANNEL.ptr,
-		ZoO_DEFAULT_IRC_USERNAME.ptr,
-		ZoO_DEFAULT_IRC_REALNAME.ptr,
+		exec,
+		ZoO_DEFAULT_DATA_FILENAME,
+		ZoO_DEFAULT_IRC_SERVER_ADDR,
+		ZoO_DEFAULT_IRC_SERVER_PORT,
+		ZoO_DEFAULT_IRC_SERVER_CHANNEL,
+		ZoO_DEFAULT_IRC_USERNAME,
+		ZoO_DEFAULT_IRC_REALNAME,
 		ZoO_DEFAULT_REPLY_RATE
 	);
 }
 
 int parse_string_arg(string* dest, const int i, const string[] args) {
 	if (i == args.length) {
-		ZoO_FATAL("Missing value for parameter '%s'.", args[i - 1]);
+		criticalf("Missing value for parameter '%s'.", args[i - 1]);
 
 		return -1;
 	}
@@ -86,7 +88,7 @@ int parse_integer_arg(int* dest, const int i, const string[] args, const int min
 	const int old_errno = errno;
 
 	if (i == args.length) {
-		ZoO_FATAL("Missing value for parameter '%s'.", args[i - 1]);
+		criticalf("Missing value for parameter '%s'.", args[i - 1]);
 
 		return -1;
 	}
@@ -96,7 +98,7 @@ int parse_integer_arg(int* dest, const int i, const string[] args, const int min
 	result = strtol(cast(char*)args[i].toStringz, &endptr, 10);
 
 	if ((errno != 0) || ((*endptr) == '\n') || (result < min_val) || (result > max_val)) {
-		ZoO_FATAL("Invalid or missing value for parameter '%s', accepted range is [%d, %d] (integer).", args[i - 1], min_val, max_val);
+		criticalf("Invalid or missing value for parameter '%s', accepted range is [%d, %d] (integer).", args[i - 1], min_val, max_val);
 
 		errno = old_errno;
 
@@ -183,7 +185,7 @@ int ZoO_parameters_initialize(ZoO_parameters* param, const string[] args) {
 	}
 
 	if (i == args.length) {
-		ZoO_S_FATAL("Missing argument: NICKNAME");
+		critical("Missing argument: NICKNAME");
 
 		print_help(args[0]);
 

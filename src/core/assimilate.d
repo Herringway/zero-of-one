@@ -3,6 +3,7 @@ module core.assimilate;
 import core.stdc.stdlib;
 import core.stdc.string;
 import std.string;
+import std.experimental.logger;
 
 import io.error;
 
@@ -131,7 +132,7 @@ int ZoO_knowledge_assimilate(ZoO_knowledge* k, ZoO_strings* string, const string
 		error = -1;
 
 		/* There's a pun... */
-		ZoO_S_WARNING("Could not add a link between words.");
+		warning("Could not add a link between words.");
 
 		return -1;
 	}
@@ -159,7 +160,7 @@ int ZoO_knowledge_assimilate(ZoO_knowledge* k, ZoO_strings* string, const string
 			error = -1;
 
 			/* There's a pun... */
-			ZoO_S_WARNING("Could not add a link between words.");
+			warning("Could not add a link between words.");
 
 			return -1;
 		}
