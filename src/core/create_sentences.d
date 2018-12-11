@@ -64,10 +64,10 @@ ZoO_index pick_index(const ZoO_index occurrences,const ZoO_index* links_occurren
 	return result;
 }
 
-char* extend_left(ZoO_knowledge* k, ZoO_index* sequence, ZoO_char* current_sentence, size_t* sentence_size, ZoO_index* credits) {
+char[] extend_left(ZoO_knowledge* k, ZoO_index* sequence, ZoO_char[] current_sentence, ZoO_index* credits) {
 	size_t addition_size;
 	ZoO_knowledge_word * w;
-	ZoO_char * next_sentence;
+	ZoO_char[] next_sentence;
 	ZoO_index j;
 
 	next_sentence = current_sentence;
@@ -82,63 +82,56 @@ char* extend_left(ZoO_knowledge* k, ZoO_index* sequence, ZoO_char* current_sente
 		w = &k.words[sequence[ZoO_MARKOV_ORDER - 1]];
 
 		switch (w.special) {
-			case ZoO_knowledge_special_effect.ZoO_WORD_HAS_NO_EFFECT:
+			case ZoO_knowledge_special_effect.HAS_NO_EFFECT:
 				/* FIXME: not overflow-safe. */
 				/* word also contains an '\0', which we will replace by a ' ' */
 				addition_size = w.word_size;
 				break;
 
-			case ZoO_knowledge_special_effect.ZoO_WORD_ENDS_SENTENCE:
+			case ZoO_knowledge_special_effect.ENDS_SENTENCE:
 				warning("END OF LINE should not be prefixable.");
 				return current_sentence;
 
-			case ZoO_knowledge_special_effect.ZoO_WORD_STARTS_SENTENCE:
+			case ZoO_knowledge_special_effect.STARTS_SENTENCE:
 				return current_sentence;
 
-			case ZoO_knowledge_special_effect.ZoO_WORD_REMOVES_LEFT_SPACE:
-			case ZoO_knowledge_special_effect.ZoO_WORD_REMOVES_RIGHT_SPACE:
+			case ZoO_knowledge_special_effect.REMOVES_LEFT_SPACE:
+			case ZoO_knowledge_special_effect.REMOVES_RIGHT_SPACE:
 				/* word also contains an '\0', which we will remove. */
 				addition_size = w.word_size - 1;
 				break;
 			default: assert(0);
 		}
 
-		if (*sentence_size > (SIZE_MAX - addition_size)) {
+		if (current_sentence.length > (SIZE_MAX - addition_size)) {
 			warning("Sentence construction aborted to avoid size_t overflow.");
 
 			return current_sentence;
 		}
 
-		next_sentence = cast(ZoO_char *) calloc((*sentence_size + addition_size), ZoO_char.sizeof);
-
-		if (next_sentence == null) {
-			error("Could not allocate memory to store new sentence.");
-
-			return current_sentence;
-		}
+		next_sentence = current_sentence;
 
 		/* overflow-safe */
-		*sentence_size = (*sentence_size + addition_size);
+		next_sentence.length = (current_sentence.length + addition_size);
+		current_sentence.length = (current_sentence.length + addition_size);
 
 		switch (w.special) {
-			case ZoO_knowledge_special_effect.ZoO_WORD_HAS_NO_EFFECT:
-				snprintf(next_sentence, *sentence_size, " "~ZoO_CHAR_STRING_SYMBOL~ZoO_CHAR_STRING_SYMBOL, w.word, current_sentence);
+			case ZoO_knowledge_special_effect.HAS_NO_EFFECT:
+				snprintf(next_sentence.ptr, current_sentence.length, " "~ZoO_CHAR_STRING_SYMBOL~ZoO_CHAR_STRING_SYMBOL, w.word, current_sentence.ptr);
 				break;
 
-			case ZoO_knowledge_special_effect.ZoO_WORD_REMOVES_LEFT_SPACE:
-				snprintf(next_sentence, *sentence_size, ZoO_CHAR_STRING_SYMBOL~ZoO_CHAR_STRING_SYMBOL, w.word, current_sentence);
+			case ZoO_knowledge_special_effect.REMOVES_LEFT_SPACE:
+				snprintf(next_sentence.ptr, current_sentence.length, ZoO_CHAR_STRING_SYMBOL~ZoO_CHAR_STRING_SYMBOL, w.word, current_sentence.ptr);
 				break;
 
-			case ZoO_knowledge_special_effect.ZoO_WORD_REMOVES_RIGHT_SPACE:
-				snprintf(next_sentence, *sentence_size, ZoO_CHAR_STRING_SYMBOL~ZoO_CHAR_STRING_SYMBOL, w.word, (current_sentence + 1));
+			case ZoO_knowledge_special_effect.REMOVES_RIGHT_SPACE:
+				snprintf(next_sentence.ptr, current_sentence.length, ZoO_CHAR_STRING_SYMBOL~ZoO_CHAR_STRING_SYMBOL, w.word, (current_sentence[1..$].ptr));
 				break;
 
 			default:
 				/* TODO: PROGRAM LOGIC ERROR */
 				break;
 		}
-
-		free(current_sentence);
 
 		/* prevents current_sentence [const] */
 		current_sentence = next_sentence;
@@ -159,10 +152,10 @@ char* extend_left(ZoO_knowledge* k, ZoO_index* sequence, ZoO_char* current_sente
 	assert(0);
 }
 
-char* extend_right(ZoO_knowledge* k, ZoO_index* sequence, ZoO_char* current_sentence, size_t* sentence_size, ZoO_index* credits) {
+char[] extend_right(ZoO_knowledge* k, ZoO_index* sequence, ZoO_char[] current_sentence, ZoO_index* credits) {
 	size_t addition_size;
 	ZoO_knowledge_word * w;
-	ZoO_char * next_sentence;
+	ZoO_char[] next_sentence;
 	ZoO_index j;
 
 	next_sentence = current_sentence;
@@ -177,63 +170,55 @@ char* extend_right(ZoO_knowledge* k, ZoO_index* sequence, ZoO_char* current_sent
 		w = &k.words[sequence[0]];
 
 		switch (w.special) {
-			case ZoO_knowledge_special_effect.ZoO_WORD_HAS_NO_EFFECT:
+			case ZoO_knowledge_special_effect.HAS_NO_EFFECT:
 				/* FIXME: Assumed to be overflow-safe. */
 				/* word also contains an '\0', which we will replace by a ' '. */
 				addition_size = w.word_size;
 				break;
 
-			case ZoO_knowledge_special_effect.ZoO_WORD_ENDS_SENTENCE:
+			case ZoO_knowledge_special_effect.ENDS_SENTENCE:
 				return current_sentence;
 
-			case ZoO_knowledge_special_effect.ZoO_WORD_STARTS_SENTENCE:
+			case ZoO_knowledge_special_effect.STARTS_SENTENCE:
 				warning("START OF LINE should not be suffixable.");
 				return current_sentence;
 
-			case ZoO_knowledge_special_effect.ZoO_WORD_REMOVES_LEFT_SPACE:
-			case ZoO_knowledge_special_effect.ZoO_WORD_REMOVES_RIGHT_SPACE:
+			case ZoO_knowledge_special_effect.REMOVES_LEFT_SPACE:
+			case ZoO_knowledge_special_effect.REMOVES_RIGHT_SPACE:
 				/* word also contains an '\0', which we will remove. */
 				addition_size = w.word_size - 1;
 				break;
 			default: assert(0);
 		}
 
-		if (*sentence_size > (SIZE_MAX - addition_size)) {
+		if (current_sentence.length > (SIZE_MAX - addition_size)) {
 			warning("Sentence construction aborted to avoid size_t overflow.");
 
 			return current_sentence;
 		}
 
-		next_sentence = cast(ZoO_char *) calloc((*sentence_size + addition_size), ZoO_char.sizeof);
+		next_sentence = current_sentence;
 
-		if (next_sentence == null) {
-			error("Could not allocate memory to store new sentence.");
-
-			return current_sentence;
-		}
-
-		/* overflow-safe */
-		*sentence_size = (*sentence_size + addition_size);
+		next_sentence.length = (current_sentence.length + addition_size);
+		current_sentence.length = (current_sentence.length + addition_size);
 
 		switch (w.special) {
-			case ZoO_knowledge_special_effect.ZoO_WORD_REMOVES_LEFT_SPACE:
-				current_sentence[*sentence_size - addition_size - 2] = '\0';
+			case ZoO_knowledge_special_effect.REMOVES_LEFT_SPACE:
+				current_sentence[current_sentence.length - addition_size - 2] = '\0';
 				goto case;
 
-			case ZoO_knowledge_special_effect.ZoO_WORD_HAS_NO_EFFECT:
-				snprintf(next_sentence, *sentence_size, ZoO_CHAR_STRING_SYMBOL~ZoO_CHAR_STRING_SYMBOL~" ", current_sentence, w.word);
+			case ZoO_knowledge_special_effect.HAS_NO_EFFECT:
+				snprintf(next_sentence.ptr, current_sentence.length, ZoO_CHAR_STRING_SYMBOL~ZoO_CHAR_STRING_SYMBOL~" ", current_sentence.ptr, w.word);
 				break;
 
-			case ZoO_knowledge_special_effect.ZoO_WORD_REMOVES_RIGHT_SPACE:
-				snprintf(next_sentence, *sentence_size, ZoO_CHAR_STRING_SYMBOL~ZoO_CHAR_STRING_SYMBOL, current_sentence, w.word);
+			case ZoO_knowledge_special_effect.REMOVES_RIGHT_SPACE:
+				snprintf(next_sentence.ptr, current_sentence.length, ZoO_CHAR_STRING_SYMBOL~ZoO_CHAR_STRING_SYMBOL, current_sentence.ptr, w.word);
 				break;
 
 			default:
 				/* TODO: PROGRAM LOGIC ERROR */
 				break;
 		}
-
-		free(current_sentence);
 
 		/* prevents current_sentence [const] */
 		current_sentence = next_sentence;
@@ -364,7 +349,7 @@ void init_sequence(ZoO_knowledge* k, const ZoO_strings* string, const string[] a
 		sequence[ZoO_MARKOV_ORDER - i - 1] = fiw.backward_links[j].targets[pick_index(fiw.backward_links[j].occurrences, fiw.backward_links[j].targets_occurrences)];
 	}
 }
-int ZoO_knowledge_extend(ZoO_knowledge* k, const ZoO_strings* string, const string[] aliases, ZoO_char** result) {
+int ZoO_knowledge_extend(ZoO_knowledge* k, const ZoO_strings* string, const string[] aliases, out ZoO_char[] result) {
 	int word_found;
 	size_t sentence_size;
 	ZoO_index[(ZoO_MARKOV_ORDER * 2) + 1] sequence;
@@ -379,13 +364,13 @@ int ZoO_knowledge_extend(ZoO_knowledge* k, const ZoO_strings* string, const stri
 	/* 3: 2 spaces + '\0' */
 	/* FIXME: not overflow-safe */
 	switch (k.words[first_word].special) {
-		case ZoO_knowledge_special_effect.ZoO_WORD_REMOVES_LEFT_SPACE:
-		case ZoO_knowledge_special_effect.ZoO_WORD_REMOVES_RIGHT_SPACE:
+		case ZoO_knowledge_special_effect.REMOVES_LEFT_SPACE:
+		case ZoO_knowledge_special_effect.REMOVES_RIGHT_SPACE:
 			/* word + ' ' + '\0' */
 			sentence_size = (strlen(k.words[first_word].word) + 2);
 			break;
 
-		case ZoO_knowledge_special_effect.ZoO_WORD_HAS_NO_EFFECT:
+		case ZoO_knowledge_special_effect.HAS_NO_EFFECT:
 			/* word + ' ' * 2 + '\0' */
 			sentence_size = (strlen(k.words[first_word].word) + 3);
 			break;
@@ -397,43 +382,29 @@ int ZoO_knowledge_extend(ZoO_knowledge* k, const ZoO_strings* string, const stri
 			break;
 	}
 
-	*result = cast(ZoO_char *) calloc(sentence_size, ZoO_char.sizeof);
-
-	if (*result == null) {
-		error("Could not allocate memory to start sentence.");
-
-		return -2;
-	}
+	result = new ZoO_char[](sentence_size);
 
 	switch (k.words[first_word].special) {
-		case ZoO_knowledge_special_effect.ZoO_WORD_REMOVES_LEFT_SPACE:
-			snprintf(*result, sentence_size, ZoO_CHAR_STRING_SYMBOL~" ", k.words[first_word].word);
+		case ZoO_knowledge_special_effect.REMOVES_LEFT_SPACE:
+			snprintf(result.ptr, sentence_size, ZoO_CHAR_STRING_SYMBOL~" ", k.words[first_word].word);
 			break;
 
-		case ZoO_knowledge_special_effect.ZoO_WORD_REMOVES_RIGHT_SPACE:
-			snprintf(*result, sentence_size, " "~ZoO_CHAR_STRING_SYMBOL, k.words[first_word].word);
+		case ZoO_knowledge_special_effect.REMOVES_RIGHT_SPACE:
+			snprintf(result.ptr, sentence_size, " "~ZoO_CHAR_STRING_SYMBOL, k.words[first_word].word);
 			break;
 
-		case ZoO_knowledge_special_effect.ZoO_WORD_HAS_NO_EFFECT:
-			snprintf(*result, sentence_size, " "~ZoO_CHAR_STRING_SYMBOL~" ", k.words[first_word].word);
+		case ZoO_knowledge_special_effect.HAS_NO_EFFECT:
+			snprintf(result.ptr, sentence_size, " "~ZoO_CHAR_STRING_SYMBOL~" ", k.words[first_word].word);
 			break;
 
 		default:
-			snprintf(*result, sentence_size, " ["~ZoO_CHAR_STRING_SYMBOL~"] ", k.words[first_word].word);
+			snprintf(result.ptr, sentence_size, " ["~ZoO_CHAR_STRING_SYMBOL~"] ", k.words[first_word].word);
 			break;
 	}
 
-	*result = extend_right(k, (sequence.ptr + ZoO_MARKOV_ORDER + 1), *result, &sentence_size, &credits);
+	result = extend_right(k, (sequence.ptr + ZoO_MARKOV_ORDER + 1), result, &credits);
 
-	if (*result == null) {
-		return -2;
-	}
-
-	*result = extend_left(k, sequence.ptr, *result, &sentence_size, &credits);
-
-	if (*result == null) {
-		return -2;
-	}
+	result = extend_left(k, sequence.ptr, result, &credits);
 
 	return 0;
 }

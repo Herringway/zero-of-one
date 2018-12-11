@@ -23,14 +23,7 @@ struct ZoO_strings {
 		if (words_count != 0) {
 			ZoO_index i;
 
-			for (i = 0; i < words_count; ++i) {
-				free(words[i]);
-			}
-
 			words_count = 0;
-
-			free(words);
-			free(word_sizes);
 
 			words = null;
 			word_sizes = null;
@@ -66,8 +59,6 @@ struct ZoO_strings {
 		if (new_s_words == null) {
 			warning("Unable to reallocate memory to extract new word.");
 
-			free(new_word);
-
 			return -1;
 		}
 
@@ -77,8 +68,6 @@ struct ZoO_strings {
 
 		if (new_s_word_sizes == null) {
 			warning("Unable to reallocate memory to extract new word.");
-
-			free(new_word);
 
 			return -1;
 		}

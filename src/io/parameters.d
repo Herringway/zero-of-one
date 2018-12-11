@@ -42,7 +42,7 @@ void load_default_parameters(ref ZoO_parameters param) {
 	param.aliases = [];
 }
 
-void print_help (const string exec) {
+void print_help(const string exec) {
 	writefln(
 		"Usage: %s [option_1 option_2 ...] NICKNAME [ALIAS_1 ALIAS_2 ...] \n"~
 		"NICKNAME is used as the IRC nickname value.\n"~

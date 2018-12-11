@@ -110,7 +110,7 @@ int should_reply(ZoO_parameters* param, ZoO_strings* string_, int* should_learn)
 }
 
 void handle_user_join(ZoO_state* s, ZoO_strings* string_, const ssize_t msg_offset, const ssize_t msg_size) {
-	ZoO_char* line;
+	ZoO_char[] line;
 	ZoO_index loc;
 
 	if (s.param.reply_rate < (rand() % 100)) {
@@ -124,26 +124,22 @@ void handle_user_join(ZoO_state* s, ZoO_strings* string_, const ssize_t msg_offs
 	}
 
 	if ((s.knowledge.find(string_.words[0], loc) < 0) || (s.knowledge.words[loc].backward_links_count <= 3) || (s.knowledge.words[loc].forward_links_count <= 3)) {
-		if (ZoO_knowledge_extend(&(s.knowledge), null, null, &line) == 0) {
+		if (ZoO_knowledge_extend(&(s.knowledge), null, null, line) == 0) {
 			if (line[0] == ' ') {
-				strcpy((s.network.out_.ptr), (line + 1));
+				strcpy((s.network.out_.ptr), line[1..$].toStringz);
 			} else {
-				strcpy((s.network.out_.ptr), line);
+				strcpy((s.network.out_.ptr), line.toStringz);
 			}
-
-			free(line);
 
 			s.network.send();
 		}
 	} else {
-		if (ZoO_knowledge_extend(&(s.knowledge), string_, null, &line ) == 0) {
+		if (ZoO_knowledge_extend(&(s.knowledge), string_, null, line) == 0) {
 			if (line[0] == ' ') {
-				strcpy((s.network.out_.ptr), (line + 1));
+				strcpy((s.network.out_.ptr), line[1..$].toStringz);
 			} else {
-				strcpy((s.network.out_.ptr), line);
+				strcpy((s.network.out_.ptr), line.toStringz);
 			}
-
-			free(line);
 
 			s.network.send();
 		}
@@ -151,7 +147,7 @@ void handle_user_join(ZoO_state* s, ZoO_strings* string_, const ssize_t msg_offs
 }
 
 void handle_message(ZoO_state* s, ZoO_strings* string_, const ssize_t msg_offset, const ssize_t msg_size) {
-	ZoO_char* line;
+	ZoO_char[] line;
 	int reply, learn;
 
 	if (string_.parse(s.network.in_[msg_offset..msg_offset+msg_size], &ZoO_knowledge_punctuation_chars_count, ZoO_knowledge_punctuation_chars.ptr) < 0) {
@@ -174,14 +170,12 @@ void handle_message(ZoO_state* s, ZoO_strings* string_, const ssize_t msg_offset
 		ZoO_data_output_write_line(s.param.new_data_filename, (&s.network.in_[msg_offset]).fromStringz.idup);
 	}
 
-	if (reply && (ZoO_knowledge_extend(&(s.knowledge), string_, s.param.aliases, &line ) == 0)) {
+	if (reply && (ZoO_knowledge_extend(&(s.knowledge), string_, s.param.aliases, line) == 0)) {
 		if (line[0] == ' ') {
-			strcpy((s.network.out_.ptr), (line + 1));
+			strcpy((s.network.out_.ptr), line[1..$].toStringz);
 		} else {
-			strcpy((s.network.out_.ptr), line);
+			strcpy((s.network.out_.ptr), line.toStringz);
 		}
-
-		free(line);
 
 		s.network.send();
 	}
@@ -204,11 +198,11 @@ int main_loop(ZoO_state* s) {
 	while (run) {
 		if (s.network.receive(cast(ulong*)&msg_offset, cast(ulong*)&msg_size, &msg_type) == 0) {
 			switch (msg_type) {
-				case ZoO_msg_type.ZoO_JOIN:
+				case ZoO_msg_type.JOIN:
 					handle_user_join(s, &string_, msg_offset, msg_size);
 					break;
 
-				case ZoO_msg_type.ZoO_PRIVMSG:
+				case ZoO_msg_type.PRIVMSG:
 					handle_message(s, &string_, msg_offset, msg_size);
 					break;
 				default: assert(0);

@@ -24,11 +24,11 @@ static if (ZoO_MARKOV_ORDER == 1) {
 enum ZoO_S_LINK_SIZE = ZoO_SEQUENCE_SIZE + 1;
 
 enum ZoO_knowledge_special_effect {
-	ZoO_WORD_HAS_NO_EFFECT,
-	ZoO_WORD_ENDS_SENTENCE,
-	ZoO_WORD_STARTS_SENTENCE,
-	ZoO_WORD_REMOVES_LEFT_SPACE,
-	ZoO_WORD_REMOVES_RIGHT_SPACE
+	HAS_NO_EFFECT,
+	ENDS_SENTENCE,
+	STARTS_SENTENCE,
+	REMOVES_LEFT_SPACE,
+	REMOVES_RIGHT_SPACE
 }
 
 struct ZoO_knowledge_link {
@@ -54,23 +54,17 @@ struct ZoO_knowledge_word {
 	 */
 	void finalize() {
 		if (word != null) {
-			free(word);
-
 			word = null;
 		}
 
 		if (forward_links != null) {
 			finalize_links(forward_links_count, forward_links);
 
-			free(forward_links);
-
 			forward_links = null;
 		}
 
 		if (backward_links != null) {
 			finalize_links(backward_links_count, backward_links);
-
-			free(backward_links);
 
 			backward_links = null;
 		}
@@ -82,7 +76,7 @@ struct ZoO_knowledge_word {
 	void initialize() {
 		word_size = 0;
 		word = null;
-		special = ZoO_knowledge_special_effect.ZoO_WORD_HAS_NO_EFFECT;
+		special = ZoO_knowledge_special_effect.HAS_NO_EFFECT;
 		occurrences = 1;
 		forward_links_count  = 0;
 		backward_links_count = 0;
@@ -119,7 +113,7 @@ struct ZoO_knowledge {
 			return -2;
 		}
 
-		words[id].special = ZoO_knowledge_special_effect.ZoO_WORD_STARTS_SENTENCE;
+		words[id].special = ZoO_knowledge_special_effect.STARTS_SENTENCE;
 		words[id].occurrences = 0;
 
 		if (learn("END OF LINE", id) < 0) {
@@ -128,7 +122,7 @@ struct ZoO_knowledge {
 			return -2;
 		}
 
-		words[id].special = ZoO_knowledge_special_effect.ZoO_WORD_ENDS_SENTENCE;
+		words[id].special = ZoO_knowledge_special_effect.ENDS_SENTENCE;
 		words[id].occurrences = 0;
 
 		w[1] = '\0';
@@ -143,7 +137,7 @@ struct ZoO_knowledge {
 
 				error = -1;
 			} else {
-				words[id].special = ZoO_knowledge_special_effect.ZoO_WORD_REMOVES_LEFT_SPACE;
+				words[id].special = ZoO_knowledge_special_effect.REMOVES_LEFT_SPACE;
 				words[id].occurrences = 0;
 			}
 		}
@@ -188,8 +182,6 @@ struct ZoO_knowledge {
 		}
 
 		if (sorted_indices != null) {
-			free(sorted_indices);
-
 			sorted_indices = null;
 		}
 	}
@@ -310,10 +302,6 @@ struct ZoO_knowledge {
 
 void finalize_links(const ZoO_index count, ZoO_knowledge_link* links) {
 	ZoO_index i;
-
-	for (i = 0; i < count; ++i) {
-		free(links[i].targets_occurrences);
-	}
 }
 
 int cmp_word(const void* a, const void* b, const void* other) {

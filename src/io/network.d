@@ -16,8 +16,8 @@ import core.sys.posix.unistd;
 import core.sys.posix.netdb;
 
 enum ZoO_msg_type {
-	ZoO_PRIVMSG,
-	ZoO_JOIN
+	PRIVMSG,
+	JOIN
 }
 
 struct ZoO_network {
@@ -337,7 +337,7 @@ struct ZoO_network {
 				*msg_size = (i - 1);
 				in_[i] = '\0';
 
-				*type = ZoO_msg_type.ZoO_JOIN;
+				*type = ZoO_msg_type.JOIN;
 
 				return 0;
 			}
@@ -357,7 +357,7 @@ struct ZoO_network {
 
 				/*in[*msg_size - 1] = '\0'; */
 
-				*type = ZoO_msg_type.ZoO_PRIVMSG;
+				*type = ZoO_msg_type.PRIVMSG;
 
 				return 0;
 			}

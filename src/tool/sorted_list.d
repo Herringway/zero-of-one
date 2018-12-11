@@ -4,7 +4,7 @@ import pervasive;
 
 alias CompareFunc = int function(const void *, const void *, const void *);
 
-int ZoO_sorted_list_index_of (const ZoO_index list_length, const void* sorted_list, const void* elem, const size_t type_size, CompareFunc compare, const void * other, ZoO_index* result) {
+int ZoO_sorted_list_index_of(const ZoO_index list_length, const void* sorted_list, const void* elem, const size_t type_size, CompareFunc compare, const void * other, ZoO_index* result) {
 	int cmp;
 	ZoO_index i, current_min, current_max;
 	const char * sorted_list_access = cast(char *) sorted_list;
