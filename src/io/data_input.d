@@ -13,7 +13,7 @@ struct ZoO_data_input {
 	File file;
 	ZoO_strings str;
 
-	int ZoO_data_input_open(const string filename) {
+	int open(const string filename) {
 		str.initialize();
 
 		try {
@@ -27,7 +27,7 @@ struct ZoO_data_input {
 		return 0;
 	}
 
-	int ZoO_data_input_read_line(const ZoO_index punctuations_count, const ZoO_char* punctuations) {
+	int read_line(const ZoO_index punctuations_count, const ZoO_char* punctuations) {
 		size_t i, w_start;
 		ZoO_char[] line;
 
@@ -47,7 +47,7 @@ struct ZoO_data_input {
 	}
 
 
-	void ZoO_data_input_close() {
+	void close() {
 		file.close();
 
 		str.finalize();

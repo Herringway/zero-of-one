@@ -57,15 +57,15 @@ int load_data_file(ZoO_state* s) {
 	ZoO_data_input input;
 	char* result;
 
-	if (input.ZoO_data_input_open(s.param.data_filename) < 0) {
+	if (input.open(s.param.data_filename) < 0) {
 		return -1;
 	}
 
-	while (input.ZoO_data_input_read_line(ZoO_knowledge_punctuation_chars_count, ZoO_knowledge_punctuation_chars.ptr) == 0) {
+	while (input.read_line(ZoO_knowledge_punctuation_chars_count, ZoO_knowledge_punctuation_chars.ptr) == 0) {
 		ZoO_knowledge_assimilate(&(s.knowledge), &(input.str), s.param.aliases);
 	}
 
-	input.ZoO_data_input_close();
+	input.close();
 
 	return 0;
 }
