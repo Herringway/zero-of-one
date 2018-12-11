@@ -9,7 +9,6 @@ import std.string;
 import std.experimental.logger;
 
 import tool.strings;
-import tool.strings_types;
 
 import io.error;
 import io.parameters;

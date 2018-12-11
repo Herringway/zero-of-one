@@ -11,7 +11,7 @@ import core.knowledge_types;
 import core.sequence;
 import core.knowledge;
 import io.error;
-import tool.strings_types;
+import tool.strings;
 import pervasive;
 
 /** Functions to create sentences using a ZoO_knowledge structure *************/

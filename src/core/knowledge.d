@@ -6,7 +6,7 @@ import core.stdc.string;
 
 import std.experimental.logger;
 
-import tool.strings_types;
+import tool.strings;
 import core.knowledge_types;
 import tool.sorted_list;
 import io.error;

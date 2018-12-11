@@ -2,12 +2,17 @@ module tool.strings;
 
 import pervasive;
 import io.error;
-import tool.strings_types;
 
 import core.stdc.stdlib;
 import core.stdc.string;
 import std.experimental.logger;
 import std.string;
+
+struct ZoO_strings {
+	ZoO_index words_count;
+	ZoO_char ** words;
+	size_t * word_sizes;
+}
 
 void ZoO_strings_initialize(ZoO_strings* s) {
 	s.words_count = 0;

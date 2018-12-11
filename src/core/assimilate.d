@@ -11,7 +11,7 @@ import core.knowledge_types;
 import core.knowledge;
 import core.sequence;
 import pervasive;
-import tool.strings_types;
+import tool.strings;
 
 /** Functions to assimilate sentences using a ZoO_knowledge structure *********/
 
