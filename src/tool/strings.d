@@ -7,6 +7,7 @@ import tool.strings_types;
 import core.stdc.stdlib;
 import core.stdc.string;
 import std.experimental.logger;
+import std.string;
 
 void ZoO_strings_initialize(ZoO_strings* s) {
 	s.words_count = 0;
@@ -32,7 +33,7 @@ void ZoO_strings_finalize(ZoO_strings* s) {
 	}
 }
 
-int add_word(ZoO_strings* s, const size_t line_size, const ZoO_char* line) {
+int add_word(ZoO_strings* s, char[] line) {
 	size_t * new_s_word_sizes;
 	ZoO_char* new_word;
 	ZoO_char** new_s_words;
@@ -44,7 +45,7 @@ int add_word(ZoO_strings* s, const size_t line_size, const ZoO_char* line) {
 	}
 
 	/* overflow-safe, as line_size < SIZE_MAX */
-	new_word = cast(ZoO_char *) calloc((line_size + 1), ZoO_char.sizeof);
+	new_word = cast(ZoO_char *) calloc((line.length + 1), ZoO_char.sizeof);
 
 	if (new_word == null) {
 		warning("Unable to allocate memory to extract new word.");
@@ -52,9 +53,9 @@ int add_word(ZoO_strings* s, const size_t line_size, const ZoO_char* line) {
 		return -1;
 	}
 
-	memcpy(new_word, line, line_size);
+	memcpy(new_word, line.ptr, line.length);
 
-	new_word[line_size] = '\0';
+	new_word[line.length] = '\0';
 
 	new_s_words = cast(ZoO_char **) realloc(s.words, ((ZoO_char *).sizeof * (s.words_count + 1)));
 
@@ -81,7 +82,7 @@ int add_word(ZoO_strings* s, const size_t line_size, const ZoO_char* line) {
 	s.word_sizes = new_s_word_sizes;
 
 	s.words[s.words_count] = new_word;
-	s.word_sizes[s.words_count] = (line_size + 1);
+	s.word_sizes[s.words_count] = (line.length + 1);
 
 	s.words_count += 1;
 
@@ -89,14 +90,14 @@ int add_word(ZoO_strings* s, const size_t line_size, const ZoO_char* line) {
 }
 
 
-int parse_word(ZoO_strings* s, const ZoO_index punctuations_count, const ZoO_char* punctuations, const size_t line_size, ZoO_char* line) {
+int parse_word(ZoO_strings* s, const ZoO_index punctuations_count, const ZoO_char* punctuations, char[] line) {
 	ZoO_index j;
 
-	if (line_size == 0) {
+	if (line.length == 0) {
 		return 0;
 	}
 
-	for (j = 0; j < line_size; ++j) {
+	for (j = 0; j < line.length; ++j) {
 		switch (line[j]) {
 			case 'A':
 			case 'B':
@@ -134,9 +135,9 @@ int parse_word(ZoO_strings* s, const ZoO_index punctuations_count, const ZoO_cha
 
 	for (j = 0; j < punctuations_count; ++j) {
 		/* overflow-safe: line_size > 1 */
-		if (line[line_size - 1] == punctuations[j]) {
-			if (line_size > 1) {
-				if ((add_word(s, (line_size - 1), line) < 0) || (add_word(s, 1, (line + (line_size - 1))) < 0)) {
+		if (line[$ - 1] == punctuations[j]) {
+			if (line.length > 1) {
+				if ((add_word(s, line) < 0) || (add_word(s,  line[$ - 1..$]) < 0)) {
 					return -1;
 				}
 
@@ -145,10 +146,10 @@ int parse_word(ZoO_strings* s, const ZoO_index punctuations_count, const ZoO_cha
 		}
 	}
 
-	return add_word(s, line_size, line);
+	return add_word(s, line);
 }
 
-int ZoO_strings_parse(ZoO_strings* s, size_t input_size, ZoO_char* input, const ZoO_index* punctuations_count, const ZoO_char* punctuations)
+int ZoO_strings_parse(ZoO_strings* s, char[] input, const ZoO_index* punctuations_count, const ZoO_char* punctuations)
 {
 	size_t i, w_start;
 
@@ -172,16 +173,16 @@ int ZoO_strings_parse(ZoO_strings* s, size_t input_size, ZoO_char* input, const 
 		/* We'll remove the trailing '\001' so that only the first word */
 		/* indicates the need for CTCP (uppercase) syntax. */
 
-		if ((input_size >= 1) && (input[input_size - 1] == '\001')) {
-			input[input_size - 1] = ' ';
+		if ((input.length >= 1) && (input[$ - 1] == '\001')) {
+			input = input[0..$ - 1];
 		} else {
 			warningf("CTCP sequence '%s' did not end with a \\001 character.", input);
 		}
 	}
 
-	for (; i < input_size; ++i) {
+	for (; i < input.length; ++i) {
 		if (input[i] == ' ') {
-			if (parse_word(s, *punctuations_count, punctuations, (i - w_start),(input + w_start)) < 0) {
+			if (parse_word(s, *punctuations_count, punctuations, input[w_start..i]) < 0) {
 				ZoO_strings_finalize(s);
 
 				return -1;
@@ -198,7 +199,7 @@ int ZoO_strings_parse(ZoO_strings* s, size_t input_size, ZoO_char* input, const 
 		}
 	}
 
-	if (parse_word(s, *punctuations_count, punctuations, (i - w_start), (input + w_start)) < 0) {
+	if (parse_word(s, *punctuations_count, punctuations, input[w_start..i]) < 0) {
 		ZoO_strings_finalize(s);
 
 		return -1;

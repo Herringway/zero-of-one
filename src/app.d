@@ -121,7 +121,7 @@ void handle_user_join(ZoO_state* s, ZoO_strings* string_, const ssize_t msg_offs
 		return;
 	}
 
-	if (ZoO_strings_parse(string_, msg_size, (&s.network.in_[msg_offset]), cast(uint*)&ZoO_knowledge_punctuation_chars_count, cast(char*)&ZoO_knowledge_punctuation_chars) < 0) {
+	if (ZoO_strings_parse(string_, s.network.in_[msg_offset..msg_offset+msg_size], cast(uint*)&ZoO_knowledge_punctuation_chars_count, cast(char*)&ZoO_knowledge_punctuation_chars) < 0) {
 		trace(ZoO_DEBUG_PROGRAM_FLOW, "Could not dissect join username.");
 
 		return;
@@ -158,7 +158,7 @@ void handle_message(ZoO_state* s, ZoO_strings* string_, const ssize_t msg_offset
 	ZoO_char* line;
 	int reply, learn;
 
-	if (ZoO_strings_parse (string_, msg_size, (&s.network.in_[msg_offset]), &ZoO_knowledge_punctuation_chars_count, ZoO_knowledge_punctuation_chars.ptr) < 0) {
+	if (ZoO_strings_parse (string_, s.network.in_[msg_offset..msg_offset+msg_size], &ZoO_knowledge_punctuation_chars_count, ZoO_knowledge_punctuation_chars.ptr) < 0) {
 		trace(ZoO_DEBUG_PROGRAM_FLOW, "Could not dissect msg.");
 
 		return;

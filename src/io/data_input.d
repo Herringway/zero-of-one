@@ -36,9 +36,7 @@ int ZoO_data_input_read_line(ZoO_data_input* di, const ZoO_index punctuations_co
 		return -1;
 	}
 
-	line[$ - 1] = '\0';
-
-	if (ZoO_strings_parse(&(di.string), line.length, line.ptr, &punctuations_count, punctuations) < 0) {
+	if (ZoO_strings_parse(&(di.string), line[0..$-1], &punctuations_count, punctuations) < 0) {
 		return -1;
 	}
 
