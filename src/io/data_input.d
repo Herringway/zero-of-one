@@ -11,7 +11,7 @@ import io.error;
 import pervasive;
 
 int ZoO_data_input_open (ZoO_data_input* di, const string filename) {
-	ZoO_strings_initialize(&(di.string));
+	ZoO_strings_initialize(di.string);
 
 	try {
 		di.file = File(filename, "r");
@@ -28,7 +28,7 @@ int ZoO_data_input_read_line(ZoO_data_input* di, const ZoO_index punctuations_co
 	size_t i, w_start;
 	ZoO_char[] line;
 
-	ZoO_strings_finalize(&(di.string));
+	ZoO_strings_finalize(di.string);
 
 	line = null;
 
@@ -36,7 +36,7 @@ int ZoO_data_input_read_line(ZoO_data_input* di, const ZoO_index punctuations_co
 		return -1;
 	}
 
-	if (ZoO_strings_parse(&(di.string), line[0..$-1], &punctuations_count, punctuations) < 0) {
+	if (ZoO_strings_parse(di.string, line[0..$-1], &punctuations_count, punctuations) < 0) {
 		return -1;
 	}
 
@@ -47,5 +47,5 @@ int ZoO_data_input_read_line(ZoO_data_input* di, const ZoO_index punctuations_co
 void ZoO_data_input_close (ZoO_data_input* di) {
 	di.file.close();
 
-	ZoO_strings_finalize(&(di.string));
+	ZoO_strings_finalize(di.string);
 }

@@ -14,13 +14,13 @@ struct ZoO_strings {
 	size_t * word_sizes;
 }
 
-void ZoO_strings_initialize(ZoO_strings* s) {
+void ZoO_strings_initialize(ref ZoO_strings s) {
 	s.words_count = 0;
 	s.words = null;
 	s.word_sizes = null;
 }
 
-void ZoO_strings_finalize(ZoO_strings* s) {
+void ZoO_strings_finalize(ref ZoO_strings s) {
 	if (s.words_count != 0) {
 		ZoO_index i;
 
@@ -38,7 +38,7 @@ void ZoO_strings_finalize(ZoO_strings* s) {
 	}
 }
 
-int add_word(ZoO_strings* s, char[] line) {
+int add_word(ref ZoO_strings s, char[] line) {
 	size_t * new_s_word_sizes;
 	ZoO_char* new_word;
 	ZoO_char** new_s_words;
@@ -95,7 +95,7 @@ int add_word(ZoO_strings* s, char[] line) {
 }
 
 
-int parse_word(ZoO_strings* s, const ZoO_index punctuations_count, const ZoO_char* punctuations, char[] line) {
+int parse_word(ref ZoO_strings s, const ZoO_index punctuations_count, const ZoO_char* punctuations, char[] line) {
 	ZoO_index j;
 
 	if (line.length == 0) {
@@ -154,7 +154,7 @@ int parse_word(ZoO_strings* s, const ZoO_index punctuations_count, const ZoO_cha
 	return add_word(s, line);
 }
 
-int ZoO_strings_parse(ZoO_strings* s, char[] input, const ZoO_index* punctuations_count, const ZoO_char* punctuations)
+int ZoO_strings_parse(ref ZoO_strings s, char[] input, const ZoO_index* punctuations_count, const ZoO_char* punctuations)
 {
 	size_t i, w_start;
 
