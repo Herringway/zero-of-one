@@ -301,7 +301,7 @@ ZoO_index select_first_word(ZoO_knowledge* k, const ZoO_strings* string, const s
 }
 
 
-void init_sequence_(ZoO_knowledge* k, const ZoO_strings* string, const string[] aliases, ZoO_index[(ZoO_MARKOV_ORDER * 2) + 1] sequence) {
+void init_sequence(ZoO_knowledge* k, const ZoO_strings* string, const string[] aliases, ZoO_index[(ZoO_MARKOV_ORDER * 2) + 1] sequence) {
 	ZoO_index i, j, accumulator, random_number;
 	ZoO_knowledge_word * fiw;
 
@@ -372,7 +372,7 @@ int ZoO_knowledge_extend(ZoO_knowledge* k, const ZoO_strings* string, const stri
 
 	credits = ZoO_MAX_REPLY_WORDS;
 
-	init_sequence_(k, string, aliases, sequence);
+	init_sequence(k, string, aliases, sequence);
 
 	first_word = sequence[ZoO_MARKOV_ORDER];
 
