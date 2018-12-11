@@ -93,9 +93,8 @@ struct ZoO_knowledge_word {
 
 
 struct ZoO_knowledge {
-	ZoO_index words_count;
 	ZoO_index* sorted_indices;
-	ZoO_knowledge_word* words;
+	ZoO_knowledge_word[] words;
 
 	/*
 	 * When returning 0:
@@ -165,7 +164,6 @@ struct ZoO_knowledge {
 	 *    {k} has been finalized.
 	 */
 	int initialize() {
-		words_count = 0;
 		words = null;
 		sorted_indices = null;
 
@@ -185,16 +183,8 @@ struct ZoO_knowledge {
 	void finalize() {
 		ZoO_index i;
 
-		for (i = 0; i < words_count; ++i) {
-			(words+i).finalize();
-		}
-
-		words_count = 0;
-
-		if (words != null) {
-			free(words);
-
-			words = null;
+		for (i = 0; i < words.length; ++i) {
+			words[i].finalize();
 		}
 
 		if (sorted_indices != null) {
@@ -217,7 +207,7 @@ struct ZoO_knowledge {
 	int find(const ZoO_char* word, ZoO_index* result) const {
 		ZoO_index r;
 
-		if (ZoO_sorted_list_index_of(words_count, sorted_indices, word, ZoO_index.sizeof, &cmp_word, &this, &r) == 0) {
+		if (ZoO_sorted_list_index_of(cast(uint)words.length, sorted_indices, word, ZoO_index.sizeof, &cmp_word, &this, &r) == 0) {
 			*result = sorted_indices[r];
 
 			return 0;
@@ -240,7 +230,6 @@ struct ZoO_knowledge {
 	 *    {*result} may or may not have been altered.
 	 */
 	int learn(const ZoO_char* word, ZoO_index* result) {
-		ZoO_knowledge_word * new_wordlist;
 		ZoO_index * new_sorted_indices;
 		ZoO_index temp;
 
@@ -257,23 +246,15 @@ struct ZoO_knowledge {
 			return 0;
 		}
 
-		if (words_count == ZoO_INDEX_MAX) {
+		if (words.length == ZoO_INDEX_MAX) {
 			warning("Maximum number of words has been reached.");
 
 			return -1;
 		}
 
-		new_wordlist = cast(ZoO_knowledge_word *) realloc(words, ((words_count + 1) * ZoO_knowledge_word.sizeof));
+		words.length++;
 
-		if (new_wordlist == null) {
-			error("Could not learn the word '%s': unable to realloc the word list.", word);
-
-			return -1;
-		}
-
-		words = new_wordlist;
-
-		new_sorted_indices = cast(ZoO_index *) realloc(sorted_indices, ((words_count + 1) * ZoO_index.sizeof));
+		new_sorted_indices = cast(ZoO_index *) realloc(sorted_indices, ((words.length + 1) * ZoO_index.sizeof));
 
 		if (new_sorted_indices == null) {
 			error("Could not learn the word '"~ZoO_CHAR_STRING_SYMBOL~"': unable to realloc the index list.", word);
@@ -284,47 +265,44 @@ struct ZoO_knowledge {
 		sorted_indices = new_sorted_indices;
 
 		/* We can only move indices right of *result if they exist. */
-		if (*result < words_count) {
+		if (*result < words.length) {
 			/* TODO: check if correct. */
-			memmove(sorted_indices + *result + 1, sorted_indices + *result, ((words_count - *result) * ZoO_index.sizeof));
+			memmove(sorted_indices + *result + 1, sorted_indices + *result, ((words.length - *result) * ZoO_index.sizeof));
 		}
 
 		temp = *result;
 
-		sorted_indices[*result] = words_count;
+		sorted_indices[*result] = cast(uint)words.length-1;
 
-		*result = words_count;
+		*result = cast(uint)words.length-1;
 
-		(words + *result).initialize();
+		words[$-1].initialize();
 
 		/* XXX: strlen assumed to work with ZoO_char. */
-		words[*result].word_size = strlen(word);
+		words[$-1].word_size = strlen(word);
 
-		if (words[*result].word_size == SIZE_MAX) {
+		if (words[$-1].word_size == SIZE_MAX) {
 			warning("Could not learn word that had a size too big to store in a '\\0' terminated string. Chances are, this is but a symptom of the real problem.");
 
 			return -1;
 		}
 
 		/* We also need '\0' */
-		words[*result].word_size += 1;
+		words[$-1].word_size += 1;
 
-		words[*result].word = cast(ZoO_char *) calloc(words[*result].word_size, ZoO_char.sizeof);
+		words[$-1].word = cast(ZoO_char *) calloc(words[$-1].word_size, ZoO_char.sizeof);
 
-		if (words[*result].word == null) {
+		if (words[$-1].word == null) {
 			error("Could not learn word due to being unable to allocate the memory to store it.");
 
-			words[*result].word_size = 0;
+			words[$-1].word_size = 0;
 
 			return -1;
 		}
 
-		memcpy(words[*result].word, word, words[*result].word_size);
+		memcpy(words[$-1].word, word, words[$-1].word_size);
 
-		/* Safe: k.words_count < ZoO_INDEX_MAX */
-		words_count += 1;
-
-		tracef(ZoO_DEBUG_LEARNING, "Learned word {'%s', id: %u, rank: %u}", word[0..strlen(word)], *result, temp);
+		tracef(ZoO_DEBUG_LEARNING, "Learned word {'%s', id: %u, rank: %u}", word[0..strlen(word)], words.length, temp);
 
 		return 0;
 	}

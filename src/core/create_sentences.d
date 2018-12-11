@@ -79,7 +79,7 @@ char* extend_left(ZoO_knowledge* k, ZoO_index* sequence, ZoO_char* current_sente
 
 		*credits -= 1;
 
-		w = (k.words + sequence[ZoO_MARKOV_ORDER - 1]);
+		w = &k.words[sequence[ZoO_MARKOV_ORDER - 1]];
 
 		switch (w.special) {
 			case ZoO_knowledge_special_effect.ZoO_WORD_HAS_NO_EFFECT:
@@ -174,7 +174,7 @@ char* extend_right(ZoO_knowledge* k, ZoO_index* sequence, ZoO_char* current_sent
 
 		*credits -= 1;
 
-		w = (k.words + sequence[0]);
+		w = &k.words[sequence[0]];
 
 		switch (w.special) {
 			case ZoO_knowledge_special_effect.ZoO_WORD_HAS_NO_EFFECT:
@@ -256,7 +256,7 @@ ZoO_index select_first_word(ZoO_knowledge* k, const ZoO_strings* string, const s
 	ZoO_index word_found;
 
 	if (string == null) {
-		return word_min_id = (rand() % k.words_count);
+		return word_min_id = cast(uint)(rand() % k.words.length);
 	}
 
 	word_found = 0;
@@ -279,7 +279,7 @@ ZoO_index select_first_word(ZoO_knowledge* k, const ZoO_strings* string, const s
 	}
 
 	if (word_found == 0) {
-		return word_min_id = (rand() % k.words_count);
+		return word_min_id = cast(uint)(rand() % k.words.length);
 	}
 
 	for (; i < string.words_count; ++i) {
@@ -307,7 +307,7 @@ void init_sequence_(ZoO_knowledge* k, const ZoO_strings* string, const string[] 
 
 	sequence[ZoO_MARKOV_ORDER] = select_first_word(k, string, aliases);
 
-	fiw = (k.words + sequence[ZoO_MARKOV_ORDER]);
+	fiw = &k.words[sequence[ZoO_MARKOV_ORDER]];
 
 	for (i = 0; i < ZoO_MARKOV_ORDER; ++i) {
 		sequence[ZoO_MARKOV_ORDER - i - 1] = ZoO_WORD_START_OF_LINE;
@@ -346,7 +346,7 @@ void init_sequence_(ZoO_knowledge* k, const ZoO_strings* string, const string[] 
 	/* build the left one, one word at a time. */
 	for (i = 0; i < ZoO_MARKOV_ORDER; ++i) {
 		/* temporary pillar (starts on the right side, minus one so we don't */
-		fiw = (k.words + sequence[(ZoO_MARKOV_ORDER * 2) - i - 1]);
+		fiw = &k.words[sequence[(ZoO_MARKOV_ORDER * 2) - i - 1]];
 
 		/* finds the backward link corresponding to the words left of the */
 		/* temporary pillar. */
