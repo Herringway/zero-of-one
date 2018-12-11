@@ -15,7 +15,7 @@ int ZoO_data_output_write_line(const string filename, char* line, const size_t l
 	file = fopen(filename.toStringz, "a");
 
 	if (file == null) {
-		error("Could not open file '%s' in appending mode.", filename[0..strlen(filename.toStringz)]);
+		error("Could not open file '%s' in appending mode.", filename);
 
 		return -1;
 	}
