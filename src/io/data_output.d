@@ -4,35 +4,20 @@ import core.stdc.errno;
 import core.stdc.stdio;
 import core.stdc.string;
 import std.string;
+import std.stdio;
 import std.experimental.logger;
 
 import io.error;
 
-int ZoO_data_output_write_line(const string filename, char* line, const size_t line_size) {
-	const int old_errno = errno;
-	FILE * file;
-
-	file = fopen(filename.toStringz, "a");
-
-	if (file == null) {
-		error("Could not open file '%s' in appending mode.", filename);
+int ZoO_data_output_write_line(const string filename, string line) {
+	try {
+		auto file = File(filename, "a");
+		file.writeln(line);
+	} catch (StdioException e) {
+		error("Error writing to memory file '%s': %s", filename, e.msg);
 
 		return -1;
 	}
-
-	line[line_size - 1] = '\n';
-
-	if (fwrite(line, char.sizeof, line_size, file ) < line_size) {
-		line[line_size - 1] = '\0';
-
-		error("Could not store line '%s' in %s.", line[0..strlen(line)], filename);
-
-		fclose(file);
-
-		return -1;
-	}
-
-	fclose(file);
 
 	return 0;
 }

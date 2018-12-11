@@ -175,7 +175,7 @@ void handle_message(ZoO_state* s, ZoO_strings* string_, const ssize_t msg_offset
 		* It would be best to do that after replying, but by then we no longer
 		* have the string in 's.network.in'.
 		*/
-		ZoO_data_output_write_line(s.param.new_data_filename, (&s.network.in_[msg_offset]), msg_size + 1);
+		ZoO_data_output_write_line(s.param.new_data_filename, (&s.network.in_[msg_offset]).fromStringz.idup);
 	}
 
 	if (reply && (ZoO_knowledge_extend(&(s.knowledge), string_, s.param.aliases, &line ) == 0)) {
