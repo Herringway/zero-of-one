@@ -68,21 +68,8 @@ int load_data_file(ZoO_state* s) {
 	return 0;
 }
 
-
-int finalize(ZoO_state* s) {
-	int error;
-
-	trace(ZoO_DEBUG_PROGRAM_FLOW, "Zero of One is finalizing...");
-
-	error = 0;
-
-	s.knowledge.finalize();
-
-	return error;
-}
-
 int network_connect (ZoO_state* s) {
-	return s.network.connect(s.param.irc_server_addr, s.param.irc_server_port, s.param.irc_server_channel, s.param.irc_username, s.param.irc_realname, s.param.aliases[0]	);
+	return s.network.connect(s.param.irc_server_addr, s.param.irc_server_port, s.param.irc_server_channel, s.param.irc_username, s.param.irc_realname, s.param.aliases[0]);
 }
 
 int should_reply(ZoO_parameters* param, ZoO_strings* string_, int* should_learn) {
@@ -210,8 +197,6 @@ int main_loop(ZoO_state* s) {
 		}
 	}
 
-	string_.finalize();
-
 	s.network.disconnect();
 
 	return 0;
@@ -236,16 +221,12 @@ int main(string[] args) {
 		goto CRASH;
 	}
 
-	finalize(&s);
-
 	trace(ZoO_DEBUG_PROGRAM_FLOW, "Zero of One terminated normally.");
 
 	return 0;
 
 	CRASH:
 	{
-		finalize(&s);
-
 		trace(ZoO_DEBUG_PROGRAM_FLOW, "Zero of One terminated by crashing.");
 
 		return -1;
