@@ -12,7 +12,6 @@ import tool.strings;
 
 import io.error;
 import io.parameters;
-import io.parameters_types;
 import io.data_input;
 import io.data_output;
 import io.network;

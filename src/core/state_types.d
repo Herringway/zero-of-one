@@ -1,6 +1,6 @@
 module core.state_types;
 
-import io.parameters_types;
+import io.parameters;
 import io.network;
 
 import core.knowledge;

@@ -8,10 +8,24 @@ import std.stdio;
 import std.string;
 import std.experimental.logger;
 
-import io.parameters_types;
 import io.error;
 
 import pervasive;
+
+struct ZoO_parameters {
+	string data_filename;
+	string new_data_filename;
+
+	string irc_server_addr;
+	string irc_server_port;
+	string irc_server_channel;
+	string irc_username;
+	string irc_realname;
+
+	int reply_rate;
+
+	const(string)[] aliases;
+}
 
 void load_default_parameters(ref ZoO_parameters param) {
 	param.data_filename        = ZoO_DEFAULT_DATA_FILENAME;
