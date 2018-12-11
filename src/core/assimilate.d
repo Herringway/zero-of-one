@@ -36,13 +36,6 @@ int add_sequence(ZoO_index* links_count, ZoO_knowledge_link** links, const ZoO_i
 
 	link.targets.length += 1;
 
-	if (new_p == null) {
-		link.targets.length -= 1;
-
-		/* TODO: err. */
-		return -1;
-	}
-
 	link.targets[link.targets.length - 1] = sequence[target_i];
 
 	new_p = cast(ZoO_index *) realloc(link.targets_occurrences, (ZoO_index.sizeof * link.targets.length));
