@@ -120,7 +120,7 @@ void handle_user_join(ZoO_state* s, ZoO_strings* string_, const ssize_t msg_offs
 		return;
 	}
 
-	if (string_.ZoO_strings_parse(s.network.in_[msg_offset..msg_offset+msg_size], cast(uint*)&ZoO_knowledge_punctuation_chars_count, cast(char*)&ZoO_knowledge_punctuation_chars) < 0) {
+	if (string_.parse(s.network.in_[msg_offset..msg_offset+msg_size], cast(uint*)&ZoO_knowledge_punctuation_chars_count, cast(char*)&ZoO_knowledge_punctuation_chars) < 0) {
 		trace(ZoO_DEBUG_PROGRAM_FLOW, "Could not dissect join username.");
 
 		return;
@@ -157,7 +157,7 @@ void handle_message(ZoO_state* s, ZoO_strings* string_, const ssize_t msg_offset
 	ZoO_char* line;
 	int reply, learn;
 
-	if (string_.ZoO_strings_parse(s.network.in_[msg_offset..msg_offset+msg_size], &ZoO_knowledge_punctuation_chars_count, ZoO_knowledge_punctuation_chars.ptr) < 0) {
+	if (string_.parse(s.network.in_[msg_offset..msg_offset+msg_size], &ZoO_knowledge_punctuation_chars_count, ZoO_knowledge_punctuation_chars.ptr) < 0) {
 		trace(ZoO_DEBUG_PROGRAM_FLOW, "Could not dissect msg.");
 
 		return;
@@ -202,7 +202,7 @@ int main_loop(ZoO_state* s) {
 	msg_offset = 0;
 	msg_size = 0;
 
-	string_.ZoO_strings_initialize();
+	string_.initialize();
 
 	while (run) {
 		if (ZoO_network_receive(&(s.network), cast(ulong*)&msg_offset, cast(ulong*)&msg_size, &msg_type) == 0) {
@@ -219,7 +219,7 @@ int main_loop(ZoO_state* s) {
 		}
 	}
 
-	string_.ZoO_strings_finalize();
+	string_.finalize();
 
 	ZoO_network_disconnect(&(s.network));
 

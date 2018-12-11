@@ -13,13 +13,13 @@ struct ZoO_strings {
 	ZoO_char ** words;
 	size_t * word_sizes;
 
-	void ZoO_strings_initialize() {
+	void initialize() {
 		words_count = 0;
 		words = null;
 		word_sizes = null;
 	}
 
-	void ZoO_strings_finalize() {
+	void finalize() {
 		if (words_count != 0) {
 			ZoO_index i;
 
@@ -153,11 +153,11 @@ struct ZoO_strings {
 		return add_word(line);
 	}
 
-	int ZoO_strings_parse(char[] input, const ZoO_index* punctuations_count, const ZoO_char* punctuations)
+	int parse(char[] input, const ZoO_index* punctuations_count, const ZoO_char* punctuations)
 	{
 		size_t i, w_start;
 
-		ZoO_strings_finalize();
+		finalize();
 
 		if (input == null) {
 			return 0;
@@ -187,7 +187,7 @@ struct ZoO_strings {
 		for (; i < input.length; ++i) {
 			if (input[i] == ' ') {
 				if (parse_word(*punctuations_count, punctuations, input[w_start..i]) < 0) {
-					ZoO_strings_finalize();
+					finalize();
 
 					return -1;
 				}
@@ -204,7 +204,7 @@ struct ZoO_strings {
 		}
 
 		if (parse_word(*punctuations_count, punctuations, input[w_start..i]) < 0) {
-			ZoO_strings_finalize();
+			finalize();
 
 			return -1;
 		}
