@@ -102,7 +102,7 @@ int init_sequence(ZoO_knowledge* k, ZoO_strings* string, ZoO_index[(ZoO_MARKOV_O
 		sequence[ZoO_MARKOV_ORDER - i] = ZoO_WORD_START_OF_LINE;
 
 		if (i <= string.words_count) {
-			if (k.learn(string.words[i - 1], (sequence.ptr + (ZoO_MARKOV_ORDER + i))) < 0) {
+			if (k.learn(string.words[i - 1], sequence[ZoO_MARKOV_ORDER + i]) < 0) {
 				return -1;
 			}
 		}
@@ -143,7 +143,7 @@ int ZoO_knowledge_assimilate(ZoO_knowledge* k, ZoO_strings* string, const string
 
 	while (next_word <= (string.words_count + ZoO_MARKOV_ORDER)) {
 		if (new_word < string.words_count) {
-			if (k.learn(string.words[new_word], &new_word_id) < 0) {
+			if (k.learn(string.words[new_word], new_word_id) < 0) {
 				return -1;
 			}
 		}

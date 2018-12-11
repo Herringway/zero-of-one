@@ -125,7 +125,7 @@ void handle_user_join(ZoO_state* s, ZoO_strings* string_, const ssize_t msg_offs
 		return;
 	}
 
-	if ((s.knowledge.find(string_.words[0], &loc) < 0) || (s.knowledge.words[loc].backward_links_count <= 3) || (s.knowledge.words[loc].forward_links_count <= 3)) {
+	if ((s.knowledge.find(string_.words[0], loc) < 0) || (s.knowledge.words[loc].backward_links_count <= 3) || (s.knowledge.words[loc].forward_links_count <= 3)) {
 		if (ZoO_knowledge_extend(&(s.knowledge), null, null, &line) == 0) {
 			if (line[0] == ' ') {
 				strcpy((s.network.out_.ptr), (line + 1));

@@ -113,7 +113,7 @@ struct ZoO_knowledge {
 		char[2] w;
 		ZoO_index i, id;
 
-		if (learn("START OF LINE", &id) < 0) {
+		if (learn("START OF LINE", id) < 0) {
 			critical("Could not add 'START OF LINE' to knowledge.");
 
 			return -2;
@@ -122,7 +122,7 @@ struct ZoO_knowledge {
 		words[id].special = ZoO_knowledge_special_effect.ZoO_WORD_STARTS_SENTENCE;
 		words[id].occurrences = 0;
 
-		if (learn("END OF LINE", &id) < 0) {
+		if (learn("END OF LINE", id) < 0) {
 			critical("Could not add 'END OF LINE' to knowledge.");
 
 			return -2;
@@ -138,7 +138,7 @@ struct ZoO_knowledge {
 		for (i = 0; i < ZoO_knowledge_punctuation_chars_count; ++i) {
 			w[0] = ZoO_knowledge_punctuation_chars[i];
 
-			if (learn(w.ptr, &id) < 0) {
+			if (learn(w.ptr, id) < 0) {
 				warningf("Could not add '%s' to knowledge.", w);
 
 				error = -1;
@@ -204,16 +204,16 @@ struct ZoO_knowledge {
 	 *    {*result} is where {word} was expected to be found in
 	 *    {k.sorted_indices}.
 	 */
-	int find(const ZoO_char* word, ZoO_index* result) const {
+	int find(const ZoO_char* word, out ZoO_index result) const {
 		ZoO_index r;
 
 		if (ZoO_sorted_list_index_of(cast(uint)words.length, sorted_indices, word, ZoO_index.sizeof, &cmp_word, &this, &r) == 0) {
-			*result = sorted_indices[r];
+			result = sorted_indices[r];
 
 			return 0;
 		}
 
-		*result = r;
+		result = r;
 
 		return -1;
 	}
@@ -229,19 +229,19 @@ struct ZoO_knowledge {
 	 *    {k} remains semantically unchanged.
 	 *    {*result} may or may not have been altered.
 	 */
-	int learn(const ZoO_char* word, ZoO_index* result) {
+	int learn(const ZoO_char* word, out ZoO_index result) {
 		ZoO_index * new_sorted_indices;
 		ZoO_index temp;
 
 		if (find(word, result) == 0) {
-			if (words[*result].occurrences == ZoO_INDEX_MAX) {
+			if (words[result].occurrences == ZoO_INDEX_MAX) {
 				warningf("Maximum number of occurrences has been reached for word '"~ZoO_CHAR_STRING_SYMBOL~"'.", word);
 
 				return -1;
 			}
 
 			/* overflow-safe: (< k.words[*result].occurrences ZoO_INDEX_MAX) */
-			words[*result].occurrences += 1;
+			words[result].occurrences += 1;
 
 			return 0;
 		}
@@ -265,16 +265,16 @@ struct ZoO_knowledge {
 		sorted_indices = new_sorted_indices;
 
 		/* We can only move indices right of *result if they exist. */
-		if (*result < words.length) {
+		if (result < words.length) {
 			/* TODO: check if correct. */
-			memmove(sorted_indices + *result + 1, sorted_indices + *result, ((words.length - *result) * ZoO_index.sizeof));
+			memmove(sorted_indices + result + 1, sorted_indices + result, ((words.length - result) * ZoO_index.sizeof));
 		}
 
-		temp = *result;
+		temp = result;
 
-		sorted_indices[*result] = cast(uint)words.length-1;
+		sorted_indices[result] = cast(uint)words.length-1;
 
-		*result = cast(uint)words.length-1;
+		result = cast(uint)words.length-1;
 
 		words[$-1].initialize();
 
