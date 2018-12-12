@@ -17,14 +17,12 @@ import tool.strings;
 int add_sequence(ZoO_index* links_count, ZoO_knowledge_link** links, const ZoO_index[] sequence, const ZoO_index target_i, const ZoO_index offset) {
 	ZoO_index link_index, i;
 	ZoO_knowledge_link * link;
-	ZoO_index * new_p;
 
 	if (ZoO_knowledge_get_link(links_count, links, sequence[offset..$].ptr, &link_index) < 0) {
 		return -1;
 	}
 
 	link = (*links + link_index);
-	link.occurrences += 1;
 
 	for (i = 0; i < link.targets.length; ++i) {
 		if (link.targets[i] == sequence[target_i]) {
@@ -38,16 +36,7 @@ int add_sequence(ZoO_index* links_count, ZoO_knowledge_link** links, const ZoO_i
 
 	link.targets[link.targets.length - 1] = sequence[target_i];
 
-	new_p = cast(ZoO_index *) realloc(link.targets_occurrences, (ZoO_index.sizeof * link.targets.length));
-
-	if (new_p == null) {
-		link.targets.length -= 1;
-
-		/* TODO: err. */
-		return -1;
-	}
-
-	link.targets_occurrences = new_p;
+	link.targets_occurrences.length++;
 	link.targets_occurrences[link.targets.length - 1] = 1;
 
 	return 0;
@@ -67,7 +56,7 @@ int add_word_occurrence(ZoO_knowledge* k, const ZoO_index[(ZoO_MARKOV_ORDER * 2)
 }
 
 
-int should_assimilate(ZoO_strings* string, const string[] aliases) {
+int should_assimilate(const ZoO_strings string, const string[] aliases) {
 	ZoO_index i;
 
 	/* Don't assimilate empty strings. */
@@ -112,7 +101,7 @@ int ZoO_knowledge_assimilate(ZoO_knowledge* k, ZoO_strings* string, const string
 	ZoO_index[(ZoO_MARKOV_ORDER * 2) + 1] sequence;
 	ZoO_index next_word, new_word, new_word_id;
 
-	if (!should_assimilate(string, aliases)) {
+	if (!should_assimilate(*string, aliases)) {
 		return 0;
 	}
 

@@ -56,7 +56,6 @@ int ZoO_knowledge_get_link(ZoO_index* links_count, ZoO_knowledge_link** links, c
 
 	memcpy(new_p.sequence.ptr, sequence, (ZoO_index.sizeof * ZoO_SEQUENCE_SIZE));
 
-	new_p.occurrences = 0;
 	new_p.targets_occurrences = null;
 	new_p.targets = null;
 

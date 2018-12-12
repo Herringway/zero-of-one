@@ -24,7 +24,7 @@ import pervasive;
  *    (== (sum links_occurrences) occurrences).
  *    (can_store ZoO_index (length links)).
  */
-ZoO_index pick_index(const ZoO_index occurrences,const ZoO_index* links_occurrences) {
+ZoO_index pick_index(const ZoO_index[] links_occurrences) @safe {
 	ZoO_index result, accumulator, random_number;
 
 	result = 0;
@@ -35,7 +35,7 @@ ZoO_index pick_index(const ZoO_index occurrences,const ZoO_index* links_occurren
 	*/
 	accumulator = links_occurrences[0];
 
-	random_number = rand() % occurrences;
+	random_number = cast(uint)(rand() % links_occurrences.length);
 
 	while (accumulator < random_number) {
 		/*
@@ -64,7 +64,7 @@ ZoO_index pick_index(const ZoO_index occurrences,const ZoO_index* links_occurren
 	return result;
 }
 
-char[] extend_left(ZoO_knowledge* k, ZoO_index* sequence, ZoO_char[] current_sentence, ZoO_index* credits) {
+char[] extend_left(ref ZoO_knowledge k, ZoO_index* sequence, ZoO_char[] current_sentence, ZoO_index* credits) {
 	size_t addition_size;
 	ZoO_knowledge_word * w;
 	ZoO_char[] next_sentence;
@@ -144,7 +144,7 @@ char[] extend_left(ZoO_knowledge* k, ZoO_index* sequence, ZoO_char[] current_sen
 			break;
 		}
 
-		sequence[0] = w.backward_links[j].targets[pick_index(w.backward_links[j].occurrences, w.backward_links[j].targets_occurrences)];
+		sequence[0] = w.backward_links[j].targets[pick_index(w.backward_links[j].targets_occurrences)];
 
 		/* prevents current_sentence [const] */
 		current_sentence = next_sentence;
@@ -152,7 +152,7 @@ char[] extend_left(ZoO_knowledge* k, ZoO_index* sequence, ZoO_char[] current_sen
 	assert(0);
 }
 
-char[] extend_right(ZoO_knowledge* k, ZoO_index* sequence, ZoO_char[] current_sentence, ZoO_index* credits) {
+char[] extend_right(ref ZoO_knowledge k, ZoO_index* sequence, ZoO_char[] current_sentence, ZoO_index* credits) {
 	size_t addition_size;
 	ZoO_knowledge_word * w;
 	ZoO_char[] next_sentence;
@@ -231,12 +231,12 @@ char[] extend_right(ZoO_knowledge* k, ZoO_index* sequence, ZoO_char[] current_se
 			break;
 		}
 
-		sequence[ZoO_MARKOV_ORDER - 1] = w.forward_links[j].targets[pick_index(w.forward_links[j].occurrences, w.forward_links[j].targets_occurrences)];
+		sequence[ZoO_MARKOV_ORDER - 1] = w.forward_links[j].targets[pick_index(w.forward_links[j].targets_occurrences)];
 	}
 	assert(0);
 }
 
-ZoO_index select_first_word(ZoO_knowledge* k, const ZoO_strings* string, const string[] aliases) {
+ZoO_index select_first_word(ref ZoO_knowledge k, const ZoO_strings* string, const string[] aliases) {
 	ZoO_index i, j, word_id, word_min_score, word_min_id;
 	ZoO_index word_found;
 
@@ -286,7 +286,7 @@ ZoO_index select_first_word(ZoO_knowledge* k, const ZoO_strings* string, const s
 }
 
 
-void init_sequence(ZoO_knowledge* k, const ZoO_strings* string, const string[] aliases, ZoO_index[(ZoO_MARKOV_ORDER * 2) + 1] sequence) {
+void init_sequence(ref ZoO_knowledge k, const ZoO_strings* string, const string[] aliases, ZoO_index[(ZoO_MARKOV_ORDER * 2) + 1] sequence) {
 	ZoO_index i, j, accumulator, random_number;
 	ZoO_knowledge_word * fiw;
 
@@ -307,12 +307,12 @@ void init_sequence(ZoO_knowledge* k, const ZoO_strings* string, const string[] a
 
 	/* Chooses a likely forward link for the pillar. */
 	i = 0;
-	accumulator = fiw.forward_links[0].occurrences;
+	accumulator = cast(uint)fiw.forward_links[0].targets_occurrences.length;
 
 	random_number = rand() % fiw.occurrences;
 
 	while (accumulator < random_number) {
-		accumulator += fiw.forward_links[i].occurrences;
+		accumulator += fiw.forward_links[i].targets_occurrences.length;
 		i += 1;
 	}
 
@@ -324,7 +324,7 @@ void init_sequence(ZoO_knowledge* k, const ZoO_strings* string, const string[] a
 	memcpy(sequence.ptr + ZoO_MARKOV_ORDER + 1, fiw.forward_links[i].sequence.ptr, ZoO_index.sizeof * (ZoO_MARKOV_ORDER - 1));
 
 	/* selects the last word */
-	sequence[ZoO_MARKOV_ORDER * 2] = fiw.forward_links[i].targets[pick_index(fiw.forward_links[i].occurrences, fiw.forward_links[i].targets_occurrences)];
+	sequence[ZoO_MARKOV_ORDER * 2] = fiw.forward_links[i].targets[pick_index(fiw.forward_links[i].targets_occurrences)];
 
 	/* FIXME: Not clear enough. */
 	/* Now that we have the right side of the sequence, we are going to */
@@ -346,10 +346,10 @@ void init_sequence(ZoO_knowledge* k, const ZoO_strings* string, const string[] a
 			break;
 		}
 
-		sequence[ZoO_MARKOV_ORDER - i - 1] = fiw.backward_links[j].targets[pick_index(fiw.backward_links[j].occurrences, fiw.backward_links[j].targets_occurrences)];
+		sequence[ZoO_MARKOV_ORDER - i - 1] = fiw.backward_links[j].targets[pick_index(fiw.backward_links[j].targets_occurrences)];
 	}
 }
-int ZoO_knowledge_extend(ZoO_knowledge* k, const ZoO_strings* string, const string[] aliases, out ZoO_char[] result) {
+int ZoO_knowledge_extend(ref ZoO_knowledge k, const ZoO_strings* string, const string[] aliases, out ZoO_char[] result) {
 	int word_found;
 	size_t sentence_size;
 	ZoO_index[(ZoO_MARKOV_ORDER * 2) + 1] sequence;
