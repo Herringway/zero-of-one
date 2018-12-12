@@ -64,7 +64,7 @@ struct ZoO_state {
 		}
 
 		while (input.read_line(ZoO_knowledge_punctuation_chars) == 0) {
-			ZoO_knowledge_assimilate(knowledge, &input.str, param.aliases);
+			ZoO_knowledge_assimilate(knowledge, input.str, param.aliases);
 		}
 
 		input.close();
@@ -78,7 +78,7 @@ struct ZoO_state {
 }
 
 
-int should_reply(ref ZoO_parameters param, ZoO_strings* string_, int* should_learn) {
+int should_reply(ref ZoO_parameters param, ref ZoO_strings string_, int* should_learn) {
 	ZoO_index i, j;
 
 	for (i = 0; i < param.aliases.length; ++i) {
@@ -102,7 +102,7 @@ int should_reply(ref ZoO_parameters param, ZoO_strings* string_, int* should_lea
 	return (param.reply_rate >= (rand() % 100));
 }
 
-void handle_user_join(ref ZoO_state s, ZoO_strings* string_, const ssize_t msg_offset, const ssize_t msg_size) {
+void handle_user_join(ref ZoO_state s, ref ZoO_strings string_, const ssize_t msg_offset, const ssize_t msg_size) {
 	ZoO_char[] line;
 	ZoO_index loc;
 
@@ -127,7 +127,7 @@ void handle_user_join(ref ZoO_state s, ZoO_strings* string_, const ssize_t msg_o
 			s.network.send();
 		}
 	} else {
-		if (ZoO_knowledge_extend(s.knowledge, string_, null, line) == 0) {
+		if (ZoO_knowledge_extend(s.knowledge, &string_, null, line) == 0) {
 			if (line[0] == ' ') {
 				strcpy((s.network.out_.ptr), line[1..$].toStringz);
 			} else {
@@ -139,7 +139,7 @@ void handle_user_join(ref ZoO_state s, ZoO_strings* string_, const ssize_t msg_o
 	}
 }
 
-void handle_message(ref ZoO_state s, ZoO_strings* string_, const ssize_t msg_offset, const ssize_t msg_size) {
+void handle_message(ref ZoO_state s, ref ZoO_strings string_, const ssize_t msg_offset, const ssize_t msg_size) {
 	ZoO_char[] line;
 	int reply, learn;
 
@@ -163,7 +163,7 @@ void handle_message(ref ZoO_state s, ZoO_strings* string_, const ssize_t msg_off
 		ZoO_data_output_write_line(s.param.new_data_filename, (&s.network.in_[msg_offset]).fromStringz.idup);
 	}
 
-	if (reply && (ZoO_knowledge_extend(s.knowledge, string_, s.param.aliases, line) == 0)) {
+	if (reply && (ZoO_knowledge_extend(s.knowledge, &string_, s.param.aliases, line) == 0)) {
 		if (line[0] == ' ') {
 			strcpy((s.network.out_.ptr), line[1..$].toStringz);
 		} else {
@@ -192,11 +192,11 @@ int main_loop(ref ZoO_state s) {
 		if (s.network.receive(cast(ulong*)&msg_offset, cast(ulong*)&msg_size, &msg_type) == 0) {
 			switch (msg_type) {
 				case ZoO_msg_type.JOIN:
-					handle_user_join(s, &string_, msg_offset, msg_size);
+					handle_user_join(s, string_, msg_offset, msg_size);
 					break;
 
 				case ZoO_msg_type.PRIVMSG:
-					handle_message(s, &string_, msg_offset, msg_size);
+					handle_message(s, string_, msg_offset, msg_size);
 					break;
 				default: assert(0);
 			}

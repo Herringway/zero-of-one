@@ -74,7 +74,7 @@ int should_assimilate(const ZoO_strings string, const string[] aliases) {
 	return 1;
 }
 
-int init_sequence(ref ZoO_knowledge k, ZoO_strings* string, ZoO_index[(ZoO_MARKOV_ORDER * 2) + 1] sequence) {
+int init_sequence(ref ZoO_knowledge k, ref ZoO_strings string, ZoO_index[(ZoO_MARKOV_ORDER * 2) + 1] sequence) {
 	ZoO_index i;
 
 	/* We are going to link this sequence to ZoO_WORD_START_OF_LINE */
@@ -96,12 +96,12 @@ int init_sequence(ref ZoO_knowledge k, ZoO_strings* string, ZoO_index[(ZoO_MARKO
 	return 0;
 }
 
-int ZoO_knowledge_assimilate(ref ZoO_knowledge k, ZoO_strings* string, const string[] aliases) {
+int ZoO_knowledge_assimilate(ref ZoO_knowledge k, ref ZoO_strings string, const string[] aliases) {
 	int error;
 	ZoO_index[(ZoO_MARKOV_ORDER * 2) + 1] sequence;
 	ZoO_index next_word, new_word, new_word_id;
 
-	if (!should_assimilate(*string, aliases)) {
+	if (!should_assimilate(string, aliases)) {
 		return 0;
 	}
 
