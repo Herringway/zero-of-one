@@ -78,26 +78,26 @@ struct ZoO_state {
 }
 
 
-int should_reply(ref ZoO_parameters param, ref ZoO_strings string_, int* should_learn) {
+int should_reply(ref ZoO_parameters param, ref ZoO_strings string_, out int should_learn) {
 	ZoO_index i, j;
 
 	for (i = 0; i < param.aliases.length; ++i) {
 		if (param.aliases[i] == string_.words[0]) {
-			*should_learn = 0;
+			should_learn = 0;
 
 			return 1;
 		}
 
 		for (j = 1; j < string_.words.length; ++j) {
 			if (param.aliases[i] == string_.words[j]) {
-				*should_learn = 1;
+				should_learn = 1;
 
 				return 1;
 			}
 		}
 	}
 
-	*should_learn = 1;
+	should_learn = 1;
 
 	return (param.reply_rate >= (rand() % 100));
 }
@@ -153,7 +153,7 @@ void handle_message(ref ZoO_state s, ref ZoO_strings string_, const ssize_t msg_
 		return;
 	}
 
-	reply = should_reply(s.param, string_, &learn);
+	reply = should_reply(s.param, string_, learn);
 
 	if (learn) {
 		/*
@@ -189,7 +189,7 @@ int main_loop(ref ZoO_state s) {
 	string_.initialize();
 
 	while (run) {
-		if (s.network.receive(cast(ulong*)&msg_offset, cast(ulong*)&msg_size, &msg_type) == 0) {
+		if (s.network.receive(msg_offset, msg_size, msg_type) == 0) {
 			switch (msg_type) {
 				case ZoO_msg_type.JOIN:
 					handle_user_join(s, string_, msg_offset, msg_size);

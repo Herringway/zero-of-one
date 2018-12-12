@@ -267,7 +267,7 @@ struct ZoO_network {
 
 	}
 
-	int receive(size_t* msg_offset, size_t* msg_size, ZoO_msg_type* type) {
+	int receive(out ssize_t msg_offset, out ssize_t msg_size, out ZoO_msg_type type) {
 		const int old_errno = errno;
 		ssize_t cmd, i;
 
@@ -333,11 +333,11 @@ struct ZoO_network {
 					goto READ_NEW_MSG;
 				}
 
-				*msg_offset = 1;
-				*msg_size = (i - 1);
+				msg_offset = 1;
+				msg_size = (i - 1);
 				in_[i] = '\0';
 
-				*type = ZoO_msg_type.JOIN;
+				type = ZoO_msg_type.JOIN;
 
 				return 0;
 			}
@@ -352,12 +352,10 @@ struct ZoO_network {
 					}
 				}
 
-				*msg_offset = cmd;
-				*msg_size = (in_length - cmd);
+				msg_offset = cmd;
+				msg_size = (in_length - cmd);
 
-				/*in[*msg_size - 1] = '\0'; */
-
-				*type = ZoO_msg_type.PRIVMSG;
+				type = ZoO_msg_type.PRIVMSG;
 
 				return 0;
 			}
