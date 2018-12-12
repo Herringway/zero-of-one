@@ -80,9 +80,9 @@ struct ZoO_network {
 	int reconnect() {
 		const int old_errno = errno;
 
-		memset(in_.ptr, 0, (ZoO_char.sizeof * 513));
-		memset(out_.ptr, 0, (ZoO_char.sizeof * 513));
-		memset(buffer.ptr, 0, (ZoO_char.sizeof * 513));
+		in_ = 0;
+		out_ = 0;
+		buffer = 0;
 
 		buffer_index = 0;
 		buffer_remaining = 0;
@@ -134,9 +134,9 @@ struct ZoO_network {
 		buffer_remaining = 0;
 
 		memset(&hints, 0, addrinfo.sizeof);
-		memset(in_.ptr, 0, (ZoO_char.sizeof * 513));
-		memset(out_.ptr, 0, (ZoO_char.sizeof * 513));
-		memset(buffer.ptr, 0, (ZoO_char.sizeof * 513));
+		in_ = 0;
+		out_ = 0;
+		buffer = 0;
 
 		hints.ai_family = AF_INET;
 		hints.ai_socktype = SOCK_STREAM;
