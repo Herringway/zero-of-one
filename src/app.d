@@ -119,9 +119,9 @@ void handle_user_join(ref ZoO_state s, ref ZoO_strings string_, const ssize_t ms
 	if ((s.knowledge.find(string_.words[0], loc) < 0) || (s.knowledge.words[loc].backward_links_count <= 3) || (s.knowledge.words[loc].forward_links_count <= 3)) {
 		if (ZoO_knowledge_extend(s.knowledge, null, null, line) == 0) {
 			if (line[0] == ' ') {
-				strcpy((s.network.out_.ptr), line[1..$].toStringz);
+				s.network.out_[0..line.length-1] = line[1..$];
 			} else {
-				strcpy((s.network.out_.ptr), line.toStringz);
+				s.network.out_[0..line.length] = line;
 			}
 
 			s.network.send();
@@ -129,9 +129,9 @@ void handle_user_join(ref ZoO_state s, ref ZoO_strings string_, const ssize_t ms
 	} else {
 		if (ZoO_knowledge_extend(s.knowledge, &string_, null, line) == 0) {
 			if (line[0] == ' ') {
-				strcpy((s.network.out_.ptr), line[1..$].toStringz);
+				s.network.out_[0..line.length-1] = line[1..$];
 			} else {
-				strcpy((s.network.out_.ptr), line.toStringz);
+				s.network.out_[0..line.length] = line;
 			}
 
 			s.network.send();
