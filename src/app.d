@@ -82,14 +82,14 @@ int should_reply(ZoO_parameters* param, ZoO_strings* string_, int* should_learn)
 	ZoO_index i, j;
 
 	for (i = 0; i < param.aliases.length; ++i) {
-		if (strncmp(param.aliases[i].toStringz, string_.words[0], strlen(param.aliases[i].toStringz)) == 0) {
+		if (strncmp(param.aliases[i].toStringz, string_.words[0].toStringz, strlen(param.aliases[i].toStringz)) == 0) {
 			*should_learn = 0;
 
 			return 1;
 		}
 
-		for (j = 1; j < string_.words_count; ++j) {
-			if (strncmp(param.aliases[i].toStringz, string_.words[j], strlen(param.aliases[i].toStringz)) == 0) {
+		for (j = 1; j < string_.words.length; ++j) {
+			if (strncmp(param.aliases[i].toStringz, string_.words[j].toStringz, strlen(param.aliases[i].toStringz)) == 0) {
 				*should_learn = 1;
 
 				return 1;
@@ -149,7 +149,7 @@ void handle_message(ZoO_state* s, ZoO_strings* string_, const ssize_t msg_offset
 		return;
 	}
 
-	if (string_.words_count == 0) {
+	if (string_.words.length == 0) {
 		return;
 	}
 

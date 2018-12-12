@@ -246,14 +246,14 @@ ZoO_index select_first_word(ZoO_knowledge* k, const ZoO_strings* string, const s
 
 	word_found = 0;
 
-	for (i = 0; i < string.words_count; ++i) {
+	for (i = 0; i < string.words.length; ++i) {
 		for (j = 0; j < aliases.length; ++j) {
-			if (strncmp(aliases[j].toStringz, string.words[i], strlen(aliases[j].toStringz)) == 0) {
+			if (strncmp(aliases[j].toStringz, string.words[i].toStringz, strlen(aliases[j].toStringz)) == 0) {
 				goto NEXT_WORD;
 			}
 		}
 
-		if (k.find(string.words[i][0..string.word_sizes[i]], word_min_id) == 0) {
+		if (k.find(string.words[i], word_min_id) == 0) {
 			word_found = 1;
 			word_min_score = k.words[word_min_id].occurrences;
 
@@ -267,14 +267,14 @@ ZoO_index select_first_word(ZoO_knowledge* k, const ZoO_strings* string, const s
 		return word_min_id = cast(uint)(rand() % k.words.length);
 	}
 
-	for (; i < string.words_count; ++i) {
+	for (; i < string.words.length; ++i) {
 		for (j = 0; j < aliases.length; ++j) {
-			if (strncmp(aliases[j].toStringz, string.words[i], strlen(aliases[j].toStringz)) == 0) {
+			if (strncmp(aliases[j].toStringz, string.words[i].toStringz, strlen(aliases[j].toStringz)) == 0) {
 				goto NEXT_WORD_BIS;
 			}
 		}
 
-		if ((k.find(string.words[i][0..string.word_sizes[i]], word_id) == 0) && (k.words[word_id].occurrences < word_min_score)) {
+		if ((k.find(string.words[i], word_id) == 0) && (k.words[word_id].occurrences < word_min_score)) {
 			word_min_score = k.words[word_id].occurrences;
 			word_min_id = word_id;
 		}

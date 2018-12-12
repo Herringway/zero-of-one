@@ -9,75 +9,24 @@ import std.experimental.logger;
 import std.string;
 
 struct ZoO_strings {
-	ZoO_index words_count;
-	ZoO_char ** words;
-	size_t * word_sizes;
+	string[] words;
 
 	void initialize() {
-		words_count = 0;
-		words = null;
-		word_sizes = null;
 	}
 
 	void finalize() {
-		if (words_count != 0) {
-			ZoO_index i;
-
-			words_count = 0;
-
-			words = null;
-			word_sizes = null;
-		}
 	}
 
-	int add_word(char[] line) {
-		size_t * new_s_word_sizes;
-		ZoO_char* new_word;
-		ZoO_char** new_s_words;
-
-		if (words_count == ZoO_INDEX_MAX) {
+	int add_word(string line) {
+		if (words.length == ZoO_INDEX_MAX) {
 			warning("Data input sentence has too many words.");
 
 			return -1;
 		}
 
-		/* overflow-safe, as line_size < SIZE_MAX */
-		new_word = cast(ZoO_char *) calloc((line.length + 1), ZoO_char.sizeof);
+		words.length++;
 
-		if (new_word == null) {
-			warning("Unable to allocate memory to extract new word.");
-
-			return -1;
-		}
-
-		memcpy(new_word, line.ptr, line.length);
-
-		new_word[line.length] = '\0';
-
-		new_s_words = cast(ZoO_char **) realloc(words, ((ZoO_char *).sizeof * (words_count + 1)));
-
-		if (new_s_words == null) {
-			warning("Unable to reallocate memory to extract new word.");
-
-			return -1;
-		}
-
-		words = new_s_words;
-
-		new_s_word_sizes = cast(size_t *) realloc(word_sizes, (size_t.sizeof * (words_count + 1))	);
-
-		if (new_s_word_sizes == null) {
-			warning("Unable to reallocate memory to extract new word.");
-
-			return -1;
-		}
-
-		word_sizes = new_s_word_sizes;
-
-		words[words_count] = new_word;
-		word_sizes[words_count] = (line.length + 1);
-
-		words_count += 1;
+		words[$-1] = line.idup;
 
 		return 0;
 	}
@@ -130,7 +79,7 @@ struct ZoO_strings {
 			/* overflow-safe: line_size > 1 */
 			if (line[$ - 1] == punctuations[j]) {
 				if (line.length > 1) {
-					if ((add_word(line) < 0) || (add_word(line[$ - 1..$]) < 0)) {
+					if ((add_word(line.idup) < 0) || (add_word(line[$ - 1..$].idup) < 0)) {
 						return -1;
 					}
 
@@ -139,7 +88,7 @@ struct ZoO_strings {
 			}
 		}
 
-		return add_word(line);
+		return add_word(line.idup);
 	}
 
 	int parse(char[] input, const ZoO_index* punctuations_count, const ZoO_char* punctuations)

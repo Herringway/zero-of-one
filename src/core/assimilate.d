@@ -14,12 +14,12 @@ import tool.strings;
 
 /** Functions to assimilate sentences using a ZoO_knowledge structure *********/
 
-int add_sequence(ZoO_index* links_count, ZoO_knowledge_link** links, const ZoO_index* sequence, const ZoO_index target_i, const ZoO_index offset) {
+int add_sequence(ZoO_index* links_count, ZoO_knowledge_link** links, const ZoO_index[] sequence, const ZoO_index target_i, const ZoO_index offset) {
 	ZoO_index link_index, i;
 	ZoO_knowledge_link * link;
 	ZoO_index * new_p;
 
-	if (ZoO_knowledge_get_link(links_count, links, (sequence + offset), &link_index) < 0) {
+	if (ZoO_knowledge_get_link(links_count, links, sequence[offset..$].ptr, &link_index) < 0) {
 		return -1;
 	}
 
@@ -59,9 +59,9 @@ int add_word_occurrence(ZoO_knowledge* k, const ZoO_index[(ZoO_MARKOV_ORDER * 2)
 
 	w = sequence[ZoO_MARKOV_ORDER];
 
-	error = add_sequence(&(k.words[w].forward_links_count), &(k.words[w].forward_links), sequence.ptr + (ZoO_MARKOV_ORDER + 1), (ZoO_MARKOV_ORDER - 1), 0);
+	error = add_sequence(&(k.words[w].forward_links_count), &(k.words[w].forward_links), sequence[ZoO_MARKOV_ORDER + 1..$], (ZoO_MARKOV_ORDER - 1), 0);
 
-	error = (add_sequence(&(k.words[w].backward_links_count), &(k.words[w].backward_links), sequence.ptr, 0, 1) | error);
+	error = (add_sequence(&(k.words[w].backward_links_count), &(k.words[w].backward_links), sequence[], 0, 1) | error);
 
 	return error;
 }
@@ -71,13 +71,13 @@ int should_assimilate(ZoO_strings* string, const string[] aliases) {
 	ZoO_index i;
 
 	/* Don't assimilate empty strings. */
-	if (string.words_count == 0) {
+	if (string.words.length == 0) {
 		return 0;
 	}
 
 	/* Don't assimilate things that start with our name. */
 	for (i = 0; i < aliases.length; ++i) {
-		if (strncmp(aliases[i].toStringz, string.words[0], strlen(aliases[i].toStringz)) == 0) {
+		if (strncmp(aliases[i].toStringz, string.words[0].toStringz, strlen(aliases[i].toStringz)) == 0) {
 			return 0;
 		}
 	}
@@ -94,8 +94,8 @@ int init_sequence(ZoO_knowledge* k, ZoO_strings* string, ZoO_index[(ZoO_MARKOV_O
 	for (i = 1; i <= ZoO_MARKOV_ORDER; ++i) {
 		sequence[ZoO_MARKOV_ORDER - i] = ZoO_WORD_START_OF_LINE;
 
-		if (i <= string.words_count) {
-			if (k.learn(string.words[i - 1][0..string.word_sizes[i - 1]], sequence[ZoO_MARKOV_ORDER + i]) < 0) {
+		if (i <= string.words.length) {
+			if (k.learn(string.words[i - 1], sequence[ZoO_MARKOV_ORDER + i]) < 0) {
 				return -1;
 			}
 		}
@@ -134,9 +134,9 @@ int ZoO_knowledge_assimilate(ZoO_knowledge* k, ZoO_strings* string, const string
 	next_word = 0;
 	new_word = ZoO_MARKOV_ORDER;
 
-	while (next_word <= (string.words_count + ZoO_MARKOV_ORDER)) {
-		if (new_word < string.words_count) {
-			if (k.learn(string.words[new_word][0..string.word_sizes[new_word]], new_word_id) < 0) {
+	while (next_word <= (string.words.length + ZoO_MARKOV_ORDER)) {
+		if (new_word < string.words.length) {
+			if (k.learn(string.words[new_word], new_word_id) < 0) {
 				return -1;
 			}
 		}
