@@ -165,10 +165,6 @@ struct ZoO_knowledge {
 		for (i = 0; i < words.length; ++i) {
 			words[i].finalize();
 		}
-
-		if (sorted_indices != null) {
-			sorted_indices = null;
-		}
 	}
 
 	/*
