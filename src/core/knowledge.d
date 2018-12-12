@@ -203,7 +203,6 @@ struct ZoO_knowledge {
 	 *    {*result} may or may not have been altered.
 	 */
 	int learn(const ZoO_char[] word, out ZoO_index result) {
-		ZoO_index[] new_sorted_indices;
 		ZoO_index temp;
 
 		if (find(word, result) == 0) {
@@ -227,20 +226,12 @@ struct ZoO_knowledge {
 
 		words.length++;
 
-		new_sorted_indices = (cast(ZoO_index *) realloc(sorted_indices.ptr, ((words.length + 1) * ZoO_index.sizeof)))[0..words.length];
-
-		if (new_sorted_indices == null) {
-			error("Could not learn the word '"~ZoO_CHAR_STRING_SYMBOL~"': unable to realloc the index list.", word);
-
-			return -1;
-		}
-
-		sorted_indices = new_sorted_indices;
+		sorted_indices.length++;
 
 		/* We can only move indices right of *result if they exist. */
-		if (result < words.length) {
+		if (result < words.length-1) {
 			/* TODO: check if correct. */
-			memmove(sorted_indices.ptr + result + 1, sorted_indices.ptr + result, ((words.length - result) * ZoO_index.sizeof));
+			memmove(sorted_indices.ptr + result + 1, sorted_indices.ptr + result, (words.length - result) * ZoO_index.sizeof);
 		}
 
 		temp = result;
@@ -248,28 +239,6 @@ struct ZoO_knowledge {
 		sorted_indices[result] = cast(uint)words.length-1;
 
 		result = cast(uint)words.length-1;
-
-		/* XXX: strlen assumed to work with ZoO_char. */
-		words[$-1].word_size = word.length;
-
-		if (words[$-1].word_size == SIZE_MAX) {
-			warning("Could not learn word that had a size too big to store in a '\\0' terminated string. Chances are, this is but a symptom of the real problem.");
-
-			return -1;
-		}
-
-		/* We also need '\0' */
-		words[$-1].word_size += 1;
-
-		words[$-1].word = (cast(ZoO_char *) calloc(words[$-1].word_size, ZoO_char.sizeof))[0..words[$-1].word_size];
-
-		if (words[$-1].word == null) {
-			error("Could not learn word due to being unable to allocate the memory to store it.");
-
-			words[$-1].word_size = 0;
-
-			return -1;
-		}
 
 		words[$-1].word = word.dup;
 
