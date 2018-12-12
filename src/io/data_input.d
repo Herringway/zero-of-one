@@ -27,7 +27,7 @@ struct ZoO_data_input {
 		return 0;
 	}
 
-	int read_line(const ZoO_index punctuations_count, const ZoO_char* punctuations) {
+	int read_line(const string punctuations) {
 		size_t i, w_start;
 		ZoO_char[] line;
 
@@ -39,7 +39,7 @@ struct ZoO_data_input {
 			return -1;
 		}
 
-		if (str.parse(line[0..$-1], &punctuations_count, punctuations) < 0) {
+		if (str.parse(line[0..$-1], punctuations) < 0) {
 			return -1;
 		}
 

@@ -3,8 +3,6 @@ module tool.strings;
 import pervasive;
 import io.error;
 
-import core.stdc.stdlib;
-import core.stdc.string;
 import std.experimental.logger;
 import std.string;
 
@@ -32,7 +30,7 @@ struct ZoO_strings {
 	}
 
 
-	int parse_word(const ZoO_index punctuations_count, const ZoO_char* punctuations, char[] line) {
+	int parse_word(const string punctuations, char[] line) {
 		ZoO_index j;
 
 		if (line.length == 0) {
@@ -75,7 +73,7 @@ struct ZoO_strings {
 			}
 		}
 
-		for (j = 0; j < punctuations_count; ++j) {
+		for (j = 0; j < punctuations.length; ++j) {
 			/* overflow-safe: line_size > 1 */
 			if (line[$ - 1] == punctuations[j]) {
 				if (line.length > 1) {
@@ -91,7 +89,7 @@ struct ZoO_strings {
 		return add_word(line.idup);
 	}
 
-	int parse(char[] input, const ZoO_index* punctuations_count, const ZoO_char* punctuations)
+	int parse(char[] input, const string punctuations)
 	{
 		size_t i, w_start;
 
@@ -124,7 +122,7 @@ struct ZoO_strings {
 
 		for (; i < input.length; ++i) {
 			if (input[i] == ' ') {
-				if (parse_word(*punctuations_count, punctuations, input[w_start..i]) < 0) {
+				if (parse_word(punctuations, input[w_start..i]) < 0) {
 					finalize();
 
 					return -1;
@@ -141,7 +139,7 @@ struct ZoO_strings {
 			}
 		}
 
-		if (parse_word(*punctuations_count, punctuations, input[w_start..i]) < 0) {
+		if (parse_word(punctuations, input[w_start..i]) < 0) {
 			finalize();
 
 			return -1;

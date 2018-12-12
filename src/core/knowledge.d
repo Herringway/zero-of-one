@@ -117,7 +117,7 @@ struct ZoO_knowledge {
 
 		error = 0;
 
-		for (i = 0; i < ZoO_knowledge_punctuation_chars_count; ++i) {
+		for (i = 0; i < ZoO_knowledge_punctuation_chars.length; ++i) {
 			w = ZoO_knowledge_punctuation_chars[i];
 
 			if (learn([w], id) < 0) {
@@ -280,9 +280,7 @@ int cmp_word(const void* a, const void* b, const void* other) {
 	return strcmp(word, k.words[*sorted_index].word.toStringz);
 }
 
-/* XXX: are we as close to immutable as we want to be? */
-const uint ZoO_knowledge_punctuation_chars_count = 8;
-const ZoO_char[8] ZoO_knowledge_punctuation_chars = [
+immutable string ZoO_knowledge_punctuation_chars = [
 		'!',
 		',',
 		'.',
@@ -293,9 +291,7 @@ const ZoO_char[8] ZoO_knowledge_punctuation_chars = [
 		'\001'
 	];
 
-/* XXX: are we as close to immutable as we want to be? */
-const uint ZoO_knowledge_forbidden_chars_count = 8;
-const ZoO_char[8] ZoO_knowledge_forbidden_chars = [
+immutable string ZoO_knowledge_forbidden_chars = [
 		'(',
 		')',
 		'[',
