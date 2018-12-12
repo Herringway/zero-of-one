@@ -77,7 +77,7 @@ int should_assimilate(ZoO_strings* string, const string[] aliases) {
 
 	/* Don't assimilate things that start with our name. */
 	for (i = 0; i < aliases.length; ++i) {
-		if (strncmp(aliases[i].toStringz, string.words[0].toStringz, strlen(aliases[i].toStringz)) == 0) {
+		if (aliases[i] == string.words[0]) {
 			return 0;
 		}
 	}

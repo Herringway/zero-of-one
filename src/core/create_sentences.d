@@ -248,7 +248,7 @@ ZoO_index select_first_word(ZoO_knowledge* k, const ZoO_strings* string, const s
 
 	for (i = 0; i < string.words.length; ++i) {
 		for (j = 0; j < aliases.length; ++j) {
-			if (strncmp(aliases[j].toStringz, string.words[i].toStringz, strlen(aliases[j].toStringz)) == 0) {
+			if (aliases[j] == string.words[i]) {
 				goto NEXT_WORD;
 			}
 		}
@@ -269,7 +269,7 @@ ZoO_index select_first_word(ZoO_knowledge* k, const ZoO_strings* string, const s
 
 	for (; i < string.words.length; ++i) {
 		for (j = 0; j < aliases.length; ++j) {
-			if (strncmp(aliases[j].toStringz, string.words[i].toStringz, strlen(aliases[j].toStringz)) == 0) {
+			if (aliases[j] == string.words[i]) {
 				goto NEXT_WORD_BIS;
 			}
 		}
