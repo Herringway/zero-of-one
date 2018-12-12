@@ -42,7 +42,7 @@ int add_sequence(ZoO_index* links_count, ZoO_knowledge_link** links, const ZoO_i
 	return 0;
 }
 
-int add_word_occurrence(ZoO_knowledge* k, const ZoO_index[(ZoO_MARKOV_ORDER * 2) + 1] sequence) {
+int add_word_occurrence(ref ZoO_knowledge k, const ZoO_index[(ZoO_MARKOV_ORDER * 2) + 1] sequence) {
 	ZoO_index w;
 	int error;
 
@@ -74,7 +74,7 @@ int should_assimilate(const ZoO_strings string, const string[] aliases) {
 	return 1;
 }
 
-int init_sequence(ZoO_knowledge* k, ZoO_strings* string, ZoO_index[(ZoO_MARKOV_ORDER * 2) + 1] sequence) {
+int init_sequence(ref ZoO_knowledge k, ZoO_strings* string, ZoO_index[(ZoO_MARKOV_ORDER * 2) + 1] sequence) {
 	ZoO_index i;
 
 	/* We are going to link this sequence to ZoO_WORD_START_OF_LINE */
@@ -96,7 +96,7 @@ int init_sequence(ZoO_knowledge* k, ZoO_strings* string, ZoO_index[(ZoO_MARKOV_O
 	return 0;
 }
 
-int ZoO_knowledge_assimilate(ZoO_knowledge* k, ZoO_strings* string, const string[] aliases) {
+int ZoO_knowledge_assimilate(ref ZoO_knowledge k, ZoO_strings* string, const string[] aliases) {
 	int error;
 	ZoO_index[(ZoO_MARKOV_ORDER * 2) + 1] sequence;
 	ZoO_index next_word, new_word, new_word_id;

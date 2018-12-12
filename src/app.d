@@ -64,7 +64,7 @@ struct ZoO_state {
 		}
 
 		while (input.read_line(ZoO_knowledge_punctuation_chars) == 0) {
-			ZoO_knowledge_assimilate(&knowledge, &input.str, param.aliases);
+			ZoO_knowledge_assimilate(knowledge, &input.str, param.aliases);
 		}
 
 		input.close();
@@ -174,7 +174,7 @@ void handle_message(ref ZoO_state s, ZoO_strings* string_, const ssize_t msg_off
 	}
 
 	if (learn) {
-		ZoO_knowledge_assimilate(&(s.knowledge), string_, s.param.aliases	);
+		ZoO_knowledge_assimilate(s.knowledge, string_, s.param.aliases	);
 	}
 }
 
