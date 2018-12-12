@@ -13,33 +13,18 @@ import io.error;
 import pervasive;
 
 struct ZoO_parameters {
-	string data_filename;
-	string new_data_filename;
+	string data_filename = ZoO_DEFAULT_DATA_FILENAME;
+	string new_data_filename = null;
 
-	string irc_server_addr;
-	string irc_server_port;
-	string irc_server_channel;
-	string irc_username;
-	string irc_realname;
+	string irc_server_addr = ZoO_DEFAULT_IRC_SERVER_ADDR;
+	string irc_server_port = ZoO_DEFAULT_IRC_SERVER_PORT;
+	string irc_server_channel = ZoO_DEFAULT_IRC_SERVER_CHANNEL;
+	string irc_username = ZoO_DEFAULT_IRC_USERNAME;
+	string irc_realname = ZoO_DEFAULT_IRC_REALNAME;
 
-	int reply_rate;
+	int reply_rate = ZoO_DEFAULT_REPLY_RATE;
 
-	const(string)[] aliases;
-}
-
-void load_default_parameters(ref ZoO_parameters param) {
-	param.data_filename        = ZoO_DEFAULT_DATA_FILENAME;
-	param.new_data_filename    = null;
-
-	param.irc_server_addr     = ZoO_DEFAULT_IRC_SERVER_ADDR;
-	param.irc_server_port     = ZoO_DEFAULT_IRC_SERVER_PORT;
-	param.irc_server_channel  = ZoO_DEFAULT_IRC_SERVER_CHANNEL;
-	param.irc_username        = ZoO_DEFAULT_IRC_USERNAME;
-	param.irc_realname        = ZoO_DEFAULT_IRC_REALNAME;
-
-	param.reply_rate          = ZoO_DEFAULT_REPLY_RATE;
-
-	param.aliases = [];
+	const(string)[] aliases = [];
 }
 
 void print_help(const string exec) {
@@ -128,8 +113,6 @@ int parse_integer_arg(int* dest, const int i, const string[] args, const int min
 
 int ZoO_parameters_initialize(ref ZoO_parameters param, const string[] args) {
 	int i;
-
-	load_default_parameters(param);
 
 	for (i = 1; i < args.length; ++i) {
 		if ((args[i] == "--data-filename") || (args[i] == "-df")) {

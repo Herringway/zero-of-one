@@ -3,6 +3,7 @@ module core.knowledge;
 import core.stdc.stdint;
 import core.stdc.stdlib;
 import core.stdc.string;
+import std.string;
 
 import std.experimental.logger;
 
@@ -39,14 +40,14 @@ struct ZoO_knowledge_link {
 }
 
 struct ZoO_knowledge_word {
-	size_t word_size;
-	ZoO_char* word;
-	ZoO_knowledge_special_effect special;
-	ZoO_index occurrences;
-	ZoO_index forward_links_count;
-	ZoO_index backward_links_count;
-	ZoO_knowledge_link* forward_links;
-	ZoO_knowledge_link* backward_links;
+	size_t word_size = 0;
+	ZoO_char[] word = null;
+	ZoO_knowledge_special_effect special = ZoO_knowledge_special_effect.HAS_NO_EFFECT;
+	ZoO_index occurrences = 1;
+	ZoO_index forward_links_count = 0;
+	ZoO_index backward_links_count = 0;
+	ZoO_knowledge_link* forward_links = null;
+	ZoO_knowledge_link* backward_links = null;
 
 	/*
 	 * Frees all the memory used by {w}, but not {w} itself.
@@ -72,22 +73,11 @@ struct ZoO_knowledge_word {
 		forward_links_count  = 0;
 		backward_links_count = 0;
 	}
-
-	void initialize() {
-		word_size = 0;
-		word = null;
-		special = ZoO_knowledge_special_effect.HAS_NO_EFFECT;
-		occurrences = 1;
-		forward_links_count  = 0;
-		backward_links_count = 0;
-		forward_links  = null;
-		backward_links = null;
-	}
 }
 
 
 struct ZoO_knowledge {
-	ZoO_index* sorted_indices;
+	ZoO_index[] sorted_indices;
 	ZoO_knowledge_word[] words;
 
 	/*
@@ -104,7 +94,7 @@ struct ZoO_knowledge {
 	 */
 	int add_punctuation_nodes() {
 		int error;
-		char[2] w;
+		char w;
 		ZoO_index i, id;
 
 		if (learn("START OF LINE", id) < 0) {
@@ -125,14 +115,12 @@ struct ZoO_knowledge {
 		words[id].special = ZoO_knowledge_special_effect.ENDS_SENTENCE;
 		words[id].occurrences = 0;
 
-		w[1] = '\0';
-
 		error = 0;
 
 		for (i = 0; i < ZoO_knowledge_punctuation_chars_count; ++i) {
-			w[0] = ZoO_knowledge_punctuation_chars[i];
+			w = ZoO_knowledge_punctuation_chars[i];
 
-			if (learn(w.ptr, id) < 0) {
+			if (learn([w], id) < 0) {
 				warningf("Could not add '%s' to knowledge.", w);
 
 				error = -1;
@@ -158,9 +146,6 @@ struct ZoO_knowledge {
 	 *    {k} has been finalized.
 	 */
 	int initialize() {
-		words = null;
-		sorted_indices = null;
-
 		if (add_punctuation_nodes() < -1) {
 			finalize();
 
@@ -199,7 +184,7 @@ struct ZoO_knowledge {
 	int find(const ZoO_char* word, out ZoO_index result) const {
 		ZoO_index r;
 
-		if (ZoO_sorted_list_index_of(cast(uint)words.length, sorted_indices, word, ZoO_index.sizeof, &cmp_word, &this, &r) == 0) {
+		if (ZoO_sorted_list_index_of(cast(uint)words.length, sorted_indices.ptr, word, ZoO_index.sizeof, &cmp_word, &this, &r) == 0) {
 			result = sorted_indices[r];
 
 			return 0;
@@ -221,11 +206,11 @@ struct ZoO_knowledge {
 	 *    {k} remains semantically unchanged.
 	 *    {*result} may or may not have been altered.
 	 */
-	int learn(const ZoO_char* word, out ZoO_index result) {
-		ZoO_index * new_sorted_indices;
+	int learn(const ZoO_char[] word, out ZoO_index result) {
+		ZoO_index[] new_sorted_indices;
 		ZoO_index temp;
 
-		if (find(word, result) == 0) {
+		if (find(word.toStringz, result) == 0) {
 			if (words[result].occurrences == ZoO_INDEX_MAX) {
 				warningf("Maximum number of occurrences has been reached for word '"~ZoO_CHAR_STRING_SYMBOL~"'.", word);
 
@@ -246,7 +231,7 @@ struct ZoO_knowledge {
 
 		words.length++;
 
-		new_sorted_indices = cast(ZoO_index *) realloc(sorted_indices, ((words.length + 1) * ZoO_index.sizeof));
+		new_sorted_indices = (cast(ZoO_index *) realloc(sorted_indices.ptr, ((words.length + 1) * ZoO_index.sizeof)))[0..words.length];
 
 		if (new_sorted_indices == null) {
 			error("Could not learn the word '"~ZoO_CHAR_STRING_SYMBOL~"': unable to realloc the index list.", word);
@@ -259,7 +244,7 @@ struct ZoO_knowledge {
 		/* We can only move indices right of *result if they exist. */
 		if (result < words.length) {
 			/* TODO: check if correct. */
-			memmove(sorted_indices + result + 1, sorted_indices + result, ((words.length - result) * ZoO_index.sizeof));
+			memmove(sorted_indices.ptr + result + 1, sorted_indices.ptr + result, ((words.length - result) * ZoO_index.sizeof));
 		}
 
 		temp = result;
@@ -268,10 +253,8 @@ struct ZoO_knowledge {
 
 		result = cast(uint)words.length-1;
 
-		words[$-1].initialize();
-
 		/* XXX: strlen assumed to work with ZoO_char. */
-		words[$-1].word_size = strlen(word);
+		words[$-1].word_size = word.length;
 
 		if (words[$-1].word_size == SIZE_MAX) {
 			warning("Could not learn word that had a size too big to store in a '\\0' terminated string. Chances are, this is but a symptom of the real problem.");
@@ -282,7 +265,7 @@ struct ZoO_knowledge {
 		/* We also need '\0' */
 		words[$-1].word_size += 1;
 
-		words[$-1].word = cast(ZoO_char *) calloc(words[$-1].word_size, ZoO_char.sizeof);
+		words[$-1].word = (cast(ZoO_char *) calloc(words[$-1].word_size, ZoO_char.sizeof))[0..words[$-1].word_size];
 
 		if (words[$-1].word == null) {
 			error("Could not learn word due to being unable to allocate the memory to store it.");
@@ -292,9 +275,9 @@ struct ZoO_knowledge {
 			return -1;
 		}
 
-		memcpy(words[$-1].word, word, words[$-1].word_size);
+		words[$-1].word = word.dup;
 
-		tracef(ZoO_DEBUG_LEARNING, "Learned word {'%s', id: %u, rank: %u}", word[0..strlen(word)], words.length, temp);
+		tracef(ZoO_DEBUG_LEARNING, "Learned word {'%s', id: %u, rank: %u}", word, words.length, temp);
 
 		return 0;
 	}
@@ -309,7 +292,7 @@ int cmp_word(const void* a, const void* b, const void* other) {
 	const ZoO_index* sorted_index = cast(const ZoO_index*) b;
 	const ZoO_knowledge* k = cast(ZoO_knowledge *) other;
 
-	return strcmp(word, k.words[*sorted_index].word);
+	return strcmp(word, k.words[*sorted_index].word.toStringz);
 }
 
 /* XXX: are we as close to immutable as we want to be? */

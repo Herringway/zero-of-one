@@ -117,15 +117,15 @@ char[] extend_left(ZoO_knowledge* k, ZoO_index* sequence, ZoO_char[] current_sen
 
 		switch (w.special) {
 			case ZoO_knowledge_special_effect.HAS_NO_EFFECT:
-				snprintf(next_sentence.ptr, current_sentence.length, " "~ZoO_CHAR_STRING_SYMBOL~ZoO_CHAR_STRING_SYMBOL, w.word, current_sentence.ptr);
+				snprintf(next_sentence.ptr, current_sentence.length, " "~ZoO_CHAR_STRING_SYMBOL~ZoO_CHAR_STRING_SYMBOL, w.word.toStringz, current_sentence.ptr);
 				break;
 
 			case ZoO_knowledge_special_effect.REMOVES_LEFT_SPACE:
-				snprintf(next_sentence.ptr, current_sentence.length, ZoO_CHAR_STRING_SYMBOL~ZoO_CHAR_STRING_SYMBOL, w.word, current_sentence.ptr);
+				snprintf(next_sentence.ptr, current_sentence.length, ZoO_CHAR_STRING_SYMBOL~ZoO_CHAR_STRING_SYMBOL, w.word.toStringz, current_sentence.ptr);
 				break;
 
 			case ZoO_knowledge_special_effect.REMOVES_RIGHT_SPACE:
-				snprintf(next_sentence.ptr, current_sentence.length, ZoO_CHAR_STRING_SYMBOL~ZoO_CHAR_STRING_SYMBOL, w.word, (current_sentence[1..$].ptr));
+				snprintf(next_sentence.ptr, current_sentence.length, ZoO_CHAR_STRING_SYMBOL~ZoO_CHAR_STRING_SYMBOL, w.word.toStringz, (current_sentence[1..$].ptr));
 				break;
 
 			default:
@@ -208,11 +208,11 @@ char[] extend_right(ZoO_knowledge* k, ZoO_index* sequence, ZoO_char[] current_se
 				goto case;
 
 			case ZoO_knowledge_special_effect.HAS_NO_EFFECT:
-				snprintf(next_sentence.ptr, current_sentence.length, ZoO_CHAR_STRING_SYMBOL~ZoO_CHAR_STRING_SYMBOL~" ", current_sentence.ptr, w.word);
+				snprintf(next_sentence.ptr, current_sentence.length, ZoO_CHAR_STRING_SYMBOL~ZoO_CHAR_STRING_SYMBOL~" ", current_sentence.ptr, w.word.toStringz);
 				break;
 
 			case ZoO_knowledge_special_effect.REMOVES_RIGHT_SPACE:
-				snprintf(next_sentence.ptr, current_sentence.length, ZoO_CHAR_STRING_SYMBOL~ZoO_CHAR_STRING_SYMBOL, current_sentence.ptr, w.word);
+				snprintf(next_sentence.ptr, current_sentence.length, ZoO_CHAR_STRING_SYMBOL~ZoO_CHAR_STRING_SYMBOL, current_sentence.ptr, w.word.toStringz);
 				break;
 
 			default:
@@ -367,18 +367,18 @@ int ZoO_knowledge_extend(ZoO_knowledge* k, const ZoO_strings* string, const stri
 		case ZoO_knowledge_special_effect.REMOVES_LEFT_SPACE:
 		case ZoO_knowledge_special_effect.REMOVES_RIGHT_SPACE:
 			/* word + ' ' + '\0' */
-			sentence_size = (strlen(k.words[first_word].word) + 2);
+			sentence_size = (strlen(k.words[first_word].word.toStringz) + 2);
 			break;
 
 		case ZoO_knowledge_special_effect.HAS_NO_EFFECT:
 			/* word + ' ' * 2 + '\0' */
-			sentence_size = (strlen(k.words[first_word].word) + 3);
+			sentence_size = (strlen(k.words[first_word].word.toStringz) + 3);
 			break;
 
 		default:
-			warningf("'%s' was unexpectedly selected as pillar.", k.words[first_word].word.fromStringz);
+			warningf("'%s' was unexpectedly selected as pillar.", k.words[first_word].word);
 			/* word + '[' + ']' + ' ' * 2 + '\0' */
-			sentence_size = (strlen(k.words[first_word].word) + 5);
+			sentence_size = (strlen(k.words[first_word].word.toStringz) + 5);
 			break;
 	}
 
@@ -386,19 +386,19 @@ int ZoO_knowledge_extend(ZoO_knowledge* k, const ZoO_strings* string, const stri
 
 	switch (k.words[first_word].special) {
 		case ZoO_knowledge_special_effect.REMOVES_LEFT_SPACE:
-			snprintf(result.ptr, sentence_size, ZoO_CHAR_STRING_SYMBOL~" ", k.words[first_word].word);
+			snprintf(result.ptr, sentence_size, ZoO_CHAR_STRING_SYMBOL~" ", k.words[first_word].word.toStringz);
 			break;
 
 		case ZoO_knowledge_special_effect.REMOVES_RIGHT_SPACE:
-			snprintf(result.ptr, sentence_size, " "~ZoO_CHAR_STRING_SYMBOL, k.words[first_word].word);
+			snprintf(result.ptr, sentence_size, " "~ZoO_CHAR_STRING_SYMBOL, k.words[first_word].word.toStringz);
 			break;
 
 		case ZoO_knowledge_special_effect.HAS_NO_EFFECT:
-			snprintf(result.ptr, sentence_size, " "~ZoO_CHAR_STRING_SYMBOL~" ", k.words[first_word].word);
+			snprintf(result.ptr, sentence_size, " "~ZoO_CHAR_STRING_SYMBOL~" ", k.words[first_word].word.toStringz);
 			break;
 
 		default:
-			snprintf(result.ptr, sentence_size, " ["~ZoO_CHAR_STRING_SYMBOL~"] ", k.words[first_word].word);
+			snprintf(result.ptr, sentence_size, " ["~ZoO_CHAR_STRING_SYMBOL~"] ", k.words[first_word].word.toStringz);
 			break;
 	}
 

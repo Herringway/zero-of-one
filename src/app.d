@@ -36,46 +36,47 @@ struct ZoO_state {
 	ZoO_parameters param;
 	ZoO_knowledge knowledge;
 	ZoO_network network;
-}
 
-int initialize(ZoO_state* s, const string[] args) {
-	trace(ZoO_DEBUG_PROGRAM_FLOW, "Zero of One is initializing...");
+	int initialize(const string[] args) {
+		trace(ZoO_DEBUG_PROGRAM_FLOW, "Zero of One is initializing...");
 
-	srand(cast(uint)time(null));
+		srand(cast(uint)time(null));
 
-	if (s.knowledge.initialize() < 0) {
-		return -1;
+		if (knowledge.initialize() < 0) {
+			return -1;
+		}
+
+		if (ZoO_parameters_initialize(param, args) < 1) {
+			knowledge.finalize();
+
+			return -1;
+		}
+
+		return 0;
 	}
 
-	if (ZoO_parameters_initialize(s.param, args) < 1) {
-		s.knowledge.finalize();
+	int load_data_file() {
+		ZoO_data_input input;
+		char* result;
 
-		return -1;
+		if (input.open(param.data_filename) < 0) {
+			return -1;
+		}
+
+		while (input.read_line(ZoO_knowledge_punctuation_chars_count, ZoO_knowledge_punctuation_chars.ptr) == 0) {
+			ZoO_knowledge_assimilate(&knowledge, &input.str, param.aliases);
+		}
+
+		input.close();
+
+		return 0;
 	}
 
-	return 0;
-}
-
-int load_data_file(ZoO_state* s) {
-	ZoO_data_input input;
-	char* result;
-
-	if (input.open(s.param.data_filename) < 0) {
-		return -1;
+	int network_connect () {
+		return network.connect(param.irc_server_addr, param.irc_server_port, param.irc_server_channel, param.irc_username, param.irc_realname, param.aliases[0]);
 	}
-
-	while (input.read_line(ZoO_knowledge_punctuation_chars_count, ZoO_knowledge_punctuation_chars.ptr) == 0) {
-		ZoO_knowledge_assimilate(&(s.knowledge), &(input.str), s.param.aliases);
-	}
-
-	input.close();
-
-	return 0;
 }
 
-int network_connect (ZoO_state* s) {
-	return s.network.connect(s.param.irc_server_addr, s.param.irc_server_port, s.param.irc_server_channel, s.param.irc_username, s.param.irc_realname, s.param.aliases[0]);
-}
 
 int should_reply(ZoO_parameters* param, ZoO_strings* string_, int* should_learn) {
 	ZoO_index i, j;
@@ -208,17 +209,17 @@ int main_loop(ZoO_state* s) {
 }
 
 int main(string[] args) {
-	ZoO_state s = void;
+	ZoO_state s;
 
-	if (initialize(&s, args) < 0) {
+	if (s.initialize(args) < 0) {
 		return -1;
 	}
 
-	if (load_data_file(&s) < 0) {
+	if (s.load_data_file() < 0) {
 		goto CRASH;
 	}
 
-	if (network_connect(&s) < 0) {
+	if (s.network_connect() < 0) {
 		goto CRASH;
 	}
 
