@@ -181,10 +181,10 @@ struct ZoO_knowledge {
 	 *    {*result} is where {word} was expected to be found in
 	 *    {k.sorted_indices}.
 	 */
-	int find(const ZoO_char* word, out ZoO_index result) const {
+	int find(const ZoO_char[] word, out ZoO_index result) const {
 		ZoO_index r;
 
-		if (ZoO_sorted_list_index_of(cast(uint)words.length, sorted_indices.ptr, word, ZoO_index.sizeof, &cmp_word, &this, &r) == 0) {
+		if (ZoO_sorted_list_index_of(cast(uint)words.length, sorted_indices.ptr, word.toStringz, ZoO_index.sizeof, &cmp_word, &this, &r) == 0) {
 			result = sorted_indices[r];
 
 			return 0;
@@ -210,7 +210,7 @@ struct ZoO_knowledge {
 		ZoO_index[] new_sorted_indices;
 		ZoO_index temp;
 
-		if (find(word.toStringz, result) == 0) {
+		if (find(word, result) == 0) {
 			if (words[result].occurrences == ZoO_INDEX_MAX) {
 				warningf("Maximum number of occurrences has been reached for word '"~ZoO_CHAR_STRING_SYMBOL~"'.", word);
 
