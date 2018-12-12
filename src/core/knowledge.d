@@ -283,6 +283,26 @@ struct ZoO_knowledge {
 	}
 }
 
+unittest {
+	ZoO_knowledge knowledge;
+	knowledge.initialize();
+	assert(knowledge.words[0].word == "START OF LINE");
+	assert(knowledge.words[$-1].word == [ZoO_knowledge_punctuation_chars[$-1]]);
+	ZoO_index i;
+	knowledge.learn("hello", i);
+	assert(knowledge.words[i].word == "hello");
+	assert(knowledge.words[i].occurrences == 1);
+	knowledge.learn("word", i);
+	knowledge.learn("hello", i);
+	assert(knowledge.words[i].word == "hello");
+	assert(knowledge.words[i].occurrences == 2);
+	assert(i > 0);
+	assert(knowledge.words[i-1].word != "hello");
+
+	knowledge.find("hello", i);
+	assert(knowledge.words[i].word == "hello");
+}
+
 void finalize_links(const ZoO_index count, ZoO_knowledge_link* links) {
 	ZoO_index i;
 }
