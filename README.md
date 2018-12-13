@@ -8,7 +8,6 @@ soon as possible. As all learned data is stored in plain text, switching
 should not cause any issues.
 
 ## Dependencies
-- POSIX compliant OS.
 - D compiler.
 - Dub.
 
@@ -53,7 +52,6 @@ any inputs, as all inputs are converted to lowercase. A simple solution is to
 have a lowercase version of NICKNAME in the ALIAS list.
 
 ## Main Objectives
-- POSIX compliance.
 - Paranoia levels of error checking.
 - Low RAM usage.
 - Giggles.
