@@ -276,7 +276,7 @@ struct ZoO_network {
 
 		in_[in_length + 2] = '\0';
 
-		if (strncmp("PING", in_.ptr, "PING".length) == 0) {
+		if (in_[0..4] == "PING") {
 
 			handle_ping();
 
@@ -302,7 +302,7 @@ struct ZoO_network {
 				}
 			}
 
-			if (strncmp("001", (in_.ptr + cmd), strlen("001")) == 0) {
+			if (in_[cmd..cmd+3] == "001") {
 				snprintf(out_.ptr, 512, "JOIN :%s\r\n", channel.toStringz);
 
 				errno = 0;
@@ -324,7 +324,7 @@ struct ZoO_network {
 				goto READ_NEW_MSG;
 			}
 
-			if (strncmp("JOIN", (in_.ptr + cmd), strlen("JOIN")) == 0) {
+			if (in_[cmd..cmd+4] == "JOIN") {
 				for (i = 1; (i < 512) && (in_[i] != '!'); ++i) {}
 
 				if ((i == 512) || (i == 1)) {
@@ -342,7 +342,7 @@ struct ZoO_network {
 				return 0;
 			}
 
-			if (strncmp("PRIVMSG", (in_.ptr + cmd), strlen("PRIVMSG")) == 0) {
+			if (in_[cmd..cmd+7] == "PRIVMSG") {
 
 				for (; i < 512; i++) {
 					if (in_[i] == ':') {
@@ -361,7 +361,7 @@ struct ZoO_network {
 			}
 		}
 
-		if (strncmp("ERROR", (in_.ptr + cmd), strlen("ERROR")) == 0) {
+		if (in_[cmd..cmd+5] == "ERROR") {
 			while (reconnect() < 0) {
 				trace(ZoO_DEBUG_NETWORK, "Attempting new connection in 5s.");
 				sleep(5);
@@ -374,7 +374,7 @@ struct ZoO_network {
 	int send() {
 		const int old_errno = errno;
 
-		if (strncmp("\001action".ptr, out_.ptr, strlen("\001action")) == 0) {
+		if (out_[0..7] == "\001action") {
 
 			out_[1] = 'A';
 			out_[2] = 'C';
