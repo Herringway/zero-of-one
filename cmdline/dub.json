@@ -1,0 +1,8 @@
+{
+    "name": "cmdline",
+    "targetType": "executable",
+    "dependencies":
+    {
+        "zero-of-one": "*"
+    }
+}

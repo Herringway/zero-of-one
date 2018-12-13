@@ -8,6 +8,7 @@
 	"copyright": "Copyright © 2018, Cameron \"Herringway\" Ross",
 	"name": "zero-of-one",
 	"subPackages": [
-		"ircbot"
+		"ircbot",
+		"cmdline"
 	]
 }
