@@ -63,7 +63,7 @@ ZoO_index pick_index(const ZoO_index[] links_occurrences) @safe {
 	return result;
 }
 
-char[] extend_left(ref ZoO_knowledge k, ZoO_index* sequence, ZoO_char[] current_sentence, ZoO_index* credits) {
+char[] extend_left(ref ZoO_knowledge k, ZoO_index* sequence, ZoO_char[] current_sentence, ref ZoO_index credits) {
 	size_t addition_size;
 	ZoO_knowledge_word * w;
 	ZoO_char[] next_sentence;
@@ -72,11 +72,11 @@ char[] extend_left(ref ZoO_knowledge k, ZoO_index* sequence, ZoO_char[] current_
 	next_sentence = current_sentence;
 
 	for (;;) {
-		if (*credits == 0) {
+		if (credits == 0) {
 			return current_sentence;
 		}
 
-		*credits -= 1;
+		credits -= 1;
 
 		w = &k.words[sequence[ZoO_MARKOV_ORDER - 1]];
 
@@ -151,7 +151,7 @@ char[] extend_left(ref ZoO_knowledge k, ZoO_index* sequence, ZoO_char[] current_
 	assert(0);
 }
 
-char[] extend_right(ref ZoO_knowledge k, ZoO_index* sequence, ZoO_char[] current_sentence, ZoO_index* credits) {
+char[] extend_right(ref ZoO_knowledge k, ZoO_index* sequence, ZoO_char[] current_sentence, ref ZoO_index credits) {
 	size_t addition_size;
 	ZoO_knowledge_word * w;
 	ZoO_char[] next_sentence;
@@ -160,11 +160,11 @@ char[] extend_right(ref ZoO_knowledge k, ZoO_index* sequence, ZoO_char[] current
 	next_sentence = current_sentence;
 
 	for (;;) {
-		if (*credits == 0) {
+		if (credits == 0) {
 			return current_sentence;
 		}
 
-		*credits -= 1;
+		credits -= 1;
 
 		w = &k.words[sequence[0]];
 
@@ -401,9 +401,9 @@ int ZoO_knowledge_extend(ref ZoO_knowledge k, const ZoO_strings* string, const s
 			break;
 	}
 
-	result = extend_right(k, (sequence.ptr + ZoO_MARKOV_ORDER + 1), result, &credits);
+	result = extend_right(k, (sequence.ptr + ZoO_MARKOV_ORDER + 1), result, credits);
 
-	result = extend_left(k, sequence.ptr, result, &credits);
+	result = extend_left(k, sequence.ptr, result, credits);
 
 	return 0;
 }
