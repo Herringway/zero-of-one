@@ -1,5 +1,6 @@
 module io.network;
 
+import std.format;
 import std.string;
 import std.experimental.logger;
 
@@ -7,13 +8,13 @@ import io.error;
 
 import pervasive;
 
-import core.stdc.errno;
-import core.stdc.stdio;
-import core.stdc.string;
+import core.stdc.errno : errno;
+import core.stdc.string : strerror, memset, memmove;
 
-import core.sys.posix.sys.time;
-import core.sys.posix.unistd;
-import core.sys.posix.netdb;
+import core.sys.posix.sys.time : timeval;
+import core.sys.posix.unistd : ssize_t, read, sleep, write, close;
+static import core.sys.posix.netdb;
+import core.sys.posix.netdb : getaddrinfo, freeaddrinfo, AF_INET, SOCK_STREAM, EAI_SYSTEM, setsockopt, socket, SOL_SOCKET, SO_RCVTIMEO, SO_SNDTIMEO, gai_strerror;
 
 enum ZoO_msg_type {
 	PRIVMSG,
@@ -23,11 +24,10 @@ enum ZoO_msg_type {
 struct ZoO_network {
 	size_t buffer_index;
 	size_t buffer_remaining;
-	size_t in_length;
 	core.sys.posix.netdb.addrinfo* addrinfo;
 	ZoO_char[513] buffer;
-	ZoO_char[513] in_;
-	ZoO_char[513] out_;
+	ZoO_char[] in_;
+	ZoO_char[] out_;
 	int connection;
 	string channel;
 	string user;
@@ -80,8 +80,6 @@ struct ZoO_network {
 	int reconnect() {
 		const int old_errno = errno;
 
-		in_ = 0;
-		out_ = 0;
 		buffer = 0;
 
 		buffer_index = 0;
@@ -91,15 +89,15 @@ struct ZoO_network {
 			return -1;
 		}
 
-		snprintf(out_.ptr, 512, "USER %s 8 * :%s\r\n", user.toStringz, name.toStringz);
+		out_ = format!"USER %s 8 *:%s\r\n"(user, name).dup;
 
-		if (write(connection, out_.ptr, strlen(out_.ptr)) < 1) {
+		if (write(connection, out_.ptr, out_.length) < 1) {
 			goto RETURN_WRITE_FAILED;
 		}
 
-		snprintf(out_.ptr, 512, "NICK %s\r\n", nick.toStringz);
+		out_ = format!"NICK %s\r\n"(nick).dup;
 
-		if (write(connection, out_.ptr, strlen(out_.ptr)) < 1) {
+		if (write(connection, out_.ptr, out_.length) < 1) {
 			goto RETURN_WRITE_FAILED;
 		}
 
@@ -134,8 +132,6 @@ struct ZoO_network {
 		buffer_remaining = 0;
 
 		memset(&hints, 0, addrinfo.sizeof);
-		in_ = 0;
-		out_ = 0;
 		buffer = 0;
 
 		hints.ai_family = AF_INET;
@@ -189,14 +185,16 @@ struct ZoO_network {
 		}
 
 	PARSE_READ:
+		if (buffer_index == 0) {
+			in_ = new char[](513);
+		}
 		for (i = 0; i < in_count; ++i) {
 			in_[buffer_index] = buffer[i];
 
 			if ((buffer_index > 0) && (in_[buffer_index - 1] == '\r') && (in_[buffer_index] == '\n')) {
 				buffer_remaining = (in_count - (i + 1));
-				in_length = (buffer_index - 1);
+				in_ = in_[0..buffer_index];
 				buffer_index = 0;
-
 				if (buffer_remaining > 0) {
 					memmove(buffer.ptr, buffer.ptr + (i + 1), buffer_remaining);
 				}
@@ -232,19 +230,13 @@ struct ZoO_network {
 
 		}
 
-		static if(ZoO_DEBUG_NETWORK_PING == 1) {
-			in_[in_length] = '\0';
-
-			tracef(ZoO_DEBUG_NETWORK, "[NET.in] %s", in_.fromStringz);
-
-			in_[in_length] = '\r';
-		}
+		tracef(ZoO_DEBUG_NETWORK_PING, "[NET.in] %s", in_);
 
 		in_[1] = 'O';
 
 		errno = 0;
 
-		if (write(connection, in_.ptr, (in_length + 2)) < 1) {
+		if (write(connection, in_.ptr, in_.length) < 1) {
 			error("Could not reply to PING request: %s", strerror(errno).fromStringz);
 
 			errno = old_errno;
@@ -259,11 +251,7 @@ struct ZoO_network {
 
 		errno = old_errno;
 
-		static if (ZoO_DEBUG_NETWORK_PING == 1) {
-			in_[in_length] = '\0';
-
-			tracef(ZoO_DEBUG_NETWORK, "[NET.out] %s", in_.fromStringz);
-		}
+		tracef(ZoO_DEBUG_NETWORK_PING, "[NET.out] %s", in_);
 
 	}
 
@@ -274,8 +262,6 @@ struct ZoO_network {
 	READ_NEW_MSG:
 		buffer_msg();
 
-		in_[in_length + 2] = '\0';
-
 		if (in_[0..4] == "PING") {
 
 			handle_ping();
@@ -283,13 +269,11 @@ struct ZoO_network {
 			goto READ_NEW_MSG;
 		}
 
-		if (in_length == 0) {
+		if (in_.length == 0) {
 			goto READ_NEW_MSG;
 		}
 
-		in_[in_length] = '\0';
-
-		tracef(ZoO_DEBUG_NETWORK, "[NET.in] %s", in_.ptr.fromStringz);
+		tracef(ZoO_DEBUG_NETWORK, "[NET.in] %s", in_);
 
 		if (in_[0] == ':') {
 			cmd = 0;
@@ -303,11 +287,11 @@ struct ZoO_network {
 			}
 
 			if (in_[cmd..cmd+3] == "001") {
-				snprintf(out_.ptr, 512, "JOIN :%s\r\n", channel.toStringz);
+				out_ = format!"JOIN :%s\r\n"(channel).dup;
 
 				errno = 0;
 
-				if (write(connection, out_.ptr, strlen(out_.ptr)) < 1) {
+				if (write(connection, out_.ptr, out_.length) < 1) {
 					error("Could not send JOIN request: %s", strerror(errno));
 
 					errno = old_errno;
@@ -319,7 +303,7 @@ struct ZoO_network {
 
 				errno = old_errno;
 
-				tracef(ZoO_DEBUG_NETWORK, "[NET.out] %s", out_.ptr.fromStringz);
+				tracef(ZoO_DEBUG_NETWORK, "[NET.out] %s", out_[0..$-2]);
 
 				goto READ_NEW_MSG;
 			}
@@ -353,7 +337,7 @@ struct ZoO_network {
 				}
 
 				msg_offset = cmd;
-				msg_size = (in_length - cmd);
+				msg_size = in_.length - cmd - 1;
 
 				type = ZoO_msg_type.PRIVMSG;
 
@@ -383,14 +367,14 @@ struct ZoO_network {
 			out_[5] = 'O';
 			out_[6] = 'N';
 
-			snprintf(in_.ptr, 512, "PRIVMSG %s :%s\001\r\n", channel.toStringz, out_.ptr);
+			in_ = format!"PRIVMSG %s :%s\001\r\n"(channel, out_).dup;
 		} else {
-			snprintf(in_.ptr, 512, "PRIVMSG %s :%s\r\n", channel.toStringz, out_.ptr);
+			in_ = format!"PRIVMSG %s :%s\r\n"(channel, out_).dup;
 		}
 
 		errno = 0;
 
-		if (write(connection, in_.ptr, strlen(in_.ptr)) < 1) {
+		if (write(connection, in_.ptr, in_.length) < 1) {
 			error("Could not send PRIVMSG: %s.", strerror(errno));
 
 			errno = old_errno;
@@ -404,7 +388,7 @@ struct ZoO_network {
 
 		errno = old_errno;
 
-		tracef(ZoO_DEBUG_NETWORK, "[NET.out] %s", in_[0..in_length]);
+		tracef(ZoO_DEBUG_NETWORK, "[NET.out] %s", in_[0..$-2]);
 
 		return 0;
 	}

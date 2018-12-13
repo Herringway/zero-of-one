@@ -72,7 +72,7 @@ struct ZoO_state {
 		return 0;
 	}
 
-	int network_connect () {
+	int network_connect() {
 		return network.connect(param.irc_server_addr, param.irc_server_port, param.irc_server_channel, param.irc_username, param.irc_realname, param.aliases[0]);
 	}
 }
@@ -160,7 +160,7 @@ void handle_message(ref ZoO_state s, ref ZoO_strings string_, const ssize_t msg_
 		* It would be best to do that after replying, but by then we no longer
 		* have the string in 's.network.in'.
 		*/
-		ZoO_data_output_write_line(s.param.new_data_filename, (&s.network.in_[msg_offset]).fromStringz.idup);
+		ZoO_data_output_write_line(s.param.new_data_filename, s.network.in_[msg_offset..msg_offset+msg_size].idup);
 	}
 
 	if (reply && (ZoO_knowledge_extend(s.knowledge, &string_, s.param.aliases, line) == 0)) {
