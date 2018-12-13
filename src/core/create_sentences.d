@@ -285,7 +285,7 @@ ZoO_index select_first_word(ref ZoO_knowledge k, const ZoO_strings* string, cons
 }
 
 
-void init_sequence(ref ZoO_knowledge k, const ZoO_strings* string, const string[] aliases, ZoO_index[(ZoO_MARKOV_ORDER * 2) + 1] sequence) {
+void init_sequence(ref ZoO_knowledge k, const ZoO_strings* string, const string[] aliases, ref ZoO_index[(ZoO_MARKOV_ORDER * 2) + 1] sequence) {
 	ZoO_index i, j, accumulator, random_number;
 	ZoO_knowledge_word * fiw;
 
