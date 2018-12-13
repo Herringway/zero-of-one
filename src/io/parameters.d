@@ -66,45 +66,28 @@ void print_help(const string exec) {
 	);
 }
 
-int parse_string_arg(string* dest, const int i, const string[] args) {
+int parse_string_arg(out string dest, const int i, const string[] args) {
 	if (i == args.length) {
 		criticalf("Missing value for parameter '%s'.", args[i - 1]);
 
 		return -1;
 	}
 
-	*dest = args[i];
+	dest = args[i];
 
 	return 0;
 }
 
 
-int parse_integer_arg(int* dest, const int i, const string[] args, const int min_val, const int max_val) {
-	long result;
-	char * endptr;
-	const int old_errno = errno;
-
+int parse_integer_arg(out int dest, const int i, const string[] args, const int min_val, const int max_val) {
+	import std.conv : to;
 	if (i == args.length) {
 		criticalf("Missing value for parameter '%s'.", args[i - 1]);
 
 		return -1;
 	}
 
-	errno = 0;
-
-	result = strtol(cast(char*)args[i].toStringz, &endptr, 10);
-
-	if ((errno != 0) || ((*endptr) == '\n') || (result < min_val) || (result > max_val)) {
-		criticalf("Invalid or missing value for parameter '%s', accepted range is [%d, %d] (integer).", args[i - 1], min_val, max_val);
-
-		errno = old_errno;
-
-		return -1;
-	}
-
-	*dest = cast(int) result;
-
-	errno = old_errno;
+	dest = args[i].to!int;
 
 	return 0;
 }
@@ -116,56 +99,56 @@ int ZoO_parameters_initialize(ref ZoO_parameters param, const string[] args) {
 		if ((args[i] == "--data-filename") || (args[i] == "-df")) {
 			i += 1;
 
-			if (parse_string_arg(&(param.data_filename), i, args) < 0) {
+			if (parse_string_arg(param.data_filename, i, args) < 0) {
 				return -1;
 			}
 		}
 		else if ((args[i] == "--new-data-filename") || (args[i] == "-ndf")) {
 			i += 1;
 
-			if (parse_string_arg(&(param.new_data_filename), i, args) < 0) {
+			if (parse_string_arg(param.new_data_filename, i, args) < 0) {
 				return -1;
 			}
 		}
 		else if ((args[i] == "--irc-server-addr") || (args[i] == "-isa")) {
 			i += 1;
 
-			if (parse_string_arg(&(param.irc_server_addr), i, args) < 0) {
+			if (parse_string_arg(param.irc_server_addr, i, args) < 0) {
 				return -1;
 			}
 		}
 		else if ((args[i] == "--irc-server-port") || (args[i] == "-isp")) {
 			i += 1;
 
-			if (parse_string_arg(&(param.irc_server_port), i, args) < 0) {
+			if (parse_string_arg(param.irc_server_port, i, args) < 0) {
 				return -1;
 			}
 		}
 		else if ((args[i] == "--irc-server-channel") || (args[i] == "-isc")) {
 			i += 1;
 
-			if (parse_string_arg(&(param.irc_server_channel), i, args) < 0) {
+			if (parse_string_arg(param.irc_server_channel, i, args) < 0) {
 				return -1;
 			}
 		}
 		else if ((args[i] == "--irc-username") || (args[i] == "-iu")) {
 			i += 1;
 
-			if (parse_string_arg(&(param.irc_username), i, args ) < 0) {
+			if (parse_string_arg(param.irc_username, i, args ) < 0) {
 				return -1;
 			}
 		}
 		else if ((args[i] == "--irc-realname") || (args[i] == "-in")) {
 			i += 1;
 
-			if (parse_string_arg(&(param.irc_realname), i, args) < 0) {
+			if (parse_string_arg(param.irc_realname, i, args) < 0) {
 				return -1;
 			}
 		}
 		else if ((args[i] == "--reply-rate") || (args[i] == "-rr")) {
 			i += 1;
 
-			if (parse_integer_arg(&(param.reply_rate), i, args, 0, 100) < 0) {
+			if (parse_integer_arg(param.reply_rate, i, args, 0, 100) < 0) {
 				return -1;
 			}
 		}
