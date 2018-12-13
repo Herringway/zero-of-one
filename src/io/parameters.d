@@ -186,6 +186,9 @@ int ZoO_parameters_initialize(ref ZoO_parameters param, const string[] args) {
 
 		return -1;
 	}
+	if ((param.data_filename != ZoO_parameters.init.data_filename) && (param.new_data_filename == ZoO_parameters.init.new_data_filename)) {
+		param.new_data_filename = param.data_filename;
+	}
 
 	param.aliases = args[i..$];
 
