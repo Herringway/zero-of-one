@@ -37,8 +37,8 @@ struct ZoO_network {
 		}
 
 		socket = new Socket(addrInfo[0]);
-		socket.setOption(SocketOptionLevel.SOCKET, SocketOption.RCVTIMEO, dur!"seconds"(ZoO_NETWORK_TIMEOUT));
-		socket.setOption(SocketOptionLevel.SOCKET, SocketOption.SNDTIMEO, dur!"seconds"(ZoO_NETWORK_TIMEOUT));
+		socket.setOption(SocketOptionLevel.SOCKET, SocketOption.RCVTIMEO, ZoO_NETWORK_TIMEOUT);
+		socket.setOption(SocketOptionLevel.SOCKET, SocketOption.SNDTIMEO, ZoO_NETWORK_TIMEOUT);
 
 		trace(ZoO_DEBUG_NETWORK, "(Re)connecting to network...");
 
@@ -114,7 +114,7 @@ struct ZoO_network {
 
 			while (reconnect() < 0) {
 				trace(ZoO_DEBUG_NETWORK, "Attempting new connection in 5s.");
-				Thread.sleep(5.seconds);
+				Thread.sleep(ZoO_NETWORK_RECONNECT_WAIT);
 			}
 
 			goto READ_MORE;
@@ -173,7 +173,7 @@ struct ZoO_network {
 
 			while (reconnect() < 0) {
 				trace(ZoO_DEBUG_NETWORK, "Attempting new connection in 5s.");
-				Thread.sleep(5.seconds);
+				Thread.sleep(ZoO_NETWORK_RECONNECT_WAIT);
 			}
 
 			return;
@@ -271,7 +271,7 @@ struct ZoO_network {
 		if (in_[cmd..cmd+5] == "ERROR") {
 			while (reconnect() < 0) {
 				trace(ZoO_DEBUG_NETWORK, "Attempting new connection in 5s.");
-				Thread.sleep(5.seconds);
+				Thread.sleep(ZoO_NETWORK_RECONNECT_WAIT);
 			}
 		}
 

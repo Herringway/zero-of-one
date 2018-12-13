@@ -1,6 +1,10 @@
 module pervasive;
 
-enum ZoO_NETWORK_TIMEOUT = 200;
+import core.time;
+
+enum ZoO_NETWORK_TIMEOUT = 200.seconds;
+
+enum ZoO_NETWORK_RECONNECT_WAIT = 5.seconds;
 
 enum ZoO_MAX_REPLY_WORDS =  64;
 
