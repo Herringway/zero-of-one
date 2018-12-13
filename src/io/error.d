@@ -1,7 +1,6 @@
 module io.error;
 
 import pervasive;
-import std.stdio;
 
 enum ZoO_DEBUG_ALL = 1;
 

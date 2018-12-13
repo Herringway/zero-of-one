@@ -1,8 +1,5 @@
 module io.data_output;
 
-import core.stdc.errno;
-import core.stdc.stdio;
-import core.stdc.string;
 import std.string;
 import std.stdio;
 import std.experimental.logger;

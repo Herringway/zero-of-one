@@ -1,7 +1,5 @@
 module core.knowledge;
 
-import core.stdc.stdint;
-import core.stdc.stdlib;
 import core.stdc.string;
 import std.string;
 

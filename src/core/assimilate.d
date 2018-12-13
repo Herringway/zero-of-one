@@ -1,6 +1,5 @@
 module core.assimilate;
 
-import core.stdc.stdlib;
 import core.stdc.string;
 import std.string;
 import std.experimental.logger;

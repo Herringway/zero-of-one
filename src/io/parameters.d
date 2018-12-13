@@ -1,7 +1,5 @@
 module io.parameters;
 
-import core.stdc.string;
-import core.stdc.stdio;
 import core.stdc.stdlib;
 import core.stdc.errno;
 import std.stdio;
