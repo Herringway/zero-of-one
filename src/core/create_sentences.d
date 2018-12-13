@@ -1,7 +1,6 @@
 module core.create_sentences;
 
 import core.stdc.stdlib;
-import core.stdc.stdint;
 import core.stdc.stdio;
 import core.stdc.string;
 import std.string;
@@ -103,7 +102,7 @@ char[] extend_left(ref ZoO_knowledge k, ZoO_index* sequence, ZoO_char[] current_
 			default: assert(0);
 		}
 
-		if (current_sentence.length > (SIZE_MAX - addition_size)) {
+		if (current_sentence.length > (size_t.max - addition_size)) {
 			warning("Sentence construction aborted to avoid size_t overflow.");
 
 			return current_sentence;
@@ -191,7 +190,7 @@ char[] extend_right(ref ZoO_knowledge k, ZoO_index* sequence, ZoO_char[] current
 			default: assert(0);
 		}
 
-		if (current_sentence.length > (SIZE_MAX - addition_size)) {
+		if (current_sentence.length > (size_t.max - addition_size)) {
 			warning("Sentence construction aborted to avoid size_t overflow.");
 
 			return current_sentence;
