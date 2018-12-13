@@ -102,7 +102,7 @@ int should_reply(ref ZoO_parameters param, ref ZoO_strings string_, out int shou
 	return (param.reply_rate >= (rand() % 100));
 }
 
-void handle_user_join(ref ZoO_state s, ref ZoO_strings string_, const ssize_t msg_offset, const ssize_t msg_size) {
+void handle_user_join(ref ZoO_state s, ref ZoO_strings string_) {
 	ZoO_char[] line;
 	ZoO_index loc;
 
@@ -110,7 +110,7 @@ void handle_user_join(ref ZoO_state s, ref ZoO_strings string_, const ssize_t ms
 		return;
 	}
 
-	if (string_.parse(s.network.in_[msg_offset..msg_offset+msg_size], ZoO_knowledge_punctuation_chars) < 0) {
+	if (string_.parse(s.network.msg, ZoO_knowledge_punctuation_chars) < 0) {
 		trace(ZoO_DEBUG_PROGRAM_FLOW, "Could not dissect join username.");
 
 		return;
@@ -119,31 +119,28 @@ void handle_user_join(ref ZoO_state s, ref ZoO_strings string_, const ssize_t ms
 	if ((s.knowledge.find(string_.words[0], loc) < 0) || (s.knowledge.words[loc].backward_links_count <= 3) || (s.knowledge.words[loc].forward_links_count <= 3)) {
 		if (ZoO_knowledge_extend(s.knowledge, null, null, line) == 0) {
 			if (line[0] == ' ') {
-				s.network.out_[0..line.length-1] = line[1..$];
+				s.network.send(line[1..$]);
 			} else {
-				s.network.out_[0..line.length] = line;
+				s.network.send(line);
 			}
 
-			s.network.send();
 		}
 	} else {
 		if (ZoO_knowledge_extend(s.knowledge, &string_, null, line) == 0) {
 			if (line[0] == ' ') {
-				s.network.out_[0..line.length-1] = line[1..$];
+				s.network.send(line[1..$]);
 			} else {
-				s.network.out_[0..line.length] = line;
+				s.network.send(line);
 			}
-
-			s.network.send();
 		}
 	}
 }
 
-void handle_message(ref ZoO_state s, ref ZoO_strings string_, const ssize_t msg_offset, const ssize_t msg_size) {
+void handle_message(ref ZoO_state s, ref ZoO_strings string_) {
 	ZoO_char[] line;
 	int reply, learn;
 
-	if (string_.parse(s.network.in_[msg_offset..msg_offset+msg_size], ZoO_knowledge_punctuation_chars) < 0) {
+	if (string_.parse(s.network.msg, ZoO_knowledge_punctuation_chars) < 0) {
 		trace(ZoO_DEBUG_PROGRAM_FLOW, "Could not dissect msg.");
 
 		return;
@@ -160,17 +157,15 @@ void handle_message(ref ZoO_state s, ref ZoO_strings string_, const ssize_t msg_
 		* It would be best to do that after replying, but by then we no longer
 		* have the string in 's.network.in'.
 		*/
-		ZoO_data_output_write_line(s.param.new_data_filename, s.network.in_[msg_offset..msg_offset+msg_size].idup);
+		ZoO_data_output_write_line(s.param.new_data_filename, s.network.msg.idup);
 	}
 
 	if (reply && (ZoO_knowledge_extend(s.knowledge, &string_, s.param.aliases, line) == 0)) {
 		if (line[0] == ' ') {
-			strcpy((s.network.out_.ptr), line[1..$].toStringz);
+			s.network.send(line[1..$]);
 		} else {
-			strcpy((s.network.out_.ptr), line.toStringz);
+			s.network.send(line);
 		}
-
-		s.network.send();
 	}
 
 	if (learn) {
@@ -189,14 +184,14 @@ int main_loop(ref ZoO_state s) {
 	string_.initialize();
 
 	while (run) {
-		if (s.network.receive(msg_offset, msg_size, msg_type) == 0) {
+		if (s.network.receive(msg_type) == 0) {
 			switch (msg_type) {
 				case ZoO_msg_type.JOIN:
-					handle_user_join(s, string_, msg_offset, msg_size);
+					handle_user_join(s, string_);
 					break;
 
 				case ZoO_msg_type.PRIVMSG:
-					handle_message(s, string_, msg_offset, msg_size);
+					handle_message(s, string_);
 					break;
 				default: assert(0);
 			}

@@ -1,6 +1,9 @@
 module io.network;
 
+import core.time;
+import core.thread;
 import std.format;
+import std.socket;
 import std.string;
 import std.experimental.logger;
 
@@ -8,13 +11,7 @@ import io.error;
 
 import pervasive;
 
-import core.stdc.errno : errno;
-import core.stdc.string : strerror, memset, memmove;
-
-import core.sys.posix.sys.time : timeval;
-import core.sys.posix.unistd : ssize_t, read, sleep, write, close;
-static import core.sys.posix.netdb;
-import core.sys.posix.netdb : getaddrinfo, freeaddrinfo, AF_INET, SOCK_STREAM, EAI_SYSTEM, setsockopt, socket, SOL_SOCKET, SO_RCVTIMEO, SO_SNDTIMEO, gai_strerror;
+import core.stdc.string : memmove;
 
 enum ZoO_msg_type {
 	PRIVMSG,
@@ -22,64 +19,35 @@ enum ZoO_msg_type {
 }
 
 struct ZoO_network {
-	size_t buffer_index;
-	size_t buffer_remaining;
-	core.sys.posix.netdb.addrinfo* addrinfo;
-	ZoO_char[513] buffer;
-	ZoO_char[] in_;
-	ZoO_char[] out_;
-	int connection;
+	private size_t buffer_index;
+	private size_t buffer_remaining;
+	AddressInfo[] addrInfo;
+	private ZoO_char[513] buffer;
+	private ZoO_char[] in_;
+	private ZoO_char[] out_;
+	char[] msg;
+	Socket socket;
 	string channel;
 	string user;
 	string name;
 	string nick;
 	int re_create_socket() {
-		timeval timeout;
-		const int old_errno = errno;
-
-		errno = 0;
-		timeout.tv_sec = ZoO_NETWORK_TIMEOUT;
-		timeout.tv_usec = 0;
-
-		if (connection != -1) {
-			close(connection);
+		if ((socket !is null) && socket.isAlive) {
+			socket.close();
 		}
 
-		connection = socket(addrinfo.ai_family, addrinfo.ai_socktype, addrinfo.ai_protocol);
-
-		if (connection == -1) {
-			error("Could not create socket: %s.", strerror(errno));
-
-			goto RETURN_FAILED;
-		}
-
-		if ((setsockopt(connection, SOL_SOCKET, SO_RCVTIMEO, &timeout, timeval.sizeof) < 0) || (setsockopt(connection, SOL_SOCKET, SO_SNDTIMEO, &timeout, timeval.sizeof) < 0)) {
-			error("Could not set timeout on network socket: %s", strerror(errno));
-
-			goto RETURN_FAILED;
-		}
+		socket = new Socket(addrInfo[0]);
+		socket.setOption(SocketOptionLevel.SOCKET, SocketOption.RCVTIMEO, dur!"seconds"(ZoO_NETWORK_TIMEOUT));
+		socket.setOption(SocketOptionLevel.SOCKET, SocketOption.SNDTIMEO, dur!"seconds"(ZoO_NETWORK_TIMEOUT));
 
 		trace(ZoO_DEBUG_NETWORK, "(Re)connecting to network...");
 
-		if (core.sys.posix.netdb.connect(connection, addrinfo.ai_addr, addrinfo.ai_addrlen) != 0) {
-			error("Could not establish connection: %s", strerror(errno));
-
-			goto RETURN_FAILED;
-		}
-
-		errno = old_errno;
+		socket.connect(addrInfo[0].address);
 
 		return 0;
-
-	RETURN_FAILED:
-		errno = old_errno;
-
-		return -1;
 	}
 
 	int reconnect() {
-		const int old_errno = errno;
-
 		buffer = 0;
 
 		buffer_index = 0;
@@ -91,13 +59,13 @@ struct ZoO_network {
 
 		out_ = format!"USER %s 8 *:%s\r\n"(user, name).dup;
 
-		if (write(connection, out_.ptr, out_.length) < 1) {
+		if (socket.send(out_) < 1) {
 			goto RETURN_WRITE_FAILED;
 		}
 
 		out_ = format!"NICK %s\r\n"(nick).dup;
 
-		if (write(connection, out_.ptr, out_.length) < 1) {
+		if (socket.send(out_) < 1) {
 			goto RETURN_WRITE_FAILED;
 		}
 
@@ -106,58 +74,26 @@ struct ZoO_network {
 
 		trace(ZoO_DEBUG_NETWORK, "(Re)connected.");
 
-		errno = old_errno;
-
 		return 0;
 
 	RETURN_WRITE_FAILED:
-		error("Unable to write to the network: %s", strerror(errno).fromStringz);
-
-		errno = old_errno;
+		errorf("Unable to write to the network: %s", lastSocketError);
 
 		return -1;
 	}
 
 	int connect(string host, string port, string channel, string user, string name, string nick) {
-		int errorCode;
-		core.sys.posix.netdb.addrinfo hints;
-		const int old_errno = errno;
-
-		connection = -1;
 		this.channel = channel;
 		this.user = user;
 		this.name = name;
 		this.nick = nick;
 		buffer_index = 0;
 		buffer_remaining = 0;
-
-		memset(&hints, 0, addrinfo.sizeof);
 		buffer = 0;
 
-		hints.ai_family = AF_INET;
-		hints.ai_socktype = SOCK_STREAM;
+		addrInfo = getAddressInfo(host, port, AddressFamily.INET, SocketType.STREAM);
 
-		errno = 0;
-
-		errorCode = getaddrinfo(host.toStringz, port.toStringz, &hints, &addrinfo);
-
-		if (errorCode != 0) {
-			if (errorCode == EAI_SYSTEM) {
-				error("Could not retrieve server information: %s.", strerror(errno));
-			} else {
-				criticalf("Could not retrieve server information: %s.", gai_strerror(errorCode));
-			}
-
-			errno = old_errno;
-
-			return -1;
-		}
-
-		errno = old_errno;
-
-		reconnect();
-
-		return 0;
+		return reconnect();
 	}
 
 	void buffer_msg() {
@@ -171,14 +107,14 @@ struct ZoO_network {
 		}
 
 	READ_MORE:
-		in_count = read(connection, buffer.ptr, 512);
+		in_count = socket.receive(buffer);
 
 		if (in_count <= 0) {
-			error("Could not read from network: %s", strerror(errno).fromStringz);
+			errorf("Could not read from network: %s", lastSocketError);
 
 			while (reconnect() < 0) {
 				trace(ZoO_DEBUG_NETWORK, "Attempting new connection in 5s.");
-				sleep(5);
+				Thread.sleep(5.seconds);
 			}
 
 			goto READ_MORE;
@@ -219,8 +155,6 @@ struct ZoO_network {
 
 
 	void handle_ping() {
-		const int old_errno = errno;
-
 		static if (ZoO_RANDOMLY_IGNORE_PING == 1) {
 			if ((rand() % 10) < 3) {
 				trace(ZoO_DEBUG_NETWORK, "Ping request ignored.");
@@ -234,30 +168,24 @@ struct ZoO_network {
 
 		in_[1] = 'O';
 
-		errno = 0;
-
-		if (write(connection, in_.ptr, in_.length) < 1) {
-			error("Could not reply to PING request: %s", strerror(errno).fromStringz);
-
-			errno = old_errno;
+		if (socket.send(in_) < 1) {
+			errorf("Could not reply to PING request: %s", lastSocketError);
 
 			while (reconnect() < 0) {
 				trace(ZoO_DEBUG_NETWORK, "Attempting new connection in 5s.");
-				sleep(5);
+				Thread.sleep(5.seconds);
 			}
 
 			return;
 		}
 
-		errno = old_errno;
-
 		tracef(ZoO_DEBUG_NETWORK_PING, "[NET.out] %s", in_);
 
 	}
 
-	int receive(out ssize_t msg_offset, out ssize_t msg_size, out ZoO_msg_type type) {
-		const int old_errno = errno;
+	int receive(out ZoO_msg_type type) {
 		ssize_t cmd, i;
+		ssize_t msg_offset, msg_size;
 
 	READ_NEW_MSG:
 		buffer_msg();
@@ -289,19 +217,13 @@ struct ZoO_network {
 			if (in_[cmd..cmd+3] == "001") {
 				out_ = format!"JOIN :%s\r\n"(channel).dup;
 
-				errno = 0;
-
-				if (write(connection, out_.ptr, out_.length) < 1) {
-					error("Could not send JOIN request: %s", strerror(errno));
-
-					errno = old_errno;
+				if (socket.send(out_) < 1) {
+					errorf("Could not send JOIN request: %s", lastSocketError);
 
 					if (reconnect() < 0) {
 						return -1;
 					}
 				}
-
-				errno = old_errno;
 
 				tracef(ZoO_DEBUG_NETWORK, "[NET.out] %s", out_[0..$-2]);
 
@@ -312,14 +234,14 @@ struct ZoO_network {
 				for (i = 1; (i < 512) && (in_[i] != '!'); ++i) {}
 
 				if ((i == 512) || (i == 1)) {
-					error("Could not find JOIN username: %s", in_);
+					errorf("Could not find JOIN username: %s", in_);
 
 					goto READ_NEW_MSG;
 				}
 
 				msg_offset = 1;
 				msg_size = (i - 1);
-				in_[i] = '\0';
+				msg = in_[msg_offset..msg_offset+msg_size];
 
 				type = ZoO_msg_type.JOIN;
 
@@ -338,6 +260,7 @@ struct ZoO_network {
 
 				msg_offset = cmd;
 				msg_size = in_.length - cmd - 1;
+				msg = in_[msg_offset..msg_offset+msg_size];
 
 				type = ZoO_msg_type.PRIVMSG;
 
@@ -348,36 +271,32 @@ struct ZoO_network {
 		if (in_[cmd..cmd+5] == "ERROR") {
 			while (reconnect() < 0) {
 				trace(ZoO_DEBUG_NETWORK, "Attempting new connection in 5s.");
-				sleep(5);
+				Thread.sleep(5.seconds);
 			}
 		}
 
 		goto READ_NEW_MSG;
 	}
 
-	int send() {
-		const int old_errno = errno;
+	int send(char[] line) {
+		string str;
 
-		if (out_[0..7] == "\001action") {
+		if (line[0..7] == "\001action") {
 
-			out_[1] = 'A';
-			out_[2] = 'C';
-			out_[3] = 'T';
-			out_[4] = 'I';
-			out_[5] = 'O';
-			out_[6] = 'N';
+			line[1] = 'A';
+			line[2] = 'C';
+			line[3] = 'T';
+			line[4] = 'I';
+			line[5] = 'O';
+			line[6] = 'N';
 
-			in_ = format!"PRIVMSG %s :%s\001\r\n"(channel, out_).dup;
+			str = format!"PRIVMSG %s :%s\001\r\n"(channel, line);
 		} else {
-			in_ = format!"PRIVMSG %s :%s\r\n"(channel, out_).dup;
+			str = format!"PRIVMSG %s :%s\r\n"(channel, line);
 		}
 
-		errno = 0;
-
-		if (write(connection, in_.ptr, in_.length) < 1) {
-			error("Could not send PRIVMSG: %s.", strerror(errno));
-
-			errno = old_errno;
+		if (socket.send(str) < 1) {
+			errorf("Could not send PRIVMSG: %s.", lastSocketError);
 
 			if (reconnect() < 0) {
 				return -2;
@@ -386,16 +305,14 @@ struct ZoO_network {
 			}
 		}
 
-		errno = old_errno;
-
 		tracef(ZoO_DEBUG_NETWORK, "[NET.out] %s", in_[0..$-2]);
 
 		return 0;
 	}
 
 	void disconnect() {
-		freeaddrinfo(addrinfo);
-		close(connection);
+		socket.shutdown(SocketShutdown.BOTH);
+		socket.close();
 	}
 }
 
