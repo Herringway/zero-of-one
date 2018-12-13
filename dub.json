@@ -2,8 +2,12 @@
 	"description": "K-order Markov chain reply bot for IRC",
 	"license": "bsd",
 	"authors": [
-		"penguin"
+		"Cameron \"Herringway\" Ross",
+		"Nathanaël \"nsensfel\" Sensfelder"
 	],
-	"copyright": "Copyright © 2018, penguin",
-	"name": "zero-of-one"
+	"copyright": "Copyright © 2018, Cameron \"Herringway\" Ross",
+	"name": "zero-of-one",
+	"subPackages": [
+		"ircbot"
+	]
 }
