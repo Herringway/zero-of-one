@@ -97,7 +97,7 @@ struct ZoO_network {
 	}
 
 	void buffer_msg() {
-		ssize_t in_count, i;
+		ptrdiff_t in_count, i;
 
 		if (buffer_remaining > 0) {
 			in_count = buffer_remaining;
@@ -184,8 +184,8 @@ struct ZoO_network {
 	}
 
 	int receive(out ZoO_msg_type type) {
-		ssize_t cmd, i;
-		ssize_t msg_offset, msg_size;
+		ptrdiff_t cmd, i;
+		ptrdiff_t msg_offset, msg_size;
 
 	READ_NEW_MSG:
 		buffer_msg();
