@@ -41,10 +41,8 @@ struct ZoO_knowledge_word {
 	ZoO_char[] word = null;
 	ZoO_knowledge_special_effect special = ZoO_knowledge_special_effect.HAS_NO_EFFECT;
 	ZoO_index occurrences = 1;
-	ZoO_index forward_links_count = 0;
-	ZoO_index backward_links_count = 0;
-	ZoO_knowledge_link* forward_links = null;
-	ZoO_knowledge_link* backward_links = null;
+	ZoO_knowledge_link[] forward_links = null;
+	ZoO_knowledge_link[] backward_links = null;
 
 	/*
 	 * Frees all the memory used by {w}, but not {w} itself.
@@ -56,19 +54,16 @@ struct ZoO_knowledge_word {
 		}
 
 		if (forward_links != null) {
-			finalize_links(forward_links_count, forward_links);
+			finalize_links(forward_links);
 
 			forward_links = null;
 		}
 
 		if (backward_links != null) {
-			finalize_links(backward_links_count, backward_links);
+			finalize_links(backward_links);
 
 			backward_links = null;
 		}
-
-		forward_links_count  = 0;
-		backward_links_count = 0;
 	}
 }
 
@@ -177,7 +172,7 @@ struct ZoO_knowledge {
 	int find(const ZoO_char[] word, out ZoO_index result) const {
 		ZoO_index r;
 
-		if (ZoO_sorted_list_index_of(cast(uint)words.length, sorted_indices.ptr, word.toStringz, ZoO_index.sizeof, &cmp_word, &this, &r) == 0) {
+		if (ZoO_sorted_list_index_of(sorted_indices, word, &cmp_word, this, r) == 0) {
 			result = sorted_indices[r];
 
 			return 0;
@@ -265,16 +260,12 @@ unittest {
 	assert(knowledge.words[i].word == "hello");
 }
 
-void finalize_links(const ZoO_index count, ZoO_knowledge_link* links) {
-	ZoO_index i;
+void finalize_links(ZoO_knowledge_link[] links) {
 }
 
-int cmp_word(const void* a, const void* b, const void* other) {
-	const ZoO_char* word = cast(const ZoO_char*) a;
-	const ZoO_index* sorted_index = cast(const ZoO_index*) b;
-	const ZoO_knowledge* k = cast(ZoO_knowledge *) other;
-
-	return strcmp(word, k.words[*sorted_index].word.toStringz);
+int cmp_word(const ZoO_char[] word, const ZoO_index sorted_index, const ZoO_knowledge other) {
+	import std.algorithm.comparison : cmp;
+	return cmp(word, other.words[sorted_index].word);
 }
 
 immutable string ZoO_knowledge_punctuation_chars = [

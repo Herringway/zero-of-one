@@ -137,7 +137,7 @@ char[] extend_left(ref ZoO_knowledge k, ZoO_index* sequence, ZoO_char[] current_
 
 		memmove(sequence + 1, sequence, (ZoO_index.sizeof * (ZoO_MARKOV_ORDER - 1)));
 
-		if (ZoO_knowledge_find_link(w.backward_links_count, w.backward_links, (sequence + 1), &j) < 0) {
+		if (ZoO_knowledge_find_link(w.backward_links, (sequence + 1), j) < 0) {
 			error("Unexpectedly, no backtracking link was found.");
 
 			break;
@@ -224,7 +224,7 @@ char[] extend_right(ref ZoO_knowledge k, ZoO_index* sequence, ZoO_char[] current
 
 		memmove(sequence, sequence + 1, (ZoO_index.sizeof * (ZoO_MARKOV_ORDER - 1)));
 
-		if (ZoO_knowledge_find_link(w.forward_links_count, w.forward_links, sequence, &j) < 0) {
+		if (ZoO_knowledge_find_link(w.forward_links, sequence, j) < 0) {
 			error("Unexpectedly, no forward link was found.");
 
 			break;
@@ -298,7 +298,7 @@ void init_sequence(ref ZoO_knowledge k, const ZoO_strings* string, const string[
 		sequence[ZoO_MARKOV_ORDER + i + 1] = ZoO_WORD_END_OF_LINE;
 	}
 
-	if (fiw.forward_links_count == 0) {
+	if (fiw.forward_links.length == 0) {
 		critical("First word has no forward links.");
 
 		return;
@@ -334,7 +334,7 @@ void init_sequence(ref ZoO_knowledge k, const ZoO_strings* string, const string[
 
 		/* finds the backward link corresponding to the words left of the */
 		/* temporary pillar. */
-		if (ZoO_knowledge_find_link(fiw.backward_links_count, fiw.backward_links, sequence.ptr + (ZoO_MARKOV_ORDER - i), &j) < 0) {
+		if (ZoO_knowledge_find_link(fiw.backward_links, sequence.ptr + (ZoO_MARKOV_ORDER - i), j) < 0) {
 			errorf("Unexpectedly, no back link was found at i=%u, expected to find a backlink with %s, from %s.", i, k.words[sequence[(ZoO_MARKOV_ORDER - i)]].word, fiw.word);
 			error("Sequence was:");
 

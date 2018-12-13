@@ -9,11 +9,8 @@ import tool.sorted_list;
 
 import pervasive;
 
-int cmp_seq_link(const void* a, const void* b, const void* other) {
+int cmp_seq_link(const ZoO_index* sequence, const ZoO_knowledge_link link, const typeof(null)) {
 	ZoO_index j;
-	const ZoO_index* sequence = cast(const ZoO_index *) a;
-	const ZoO_knowledge_link* link = cast(const ZoO_knowledge_link *) b;
-
 	for (j = 0; j < ZoO_SEQUENCE_SIZE; ++j) {
 		if (sequence[j] < link.sequence[j]) {
 			return -1;
@@ -25,39 +22,24 @@ int cmp_seq_link(const void* a, const void* b, const void* other) {
 	return 0;
 }
 
-int ZoO_knowledge_find_link(const ZoO_index links_count, ZoO_knowledge_link* links, const ZoO_index* sequence, ZoO_index* result) {
-	return ZoO_sorted_list_index_of(links_count, links, sequence, ZoO_knowledge_link.sizeof, &cmp_seq_link, null, result);
+int ZoO_knowledge_find_link(ref ZoO_knowledge_link[] links, const ZoO_index* sequence, out ZoO_index result) {
+	return ZoO_sorted_list_index_of(links, sequence, &cmp_seq_link, null, result);
 }
 
-int ZoO_knowledge_get_link(ZoO_index* links_count, ZoO_knowledge_link** links, const ZoO_index* sequence, ZoO_index* result) {
-	ZoO_knowledge_link* new_p;
-
-	if (ZoO_sorted_list_index_of(*links_count, *links, sequence, ZoO_knowledge_link.sizeof, &cmp_seq_link, null, result) == 0) {
+int ZoO_knowledge_get_link(ref ZoO_knowledge_link[] links, const ZoO_index* sequence, out ZoO_index result) {
+	if (ZoO_sorted_list_index_of(links, sequence, &cmp_seq_link, null, result) == 0) {
 		return 0;
 	}
+	links.length += 1;
 
-	*links_count += 1;
-
-	new_p = cast(ZoO_knowledge_link *) realloc(*links, (ZoO_knowledge_link.sizeof * (*links_count)));
-
-	if (new_p == null) {
-		*links_count -= 1;
-
-		return -1;
+	if (result < (links.length - 1)) {
+		memmove(&links[result + 1], &links[result], (ZoO_knowledge_link.sizeof * (links.length - 1 - result)));
 	}
 
-	if (*result < (*links_count - 1)) {
-		memmove(new_p + *result + 1, new_p + *result, (ZoO_knowledge_link.sizeof * (*links_count - 1 - *result)));
-	}
+	memcpy(links[result].sequence.ptr, sequence, (ZoO_index.sizeof * ZoO_SEQUENCE_SIZE));
 
-	*links = new_p;
-
-	new_p += *result;
-
-	memcpy(new_p.sequence.ptr, sequence, (ZoO_index.sizeof * ZoO_SEQUENCE_SIZE));
-
-	new_p.targets_occurrences = null;
-	new_p.targets = null;
+	links[result].targets_occurrences = null;
+	links[result].targets = null;
 
 	return 0;
 }
