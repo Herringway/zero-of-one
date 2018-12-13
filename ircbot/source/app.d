@@ -1,4 +1,4 @@
-module core.main;
+module app;
 
 import core.stdc.signal;
 import core.stdc.stdlib;
