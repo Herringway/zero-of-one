@@ -14,7 +14,7 @@ import pervasive;
 
 struct ZoO_parameters {
 	string data_filename = ZoO_DEFAULT_DATA_FILENAME;
-	string new_data_filename = null;
+	string new_data_filename = ZoO_DEFAULT_DATA_FILENAME;
 
 	string irc_server_addr = ZoO_DEFAULT_IRC_SERVER_ADDR;
 	string irc_server_port = ZoO_DEFAULT_IRC_SERVER_PORT;
@@ -190,10 +190,6 @@ int ZoO_parameters_initialize(ref ZoO_parameters param, const string[] args) {
 	}
 
 	param.aliases = args[i..$];
-
-	if (param.new_data_filename == null) {
-		param.new_data_filename = param.data_filename;
-	}
 
 	return 1;
 }
