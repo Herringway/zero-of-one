@@ -1,6 +1,5 @@
 module core.sequence;
 
-import core.stdc.stdlib;
 import core.stdc.string;
 
 import core.knowledge;
