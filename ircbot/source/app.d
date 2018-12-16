@@ -116,7 +116,7 @@ void handle_user_join(ref ZoO_state s, ref ZoO_strings string_) {
 		return;
 	}
 
-	if ((s.knowledge.find(string_.words[0], loc) < 0) || (s.knowledge.words[loc].backward_links_count <= 3) || (s.knowledge.words[loc].forward_links_count <= 3)) {
+	if ((s.knowledge.find(string_.words[0], loc) < 0) || (s.knowledge.words[loc].backward_links.length <= 3) || (s.knowledge.words[loc].forward_links.length <= 3)) {
 		if (ZoO_knowledge_extend(s.knowledge, null, null, line) == 0) {
 			if (line[0] == ' ') {
 				s.network.send(line[1..$]);
@@ -180,8 +180,6 @@ int main_loop(ref ZoO_state s) {
 
 	msg_offset = 0;
 	msg_size = 0;
-
-	string_.initialize();
 
 	while (run) {
 		if (s.network.receive(msg_type) == 0) {
