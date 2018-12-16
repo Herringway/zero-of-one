@@ -60,7 +60,7 @@ void main() {
 		}
 		char[] line;
 		ZoO_knowledge_extend(state.knowledge, &str, state.param.aliases, line);
-		writeln(line);
+		writeln(line.strip);
 		ZoO_knowledge_assimilate(state.knowledge, str, state.param.aliases);
 	}
 }
