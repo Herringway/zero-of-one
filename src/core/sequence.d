@@ -36,8 +36,7 @@ int ZoO_knowledge_get_link(ref ZoO_knowledge_link[] links, const ZoO_index[] seq
 		memmove(&links[result + 1], &links[result], (ZoO_knowledge_link.sizeof * (links.length - 1 - result)));
 	}
 
-	memcpy(links[result].sequence.ptr, sequence.ptr, (ZoO_index.sizeof * ZoO_SEQUENCE_SIZE));
-
+	links[result].sequence = sequence;
 	links[result].targets_occurrences = null;
 	links[result].targets = null;
 
