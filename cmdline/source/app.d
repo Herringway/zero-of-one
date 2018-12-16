@@ -40,7 +40,6 @@ struct ZoO_state {
 void main() {
 	ZoO_state state;
 	ZoO_strings str;
-	str.initialize();
 
 	state.knowledge.initialize();
 	state.load_data_file();
