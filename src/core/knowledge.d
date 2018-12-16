@@ -263,7 +263,7 @@ unittest {
 void finalize_links(ZoO_knowledge_link[] links) {
 }
 
-int cmp_word(const ZoO_char[] word, const ZoO_index sorted_index, const ZoO_knowledge other) {
+int cmp_word(const ZoO_char[] word, const ZoO_index sorted_index, const ZoO_knowledge other) @safe {
 	import std.algorithm.comparison : cmp;
 	return cmp(word, other.words[sorted_index].word);
 }

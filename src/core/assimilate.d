@@ -17,7 +17,7 @@ int add_sequence(ref ZoO_knowledge_link[] links, const ZoO_index[] sequence, con
 	ZoO_index link_index, i;
 	ZoO_knowledge_link * link;
 
-	if (ZoO_knowledge_get_link(links, sequence[offset..$].ptr, link_index) < 0) {
+	if (ZoO_knowledge_get_link(links, sequence[offset..$], link_index) < 0) {
 		return -1;
 	}
 

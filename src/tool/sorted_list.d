@@ -2,10 +2,9 @@ module tool.sorted_list;
 
 import pervasive;
 
-int ZoO_sorted_list_index_of(T, U, V)(const T[] sorted_list, const U elem, int function(const U, const T, const V) compare, const V other, out ZoO_index result) {
+int ZoO_sorted_list_index_of(T, U, V)(const T[] sorted_list, const U elem, int function(const U, const T, const V) @safe compare, const V other, out ZoO_index result) @safe {
 	int cmp;
 	ZoO_index i, current_min, current_max;
-	const char * sorted_list_access = cast(char *) sorted_list.ptr;
 	/* This is a binary search. */
 
 	if (sorted_list.length == 0) {
@@ -61,8 +60,8 @@ int ZoO_sorted_list_index_of(T, U, V)(const T[] sorted_list, const U elem, int f
 }
 
 
-unittest {
-	static int testCmpFunc(const int a, const int b, const int) {
+@safe unittest {
+	static int testCmpFunc(const int a, const int b, const int) @safe {
 		if (a > b) {
 			return 1;
 		} else if (a < b) {

@@ -23,7 +23,7 @@ struct ZoO_parameters {
 	const(string)[] aliases = [];
 }
 
-void print_help(const string exec) {
+void print_help(const string exec) @safe {
 	writefln(
 		"Usage: %s [option_1 option_2 ...] NICKNAME [ALIAS_1 ALIAS_2 ...] \n"~
 		"NICKNAME is used as the IRC nickname value.\n"~
@@ -64,7 +64,7 @@ void print_help(const string exec) {
 	);
 }
 
-int parse_string_arg(out string dest, const int i, const string[] args) {
+int parse_string_arg(out string dest, const int i, const string[] args) @safe {
 	if (i == args.length) {
 		criticalf("Missing value for parameter '%s'.", args[i - 1]);
 
@@ -77,7 +77,7 @@ int parse_string_arg(out string dest, const int i, const string[] args) {
 }
 
 
-int parse_integer_arg(out int dest, const int i, const string[] args, const int min_val, const int max_val) {
+int parse_integer_arg(out int dest, const int i, const string[] args, const int min_val, const int max_val) @safe {
 	import std.conv : to;
 	if (i == args.length) {
 		criticalf("Missing value for parameter '%s'.", args[i - 1]);
@@ -90,7 +90,7 @@ int parse_integer_arg(out int dest, const int i, const string[] args, const int 
 	return 0;
 }
 
-int ZoO_parameters_initialize(ref ZoO_parameters param, const string[] args) {
+int ZoO_parameters_initialize(ref ZoO_parameters param, const string[] args) @safe {
 	int i;
 
 	for (i = 1; i < args.length; ++i) {
@@ -176,7 +176,7 @@ int ZoO_parameters_initialize(ref ZoO_parameters param, const string[] args) {
 	return 1;
 }
 
-unittest {
+@safe unittest {
 	{
 		auto parms = ZoO_parameters();
 		ZoO_parameters_initialize(parms, ["testexec", "--data-filename", "hello", "testnickname"]);

@@ -9,13 +9,7 @@ import std.string;
 struct ZoO_strings {
 	string[] words;
 
-	void initialize() {
-	}
-
-	void finalize() {
-	}
-
-	int add_word(string line) {
+	int add_word(string line) @safe {
 		if (words.length == ZoO_INDEX_MAX) {
 			warning("Data input sentence has too many words.");
 
@@ -30,7 +24,7 @@ struct ZoO_strings {
 	}
 
 
-	int parse_word(const string punctuations, char[] line) {
+	int parse_word(const string punctuations, char[] line) @safe {
 		ZoO_index j;
 
 		if (line.length == 0) {
@@ -89,11 +83,8 @@ struct ZoO_strings {
 		return add_word(line.idup);
 	}
 
-	int parse(char[] input, const string punctuations)
-	{
+	int parse(char[] input, const string punctuations) @safe {
 		size_t i, w_start;
-
-		finalize();
 
 		if (input == null) {
 			return 0;
@@ -123,8 +114,6 @@ struct ZoO_strings {
 		for (; i < input.length; ++i) {
 			if (input[i] == ' ') {
 				if (parse_word(punctuations, input[w_start..i]) < 0) {
-					finalize();
-
 					return -1;
 				}
 
@@ -140,8 +129,6 @@ struct ZoO_strings {
 		}
 
 		if (parse_word(punctuations, input[w_start..i]) < 0) {
-			finalize();
-
 			return -1;
 		}
 

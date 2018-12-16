@@ -6,7 +6,7 @@ import std.experimental.logger;
 
 import io.error;
 
-int ZoO_data_output_write_line(const string filename, string line) {
+int ZoO_data_output_write_line(const string filename, string line) @safe {
 	try {
 		auto file = File(filename, "a");
 		file.writeln(line);

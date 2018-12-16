@@ -63,7 +63,7 @@ ZoO_index pick_index(const ZoO_index[] links_occurrences) @safe {
 	return result;
 }
 
-char[] extend_left(ref ZoO_knowledge k, ZoO_index* sequence, ZoO_char[] current_sentence, ref ZoO_index credits) {
+char[] extend_left(ref ZoO_knowledge k, ZoO_index[] sequence, ZoO_char[] current_sentence, ref ZoO_index credits) {
 	size_t addition_size;
 	ZoO_knowledge_word * w;
 	ZoO_char[] next_sentence;
@@ -114,17 +114,17 @@ char[] extend_left(ref ZoO_knowledge k, ZoO_index* sequence, ZoO_char[] current_
 		next_sentence.length = (current_sentence.length + addition_size);
 		current_sentence.length = (current_sentence.length + addition_size);
 
-		switch (w.special) {
+		switch(w.special) {
 			case ZoO_knowledge_special_effect.HAS_NO_EFFECT:
-				snprintf(next_sentence.ptr, current_sentence.length, " "~ZoO_CHAR_STRING_SYMBOL~ZoO_CHAR_STRING_SYMBOL, w.word.toStringz, current_sentence.ptr);
+				next_sentence = format!" %s%s"(w.word, current_sentence).dup;
 				break;
 
 			case ZoO_knowledge_special_effect.REMOVES_LEFT_SPACE:
-				snprintf(next_sentence.ptr, current_sentence.length, ZoO_CHAR_STRING_SYMBOL~ZoO_CHAR_STRING_SYMBOL, w.word.toStringz, current_sentence.ptr);
+				next_sentence = format!"%s%s"(w.word, current_sentence).dup;
 				break;
 
 			case ZoO_knowledge_special_effect.REMOVES_RIGHT_SPACE:
-				snprintf(next_sentence.ptr, current_sentence.length, ZoO_CHAR_STRING_SYMBOL~ZoO_CHAR_STRING_SYMBOL, w.word.toStringz, (current_sentence[1..$].ptr));
+				next_sentence = format!"%s%s"(w.word, current_sentence[1..$]).dup;
 				break;
 
 			default:
@@ -135,9 +135,9 @@ char[] extend_left(ref ZoO_knowledge k, ZoO_index* sequence, ZoO_char[] current_
 		/* prevents current_sentence [const] */
 		current_sentence = next_sentence;
 
-		memmove(sequence + 1, sequence, (ZoO_index.sizeof * (ZoO_MARKOV_ORDER - 1)));
+		memmove(&sequence[1], &sequence[0], (ZoO_index.sizeof * (ZoO_MARKOV_ORDER - 1)));
 
-		if (ZoO_knowledge_find_link(w.backward_links, (sequence + 1), j) < 0) {
+		if (ZoO_knowledge_find_link(w.backward_links, sequence[1..$], j) < 0) {
 			error("Unexpectedly, no backtracking link was found.");
 
 			break;
@@ -151,7 +151,7 @@ char[] extend_left(ref ZoO_knowledge k, ZoO_index* sequence, ZoO_char[] current_
 	assert(0);
 }
 
-char[] extend_right(ref ZoO_knowledge k, ZoO_index* sequence, ZoO_char[] current_sentence, ref ZoO_index credits) {
+char[] extend_right(ref ZoO_knowledge k, ZoO_index[] sequence, ZoO_char[] current_sentence, ref ZoO_index credits) {
 	size_t addition_size;
 	ZoO_knowledge_word * w;
 	ZoO_char[] next_sentence;
@@ -203,15 +203,14 @@ char[] extend_right(ref ZoO_knowledge k, ZoO_index* sequence, ZoO_char[] current
 
 		switch (w.special) {
 			case ZoO_knowledge_special_effect.REMOVES_LEFT_SPACE:
-				current_sentence[current_sentence.length - addition_size - 2] = '\0';
 				goto case;
 
 			case ZoO_knowledge_special_effect.HAS_NO_EFFECT:
-				snprintf(next_sentence.ptr, current_sentence.length, ZoO_CHAR_STRING_SYMBOL~ZoO_CHAR_STRING_SYMBOL~" ", current_sentence.ptr, w.word.toStringz);
+				next_sentence = format!"%s%s "(current_sentence, w.word).dup;
 				break;
 
 			case ZoO_knowledge_special_effect.REMOVES_RIGHT_SPACE:
-				snprintf(next_sentence.ptr, current_sentence.length, ZoO_CHAR_STRING_SYMBOL~ZoO_CHAR_STRING_SYMBOL, current_sentence.ptr, w.word.toStringz);
+				next_sentence = format!"%s%s"(current_sentence, w.word).dup;
 				break;
 
 			default:
@@ -222,7 +221,7 @@ char[] extend_right(ref ZoO_knowledge k, ZoO_index* sequence, ZoO_char[] current
 		/* prevents current_sentence [const] */
 		current_sentence = next_sentence;
 
-		memmove(sequence, sequence + 1, (ZoO_index.sizeof * (ZoO_MARKOV_ORDER - 1)));
+		memmove(sequence.ptr, sequence.ptr + 1, (ZoO_index.sizeof * (ZoO_MARKOV_ORDER - 1)));
 
 		if (ZoO_knowledge_find_link(w.forward_links, sequence, j) < 0) {
 			error("Unexpectedly, no forward link was found.");
@@ -286,6 +285,7 @@ ZoO_index select_first_word(ref ZoO_knowledge k, const ZoO_strings* string, cons
 
 
 void init_sequence(ref ZoO_knowledge k, const ZoO_strings* string, const string[] aliases, ref ZoO_index[(ZoO_MARKOV_ORDER * 2) + 1] sequence) {
+	import std.conv : text;
 	ZoO_index i, j, accumulator, random_number;
 	ZoO_knowledge_word * fiw;
 
@@ -320,7 +320,7 @@ void init_sequence(ref ZoO_knowledge k, const ZoO_strings* string, const string[
 	/* Copies the forward link data into the sequence. */
 	/* This adds (ZoO_MARKOV_ORDER - 1) words, as the ZoO_MARKOV_ORDERth word */
 	/* is chosen aftewards. */
-	memcpy(sequence.ptr + ZoO_MARKOV_ORDER + 1, fiw.forward_links[i].sequence.ptr, ZoO_index.sizeof * (ZoO_MARKOV_ORDER - 1));
+	fiw.forward_links[i].sequence = sequence[ZoO_MARKOV_ORDER+1];
 
 	/* selects the last word */
 	sequence[ZoO_MARKOV_ORDER * 2] = fiw.forward_links[i].targets[pick_index(fiw.forward_links[i].targets_occurrences)];
@@ -334,7 +334,7 @@ void init_sequence(ref ZoO_knowledge k, const ZoO_strings* string, const string[
 
 		/* finds the backward link corresponding to the words left of the */
 		/* temporary pillar. */
-		if (ZoO_knowledge_find_link(fiw.backward_links, sequence.ptr + (ZoO_MARKOV_ORDER - i), j) < 0) {
+		if (ZoO_knowledge_find_link(fiw.backward_links, sequence[ZoO_MARKOV_ORDER - i..$], j) < 0) {
 			errorf("Unexpectedly, no back link was found at i=%u, expected to find a backlink with %s, from %s.", i, k.words[sequence[(ZoO_MARKOV_ORDER - i)]].word, fiw.word);
 			error("Sequence was:");
 
@@ -385,25 +385,25 @@ int ZoO_knowledge_extend(ref ZoO_knowledge k, const ZoO_strings* string, const s
 
 	switch (k.words[first_word].special) {
 		case ZoO_knowledge_special_effect.REMOVES_LEFT_SPACE:
-			snprintf(result.ptr, sentence_size, ZoO_CHAR_STRING_SYMBOL~" ", k.words[first_word].word.toStringz);
+			result = format!"%s "(k.words[first_word].word).dup;
 			break;
 
 		case ZoO_knowledge_special_effect.REMOVES_RIGHT_SPACE:
-			snprintf(result.ptr, sentence_size, " "~ZoO_CHAR_STRING_SYMBOL, k.words[first_word].word.toStringz);
+			result = format!" %s"(k.words[first_word].word).dup;
 			break;
 
 		case ZoO_knowledge_special_effect.HAS_NO_EFFECT:
-			snprintf(result.ptr, sentence_size, " "~ZoO_CHAR_STRING_SYMBOL~" ", k.words[first_word].word.toStringz);
+			result = format!" %s "(k.words[first_word].word).dup;
 			break;
 
 		default:
-			snprintf(result.ptr, sentence_size, " ["~ZoO_CHAR_STRING_SYMBOL~"] ", k.words[first_word].word.toStringz);
+			result = format!" [%s] "(k.words[first_word].word).dup;
 			break;
 	}
 
-	result = extend_right(k, (sequence.ptr + ZoO_MARKOV_ORDER + 1), result, credits);
+	result = extend_right(k, sequence[ZoO_MARKOV_ORDER + 1..$], result, credits);
 
-	result = extend_left(k, sequence.ptr, result, credits);
+	result = extend_left(k, sequence, result, credits);
 
 	return 0;
 }
