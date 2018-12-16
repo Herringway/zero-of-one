@@ -1,8 +1,7 @@
 module core.create_sentences;
 
-import core.stdc.stdlib;
-import core.stdc.stdio;
 import core.stdc.string;
+import std.random;
 import std.string;
 import std.experimental.logger;
 
@@ -34,7 +33,7 @@ ZoO_index pick_index(const ZoO_index[] links_occurrences) @safe {
 	*/
 	accumulator = links_occurrences[0];
 
-	random_number = cast(uint)(rand() % links_occurrences.length);
+	random_number = uniform(0, cast(uint)links_occurrences.length);
 
 	while (accumulator < random_number) {
 		/*
@@ -239,7 +238,7 @@ ZoO_index select_first_word(ref ZoO_knowledge k, const ZoO_strings* string, cons
 	ZoO_index word_found;
 
 	if (string == null) {
-		return word_min_id = cast(uint)(rand() % k.words.length);
+		return word_min_id = uniform(0, cast(uint)k.words.length);
 	}
 
 	word_found = 0;
@@ -262,7 +261,7 @@ ZoO_index select_first_word(ref ZoO_knowledge k, const ZoO_strings* string, cons
 	}
 
 	if (word_found == 0) {
-		return word_min_id = cast(uint)(rand() % k.words.length);
+		return word_min_id = uniform(0, cast(uint)k.words.length);
 	}
 
 	for (; i < string.words.length; ++i) {
@@ -308,14 +307,14 @@ void init_sequence(ref ZoO_knowledge k, const ZoO_strings* string, const string[
 	i = 0;
 	accumulator = cast(uint)fiw.forward_links[0].targets_occurrences.length;
 
-	random_number = rand() % fiw.occurrences;
+	random_number = uniform(0, fiw.occurrences);
 
 	while (accumulator < random_number) {
 		accumulator += fiw.forward_links[i].targets_occurrences.length;
 		i += 1;
 	}
 
-/*   i = (((ZoO_index) rand()) % fiw.forward_links_count); */
+/*   i = uniform(0, cast(ZoO_index)fiw.forward_links.length); */
 
 	/* Copies the forward link data into the sequence. */
 	/* This adds (ZoO_MARKOV_ORDER - 1) words, as the ZoO_MARKOV_ORDERth word */
