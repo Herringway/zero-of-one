@@ -1,7 +1,5 @@
 module io.parameters;
 
-import core.stdc.stdlib;
-import core.stdc.errno;
 import std.stdio;
 import std.string;
 import std.experimental.logger;
