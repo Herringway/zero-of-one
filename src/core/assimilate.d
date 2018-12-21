@@ -73,6 +73,15 @@ int should_assimilate(const ZoO_strings string, const string[] aliases) {
 	return 1;
 }
 
+unittest {
+	ZoO_strings str;
+	assert(should_assimilate(str, []) == 0);
+	str.words = ["hi"];
+	assert(should_assimilate(str, []) == 1);
+	assert(should_assimilate(str, ["hi"]) == 0);
+	assert(should_assimilate(str, ["hello"]) == 1);
+}
+
 int init_sequence(ref ZoO_knowledge k, ref ZoO_strings string, ref ZoO_index[(ZoO_MARKOV_ORDER * 2) + 1] sequence) {
 	ZoO_index i;
 
@@ -93,6 +102,15 @@ int init_sequence(ref ZoO_knowledge k, ref ZoO_strings string, ref ZoO_index[(Zo
 	}
 
 	return 0;
+}
+
+unittest {
+	ZoO_knowledge k;
+	ZoO_strings str;
+	ZoO_index[(ZoO_MARKOV_ORDER * 2) + 1] seq;
+	assert(init_sequence(k, str, seq) == 0);
+	assert(seq[0] == ZoO_WORD_START_OF_LINE);
+	assert(seq[$-1] == ZoO_WORD_END_OF_LINE);
 }
 
 int ZoO_knowledge_assimilate(ref ZoO_knowledge k, ref ZoO_strings string, const string[] aliases) {
@@ -157,4 +175,10 @@ int ZoO_knowledge_assimilate(ref ZoO_knowledge k, ref ZoO_strings string, const 
 	}
 
 	return error;
+}
+
+unittest {
+	ZoO_knowledge k;
+	ZoO_strings str;
+	assert(ZoO_knowledge_assimilate(k, str, []) == 0);
 }

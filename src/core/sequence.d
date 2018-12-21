@@ -41,3 +41,14 @@ int ZoO_knowledge_get_link(ref ZoO_knowledge_link[] links, const ZoO_index[] seq
 
 	return 0;
 }
+
+unittest {
+	import std.stdio;
+	ZoO_knowledge_link[] links =[ZoO_knowledge_link([10, 11], [1], [0]), ZoO_knowledge_link([10, 11], [1], [0])];
+	ZoO_index[] sequence;
+	ZoO_index result;
+
+	assert(ZoO_knowledge_get_link(links, [1,1,1,1,1,1], result) == 0);
+	assert(result == 0);
+	assert(links == [ZoO_knowledge_link([1, 1], [], []), ZoO_knowledge_link([10, 11], [1], [0]), ZoO_knowledge_link([10, 11], [1], [0])]);
+}
