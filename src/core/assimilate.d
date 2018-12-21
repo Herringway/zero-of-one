@@ -64,8 +64,8 @@ int should_assimilate(const ZoO_strings string, const string[] aliases) {
 	}
 
 	/* Don't assimilate things that start with our name. */
-	for (i = 0; i < aliases.length; ++i) {
-		if (aliases[i] == string.words[0]) {
+	foreach (alias_; aliases) {
+		if (alias_ == string.words[0]) {
 			return 0;
 		}
 	}
