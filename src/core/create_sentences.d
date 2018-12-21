@@ -359,23 +359,18 @@ int ZoO_knowledge_extend(ref ZoO_knowledge k, const ZoO_strings* string, const s
 
 	first_word = sequence[ZoO_MARKOV_ORDER];
 
-	/* 3: 2 spaces + '\0' */
-	/* FIXME: not overflow-safe */
 	switch (k.words[first_word].special) {
 		case ZoO_knowledge_special_effect.REMOVES_LEFT_SPACE:
 		case ZoO_knowledge_special_effect.REMOVES_RIGHT_SPACE:
-			/* word + ' ' + '\0' */
 			sentence_size = k.words[first_word].word.length + 2;
 			break;
 
 		case ZoO_knowledge_special_effect.HAS_NO_EFFECT:
-			/* word + ' ' * 2 + '\0' */
 			sentence_size = k.words[first_word].word.length + 3;
 			break;
 
 		default:
 			warningf("'%s' was unexpectedly selected as pillar.", k.words[first_word].word);
-			/* word + '[' + ']' + ' ' * 2 + '\0' */
 			sentence_size = k.words[first_word].word.length + 5;
 			break;
 	}
