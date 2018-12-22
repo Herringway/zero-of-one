@@ -401,3 +401,11 @@ int ZoO_knowledge_extend(ref ZoO_knowledge k, const ZoO_strings* string, const s
 
 	return 0;
 }
+
+unittest {
+	ZoO_knowledge k;
+	ZoO_strings str;
+	ZoO_char[] result;
+	k.initialize();
+	assert(ZoO_knowledge_extend(k, &str, ["hi"], result) == 0);
+}
