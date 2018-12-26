@@ -1,6 +1,5 @@
 module app;
 
-import core.stdc.signal;
 import core.stdc.string;
 
 import std.string;
@@ -22,14 +21,6 @@ import core.knowledge;
 import pervasive;
 
 alias ssize_t = ptrdiff_t;
-
-int run = 1;
-
-void request_termination (const int signo) {
-	if ((signo == SIGINT) || (signo == SIGTERM)) {
-		run = 0;
-	}
-}
 
 struct ZoO_state {
 	ZoO_parameters param;
@@ -172,18 +163,16 @@ int main_loop(ref ZoO_state s) {
 	msg_offset = 0;
 	msg_size = 0;
 
-	while (run) {
-		if (s.network.receive(msg_type) == 0) {
-			switch (msg_type) {
-				case ZoO_msg_type.JOIN:
-					handle_user_join(s, string_);
-					break;
+	if (s.network.receive(msg_type) == 0) {
+		switch (msg_type) {
+			case ZoO_msg_type.JOIN:
+				handle_user_join(s, string_);
+				break;
 
-				case ZoO_msg_type.PRIVMSG:
-					handle_message(s, string_);
-					break;
-				default: assert(0);
-			}
+			case ZoO_msg_type.PRIVMSG:
+				handle_message(s, string_);
+				break;
+			default: assert(0);
 		}
 	}
 
