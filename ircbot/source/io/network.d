@@ -31,7 +31,7 @@ struct ZoO_network {
 	string user;
 	string name;
 	string nick;
-	int re_create_socket() {
+	int re_create_socket() @safe {
 		if ((socket !is null) && socket.isAlive) {
 			socket.close();
 		}
@@ -47,7 +47,7 @@ struct ZoO_network {
 		return 0;
 	}
 
-	int reconnect() {
+	int reconnect() @safe {
 		buffer = 0;
 
 		buffer_index = 0;
@@ -82,7 +82,7 @@ struct ZoO_network {
 		return -1;
 	}
 
-	int connect(string host, string port, string channel, string user, string name, string nick) {
+	int connect(string host, string port, string channel, string user, string name, string nick) @safe {
 		this.channel = channel;
 		this.user = user;
 		this.name = name;
@@ -96,7 +96,7 @@ struct ZoO_network {
 		return reconnect();
 	}
 
-	void buffer_msg() {
+	void buffer_msg() @system {
 		ptrdiff_t in_count, i;
 
 		if (buffer_remaining > 0) {
@@ -154,7 +154,7 @@ struct ZoO_network {
 	}
 
 
-	void handle_ping() {
+	void handle_ping() @system {
 		static if (ZoO_RANDOMLY_IGNORE_PING == 1) {
 			if ((rand() % 10) < 3) {
 				trace(ZoO_DEBUG_NETWORK, "Ping request ignored.");
@@ -183,7 +183,7 @@ struct ZoO_network {
 
 	}
 
-	int receive(out ZoO_msg_type type) {
+	int receive(out ZoO_msg_type type) @system {
 		ptrdiff_t cmd, i;
 		ptrdiff_t msg_offset, msg_size;
 
@@ -278,7 +278,7 @@ struct ZoO_network {
 		goto READ_NEW_MSG;
 	}
 
-	int send(string line) {
+	int send(string line) @safe {
 		string str;
 
 		if (line[0..7] == "\001action") {
@@ -303,7 +303,7 @@ struct ZoO_network {
 		return 0;
 	}
 
-	void disconnect() {
+	void disconnect() @safe {
 		socket.shutdown(SocketShutdown.BOTH);
 		socket.close();
 	}
