@@ -234,13 +234,13 @@ string extend_right(ref ZoO_knowledge k, ZoO_index[] sequence, string current_se
 
 ZoO_index select_first_word(ref ZoO_knowledge k, const ZoO_strings* string, const string[] aliases) @safe {
 	ZoO_index i, j, word_id, word_min_score, word_min_id;
-	ZoO_index word_found;
+	bool word_found;
 
 	if (string == null) {
 		return word_min_id = uniform(0, cast(uint)k.words.length);
 	}
 
-	word_found = 0;
+	word_found = false;
 
 	for (i = 0; i < string.words.length; ++i) {
 		for (j = 0; j < aliases.length; ++j) {
@@ -250,7 +250,7 @@ ZoO_index select_first_word(ref ZoO_knowledge k, const ZoO_strings* string, cons
 		}
 
 		if (k.find(string.words[i], word_min_id) == 0) {
-			word_found = 1;
+			word_found = true;
 			word_min_score = k.words[word_min_id].occurrences;
 
 			break;
@@ -259,7 +259,7 @@ ZoO_index select_first_word(ref ZoO_knowledge k, const ZoO_strings* string, cons
 		NEXT_WORD:;
 	}
 
-	if (word_found == 0) {
+	if (!word_found) {
 		return word_min_id = uniform(0, cast(uint)k.words.length);
 	}
 
