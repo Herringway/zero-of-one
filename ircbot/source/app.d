@@ -37,7 +37,6 @@ struct ZoO_state {
 
 	int load_data_file() {
 		ZoO_data_input input;
-		char* result;
 
 		if (input.open(param.data_filename) < 0) {
 			return -1;
