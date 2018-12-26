@@ -156,7 +156,7 @@ struct ZoO_network {
 
 	void handle_ping() @system {
 		static if (ZoO_RANDOMLY_IGNORE_PING == 1) {
-			if ((rand() % 10) < 3) {
+			if (uniform(0, 11) < 3) {
 				trace(ZoO_DEBUG_NETWORK, "Ping request ignored.");
 
 				return;
