@@ -132,7 +132,7 @@ struct ZoO_network {
 				in_ = in_[0..buffer_index];
 				buffer_index = 0;
 				if (buffer_remaining > 0) {
-					memmove(buffer.ptr, buffer.ptr + (i + 1), buffer_remaining);
+					memmove(&buffer[0], &buffer[i + 1], buffer_remaining);
 				}
 
 				return;
