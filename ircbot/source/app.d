@@ -1,7 +1,5 @@
 module app;
 
-import core.stdc.string;
-
 import std.string;
 import std.experimental.logger;
 import std.random;
