@@ -41,7 +41,6 @@ void main() {
 	ZoO_state state;
 	ZoO_strings str;
 
-	state.knowledge.initialize();
 	state.load_data_file();
 
 	while(true) {

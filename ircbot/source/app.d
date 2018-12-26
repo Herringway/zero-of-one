@@ -42,13 +42,7 @@ struct ZoO_state {
 
 		srand(cast(uint)time(null));
 
-		if (knowledge.initialize() < 0) {
-			return -1;
-		}
-
 		if (ZoO_parameters_initialize(param, args) < 1) {
-			knowledge.finalize();
-
 			return -1;
 		}
 

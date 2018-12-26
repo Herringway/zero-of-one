@@ -403,6 +403,5 @@ unittest {
 	ZoO_knowledge k;
 	ZoO_strings str;
 	string result;
-	k.initialize();
 	assert(ZoO_knowledge_extend(k, &str, ["hi"], result) == 0);
 }
