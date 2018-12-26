@@ -62,10 +62,10 @@ ZoO_index pick_index(const ZoO_index[] links_occurrences) @safe {
 	return result;
 }
 
-char[] extend_left(ref ZoO_knowledge k, ZoO_index[] sequence, ZoO_char[] current_sentence, ref ZoO_index credits) {
+string extend_left(ref ZoO_knowledge k, ZoO_index[] sequence, string current_sentence, ref ZoO_index credits) {
 	size_t addition_size;
 	ZoO_knowledge_word * w;
-	ZoO_char[] next_sentence;
+	string next_sentence;
 	ZoO_index j;
 
 	next_sentence = current_sentence;
@@ -115,15 +115,15 @@ char[] extend_left(ref ZoO_knowledge k, ZoO_index[] sequence, ZoO_char[] current
 
 		switch(w.special) {
 			case ZoO_knowledge_special_effect.HAS_NO_EFFECT:
-				next_sentence = format!" %s%s"(w.word, current_sentence).dup;
+				next_sentence = format!" %s%s"(w.word, current_sentence);
 				break;
 
 			case ZoO_knowledge_special_effect.REMOVES_LEFT_SPACE:
-				next_sentence = format!"%s%s"(w.word, current_sentence).dup;
+				next_sentence = format!"%s%s"(w.word, current_sentence);
 				break;
 
 			case ZoO_knowledge_special_effect.REMOVES_RIGHT_SPACE:
-				next_sentence = format!"%s%s"(w.word, current_sentence[1..$]).dup;
+				next_sentence = format!"%s%s"(w.word, current_sentence[1..$]);
 				break;
 
 			default:
@@ -150,10 +150,10 @@ char[] extend_left(ref ZoO_knowledge k, ZoO_index[] sequence, ZoO_char[] current
 	assert(0);
 }
 
-char[] extend_right(ref ZoO_knowledge k, ZoO_index[] sequence, ZoO_char[] current_sentence, ref ZoO_index credits) {
+string extend_right(ref ZoO_knowledge k, ZoO_index[] sequence, string current_sentence, ref ZoO_index credits) {
 	size_t addition_size;
 	ZoO_knowledge_word * w;
-	ZoO_char[] next_sentence;
+	string next_sentence;
 	ZoO_index j;
 
 	next_sentence = current_sentence;
@@ -205,11 +205,11 @@ char[] extend_right(ref ZoO_knowledge k, ZoO_index[] sequence, ZoO_char[] curren
 				goto case;
 
 			case ZoO_knowledge_special_effect.HAS_NO_EFFECT:
-				next_sentence = format!"%s%s "(current_sentence, w.word).dup;
+				next_sentence = format!"%s%s "(current_sentence, w.word);
 				break;
 
 			case ZoO_knowledge_special_effect.REMOVES_RIGHT_SPACE:
-				next_sentence = format!"%s%s"(current_sentence, w.word).dup;
+				next_sentence = format!"%s%s"(current_sentence, w.word);
 				break;
 
 			default:
@@ -217,7 +217,6 @@ char[] extend_right(ref ZoO_knowledge k, ZoO_index[] sequence, ZoO_char[] curren
 				break;
 		}
 
-		/* prevents current_sentence [const] */
 		current_sentence = next_sentence;
 
 		memmove(sequence.ptr, sequence.ptr + 1, (ZoO_index.sizeof * (ZoO_MARKOV_ORDER - 1)));
@@ -347,7 +346,7 @@ void init_sequence(ref ZoO_knowledge k, const ZoO_strings* string, const string[
 		sequence[ZoO_MARKOV_ORDER - i - 1] = fiw.backward_links[j].targets[pick_index(fiw.backward_links[j].targets_occurrences)];
 	}
 }
-int ZoO_knowledge_extend(ref ZoO_knowledge k, const ZoO_strings* string, const string[] aliases, out ZoO_char[] result) {
+int ZoO_knowledge_extend(ref ZoO_knowledge k, const ZoO_strings* string, const string[] aliases, out string result) {
 	int word_found;
 	size_t sentence_size;
 	ZoO_index[(ZoO_MARKOV_ORDER * 2) + 1] sequence;
@@ -375,23 +374,21 @@ int ZoO_knowledge_extend(ref ZoO_knowledge k, const ZoO_strings* string, const s
 			break;
 	}
 
-	result = new ZoO_char[](sentence_size);
-
 	switch (k.words[first_word].special) {
 		case ZoO_knowledge_special_effect.REMOVES_LEFT_SPACE:
-			result = format!"%s "(k.words[first_word].word).dup;
+			result = format!"%s "(k.words[first_word].word);
 			break;
 
 		case ZoO_knowledge_special_effect.REMOVES_RIGHT_SPACE:
-			result = format!" %s"(k.words[first_word].word).dup;
+			result = format!" %s"(k.words[first_word].word);
 			break;
 
 		case ZoO_knowledge_special_effect.HAS_NO_EFFECT:
-			result = format!" %s "(k.words[first_word].word).dup;
+			result = format!" %s "(k.words[first_word].word);
 			break;
 
 		default:
-			result = format!" [%s] "(k.words[first_word].word).dup;
+			result = format!" [%s] "(k.words[first_word].word);
 			break;
 	}
 
@@ -405,7 +402,7 @@ int ZoO_knowledge_extend(ref ZoO_knowledge k, const ZoO_strings* string, const s
 unittest {
 	ZoO_knowledge k;
 	ZoO_strings str;
-	ZoO_char[] result;
+	string result;
 	k.initialize();
 	assert(ZoO_knowledge_extend(k, &str, ["hi"], result) == 0);
 }

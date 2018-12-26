@@ -278,19 +278,12 @@ struct ZoO_network {
 		goto READ_NEW_MSG;
 	}
 
-	int send(char[] line) {
+	int send(string line) {
 		string str;
 
 		if (line[0..7] == "\001action") {
 
-			line[1] = 'A';
-			line[2] = 'C';
-			line[3] = 'T';
-			line[4] = 'I';
-			line[5] = 'O';
-			line[6] = 'N';
-
-			str = format!"PRIVMSG %s :%s\001\r\n"(channel, line);
+			str = format!"PRIVMSG %s :\001ACTION%s\001\r\n"(channel, line[7..$]);
 		} else {
 			str = format!"PRIVMSG %s :%s\r\n"(channel, line);
 		}

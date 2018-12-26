@@ -18,7 +18,7 @@ struct ZoO_strings {
 
 		words.length++;
 
-		words[$-1] = line.idup;
+		words[$-1] = line;
 
 		return 0;
 	}

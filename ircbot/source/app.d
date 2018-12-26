@@ -103,7 +103,7 @@ int should_reply(ref ZoO_parameters param, ref ZoO_strings string_, out int shou
 }
 
 void handle_user_join(ref ZoO_state s, ref ZoO_strings string_) {
-	ZoO_char[] line;
+	string line;
 	ZoO_index loc;
 
 	if (s.param.reply_rate < (rand() % 100)) {
@@ -137,7 +137,7 @@ void handle_user_join(ref ZoO_state s, ref ZoO_strings string_) {
 }
 
 void handle_message(ref ZoO_state s, ref ZoO_strings string_) {
-	ZoO_char[] line;
+	string line;
 	int reply, learn;
 
 	if (string_.parse(s.network.msg, ZoO_knowledge_punctuation_chars) < 0) {
