@@ -1,12 +1,11 @@
 module app;
 
 import core.stdc.signal;
-import core.stdc.stdlib;
 import core.stdc.string;
-import core.stdc.time;
 
 import std.string;
 import std.experimental.logger;
+import std.random;
 
 import tool.strings;
 
@@ -39,8 +38,6 @@ struct ZoO_state {
 
 	int initialize(const string[] args) {
 		trace(ZoO_DEBUG_PROGRAM_FLOW, "Zero of One is initializing...");
-
-		srand(cast(uint)time(null));
 
 		if (ZoO_parameters_initialize(param, args) < 1) {
 			return -1;
@@ -93,14 +90,14 @@ int should_reply(ref ZoO_parameters param, ref ZoO_strings string_, out int shou
 
 	should_learn = 1;
 
-	return (param.reply_rate >= (rand() % 100));
+	return (param.reply_rate >= uniform(0, 101));
 }
 
 void handle_user_join(ref ZoO_state s, ref ZoO_strings string_) {
 	string line;
 	ZoO_index loc;
 
-	if (s.param.reply_rate < (rand() % 100)) {
+	if (s.param.reply_rate < uniform(0, 101)) {
 		return;
 	}
 
