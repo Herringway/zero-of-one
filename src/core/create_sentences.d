@@ -62,7 +62,7 @@ ZoO_index pick_index(const ZoO_index[] links_occurrences) @safe {
 	return result;
 }
 
-string extend_left(ref ZoO_knowledge k, ZoO_index[] sequence, string current_sentence, ref ZoO_index credits) {
+string extend_left(ref ZoO_knowledge k, ZoO_index[] sequence, string current_sentence, ref ZoO_index credits) @system {
 	size_t addition_size;
 	ZoO_knowledge_word * w;
 	string next_sentence;
@@ -150,7 +150,7 @@ string extend_left(ref ZoO_knowledge k, ZoO_index[] sequence, string current_sen
 	assert(0);
 }
 
-string extend_right(ref ZoO_knowledge k, ZoO_index[] sequence, string current_sentence, ref ZoO_index credits) {
+string extend_right(ref ZoO_knowledge k, ZoO_index[] sequence, string current_sentence, ref ZoO_index credits) @system {
 	size_t addition_size;
 	ZoO_knowledge_word * w;
 	string next_sentence;
@@ -232,7 +232,7 @@ string extend_right(ref ZoO_knowledge k, ZoO_index[] sequence, string current_se
 	assert(0);
 }
 
-ZoO_index select_first_word(ref ZoO_knowledge k, const ZoO_strings* string, const string[] aliases) {
+ZoO_index select_first_word(ref ZoO_knowledge k, const ZoO_strings* string, const string[] aliases) @safe {
 	ZoO_index i, j, word_id, word_min_score, word_min_id;
 	ZoO_index word_found;
 
@@ -282,7 +282,7 @@ ZoO_index select_first_word(ref ZoO_knowledge k, const ZoO_strings* string, cons
 }
 
 
-void init_sequence(ref ZoO_knowledge k, const ZoO_strings* string, const string[] aliases, ref ZoO_index[(ZoO_MARKOV_ORDER * 2) + 1] sequence) {
+void init_sequence(ref ZoO_knowledge k, const ZoO_strings* string, const string[] aliases, ref ZoO_index[(ZoO_MARKOV_ORDER * 2) + 1] sequence) @safe {
 	import std.conv : text;
 	ZoO_index i, j, accumulator, random_number;
 	ZoO_knowledge_word * fiw;
@@ -346,7 +346,7 @@ void init_sequence(ref ZoO_knowledge k, const ZoO_strings* string, const string[
 		sequence[ZoO_MARKOV_ORDER - i - 1] = fiw.backward_links[j].targets[pick_index(fiw.backward_links[j].targets_occurrences)];
 	}
 }
-int ZoO_knowledge_extend(ref ZoO_knowledge k, const ZoO_strings* string, const string[] aliases, out string result) {
+int ZoO_knowledge_extend(ref ZoO_knowledge k, const ZoO_strings* string, const string[] aliases, out string result) @system {
 	int word_found;
 	size_t sentence_size;
 	ZoO_index[(ZoO_MARKOV_ORDER * 2) + 1] sequence;

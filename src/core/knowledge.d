@@ -69,7 +69,7 @@ struct ZoO_knowledge {
 	 *    {*result} is where {word} was expected to be found in
 	 *    {k.sorted_indices}.
 	 */
-	int find(const ZoO_char[] word, out ZoO_index result) const {
+	int find(const ZoO_char[] word, out ZoO_index result) const @safe {
 		ZoO_index r;
 
 		if (ZoO_sorted_list_index_of(sorted_indices, word, &cmp_word, this, r) == 0) {
@@ -94,7 +94,7 @@ struct ZoO_knowledge {
 	 *    {k} remains semantically unchanged.
 	 *    {*result} may or may not have been altered.
 	 */
-	int learn(const ZoO_char[] word, out ZoO_index result) {
+	int learn(const ZoO_char[] word, out ZoO_index result) @safe {
 		import std.array : insertInPlace;
 		ZoO_index temp;
 
@@ -123,7 +123,7 @@ struct ZoO_knowledge {
 	}
 }
 
-unittest {
+@safe unittest {
 	ZoO_knowledge knowledge;
 	assert(knowledge.words[0].word == "START OF LINE");
 	assert(knowledge.words[$-1].word == [ZoO_knowledge_punctuation_chars[$-1]]);

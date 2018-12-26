@@ -25,7 +25,7 @@ struct ZoO_state {
 	ZoO_knowledge knowledge;
 	ZoO_network network;
 
-	int initialize(const string[] args) {
+	int initialize(const string[] args) @safe {
 		trace(ZoO_DEBUG_PROGRAM_FLOW, "Zero of One is initializing...");
 
 		if (ZoO_parameters_initialize(param, args) < 1) {
@@ -35,7 +35,7 @@ struct ZoO_state {
 		return 0;
 	}
 
-	int load_data_file() {
+	int load_data_file() @system {
 		ZoO_data_input input;
 
 		if (input.open(param.data_filename) < 0) {
@@ -51,13 +51,13 @@ struct ZoO_state {
 		return 0;
 	}
 
-	int network_connect() {
+	int network_connect() @safe {
 		return network.connect(param.irc_server_addr, param.irc_server_port, param.irc_server_channel, param.irc_username, param.irc_realname, param.aliases[0]);
 	}
 }
 
 
-int should_reply(ref ZoO_parameters param, ref ZoO_strings string_, out int should_learn) {
+int should_reply(ref ZoO_parameters param, ref ZoO_strings string_, out int should_learn) @safe {
 	ZoO_index i, j;
 
 	for (i = 0; i < param.aliases.length; ++i) {
@@ -81,7 +81,7 @@ int should_reply(ref ZoO_parameters param, ref ZoO_strings string_, out int shou
 	return (param.reply_rate >= uniform(0, 101));
 }
 
-void handle_user_join(ref ZoO_state s, ref ZoO_strings string_) {
+void handle_user_join(ref ZoO_state s, ref ZoO_strings string_) @system {
 	string line;
 	ZoO_index loc;
 
@@ -115,7 +115,7 @@ void handle_user_join(ref ZoO_state s, ref ZoO_strings string_) {
 	}
 }
 
-void handle_message(ref ZoO_state s, ref ZoO_strings string_) {
+void handle_message(ref ZoO_state s, ref ZoO_strings string_) @system {
 	string line;
 	int reply, learn;
 
@@ -152,7 +152,7 @@ void handle_message(ref ZoO_state s, ref ZoO_strings string_) {
 	}
 }
 
-int main_loop(ref ZoO_state s) {
+int main_loop(ref ZoO_state s) @system {
 	ZoO_strings string_;
 	ssize_t msg_offset, msg_size;
 	ZoO_msg_type msg_type;
@@ -178,7 +178,7 @@ int main_loop(ref ZoO_state s) {
 	return 0;
 }
 
-int main(string[] args) {
+int main(string[] args) @system {
 	ZoO_state s;
 
 	if (s.initialize(args) < 0) {

@@ -25,7 +25,7 @@ int ZoO_knowledge_find_link(ref ZoO_knowledge_link[] links, const ZoO_index[] se
 	return ZoO_sorted_list_index_of(links, sequence, &cmp_seq_link, null, result);
 }
 
-int ZoO_knowledge_get_link(ref ZoO_knowledge_link[] links, const ZoO_index[] sequence, out ZoO_index result) {
+int ZoO_knowledge_get_link(ref ZoO_knowledge_link[] links, const ZoO_index[] sequence, out ZoO_index result) @system {
 	if (ZoO_sorted_list_index_of(links, sequence, &cmp_seq_link, null, result) == 0) {
 		return 0;
 	}
@@ -42,7 +42,7 @@ int ZoO_knowledge_get_link(ref ZoO_knowledge_link[] links, const ZoO_index[] seq
 	return 0;
 }
 
-unittest {
+@system unittest {
 	import std.stdio;
 	ZoO_knowledge_link[] links =[ZoO_knowledge_link([10, 11], [1], [0]), ZoO_knowledge_link([10, 11], [1], [0])];
 	ZoO_index[] sequence;
