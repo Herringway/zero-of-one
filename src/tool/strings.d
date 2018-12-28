@@ -48,21 +48,20 @@ struct ZoO_strings {
 	}
 
 	int parse(string input, const string punctuations) @safe {
+		import std.algorithm.iteration : splitter;
+		import std.algorithm.searching : canFind;
+		import std.uni : isWhite;
 		size_t i, w_start;
 
 		if (input == null) {
 			return 0;
 		}
 
-		i = 0;
-
-		while (input[i] == ' ') {
-			++i;
+		while (input[0] == ' ') {
+			input = input[1..$];
 		}
 
-		w_start = i;
-
-		if (input[i] == '\001') {
+		if (input[0] == '\001') {
 			/* This is an CTCP command. */
 			/* We'll remove the trailing '\001' so that only the first word */
 			/* indicates the need for CTCP (uppercase) syntax. */
@@ -74,24 +73,10 @@ struct ZoO_strings {
 			}
 		}
 
-		for (; i < input.length; ++i) {
-			if (input[i] == ' ') {
-				if (parse_word(punctuations, input[w_start..i]) < 0) {
-					return -1;
-				}
-
-				++i;
-
-				while ((i < input.length-1) && (input[i] == ' ')) {
-					++i;
-				}
-
-				w_start = i;
+		foreach (split; input.splitter!(x => (x.isWhite || punctuations.canFind(x)))) {
+			if (parse_word(punctuations, split) < 0) {
+				return -1;
 			}
-		}
-
-		if (parse_word(punctuations, input[w_start..i]) < 0) {
-			return -1;
 		}
 
 		return 0;
