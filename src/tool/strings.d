@@ -47,7 +47,7 @@ struct ZoO_strings {
 		return add_word(line);
 	}
 
-	int parse(char[] input, const string punctuations) @safe {
+	int parse(string input, const string punctuations) @safe {
 		size_t i, w_start;
 
 		if (input == null) {
@@ -76,7 +76,7 @@ struct ZoO_strings {
 
 		for (; i < input.length; ++i) {
 			if (input[i] == ' ') {
-				if (parse_word(punctuations, input[w_start..i].idup) < 0) {
+				if (parse_word(punctuations, input[w_start..i]) < 0) {
 					return -1;
 				}
 
@@ -90,7 +90,7 @@ struct ZoO_strings {
 			}
 		}
 
-		if (parse_word(punctuations, input[w_start..i].idup) < 0) {
+		if (parse_word(punctuations, input[w_start..i]) < 0) {
 			return -1;
 		}
 

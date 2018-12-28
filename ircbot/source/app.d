@@ -89,7 +89,7 @@ void handle_user_join(ref ZoO_state s, ref ZoO_strings string_) @system {
 		return;
 	}
 
-	if (string_.parse(s.network.msg, ZoO_knowledge_punctuation_chars) < 0) {
+	if (string_.parse(s.network.msg.idup, ZoO_knowledge_punctuation_chars) < 0) {
 		trace(ZoO_DEBUG_PROGRAM_FLOW, "Could not dissect join username.");
 
 		return;
@@ -119,7 +119,7 @@ void handle_message(ref ZoO_state s, ref ZoO_strings string_) @system {
 	string line;
 	int reply, learn;
 
-	if (string_.parse(s.network.msg, ZoO_knowledge_punctuation_chars) < 0) {
+	if (string_.parse(s.network.msg.idup, ZoO_knowledge_punctuation_chars) < 0) {
 		trace(ZoO_DEBUG_PROGRAM_FLOW, "Could not dissect msg.");
 
 		return;
