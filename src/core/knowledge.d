@@ -72,7 +72,7 @@ struct ZoO_knowledge {
 	int find(const char[] word, out size_t result) const @safe {
 		size_t r;
 
-		if (ZoO_sorted_list_index_of(sorted_indices, word, &cmp_word, this, r) == 0) {
+		if (ZoO_sorted_list_index_of!cmp_word(sorted_indices, word, this, r) == 0) {
 			result = sorted_indices[r];
 
 			return 0;

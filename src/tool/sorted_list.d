@@ -2,7 +2,7 @@ module tool.sorted_list;
 
 import pervasive;
 
-int ZoO_sorted_list_index_of(T, U, V)(const T[] sorted_list, const U elem, int function(const U, const T, const V) @safe compare, const V other, out size_t result) @safe {
+int ZoO_sorted_list_index_of(alias compare, T, U, V)(const T[] sorted_list, const U elem, const V other, out size_t result) @safe {
 	int cmp;
 	size_t current_min, current_max;
 	/* This is a binary search. */
@@ -72,6 +72,6 @@ int ZoO_sorted_list_index_of(T, U, V)(const T[] sorted_list, const U elem, int f
 	}
 	auto arr = [1, 2, 4, 6, 8];
 	size_t result;
-	assert(ZoO_sorted_list_index_of(arr, arr[3], &testCmpFunc, arr[3], result) == 0);
+	assert(ZoO_sorted_list_index_of!testCmpFunc(arr, arr[3], arr[3], result) == 0);
 	assert(result == 3);
 }

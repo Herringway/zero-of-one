@@ -22,11 +22,11 @@ int cmp_seq_link(const size_t[] sequence, const ZoO_knowledge_link link, const t
 }
 
 int ZoO_knowledge_find_link(ref ZoO_knowledge_link[] links, const size_t[] sequence, out size_t result) @safe {
-	return ZoO_sorted_list_index_of(links, sequence, &cmp_seq_link, null, result);
+	return ZoO_sorted_list_index_of!cmp_seq_link(links, sequence, null, result);
 }
 
 int ZoO_knowledge_get_link(ref ZoO_knowledge_link[] links, const size_t[] sequence, out size_t result) @system {
-	if (ZoO_sorted_list_index_of(links, sequence, &cmp_seq_link, null, result) == 0) {
+	if (ZoO_sorted_list_index_of!cmp_seq_link(links, sequence, null, result) == 0) {
 		return 0;
 	}
 	links.length += 1;
