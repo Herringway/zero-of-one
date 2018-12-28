@@ -36,7 +36,6 @@ struct ZoO_knowledge_link {
 }
 
 struct ZoO_knowledge_word {
-	size_t word_size = 0;
 	char[] word = null;
 	ZoO_knowledge_special_effect special = ZoO_knowledge_special_effect.HAS_NO_EFFECT;
 	size_t occurrences = 1;
@@ -47,16 +46,16 @@ struct ZoO_knowledge_word {
 struct ZoO_knowledge {
 	size_t[] sorted_indices = [9, 2, 3, 4, 5, 6, 7, 1, 0, 8];
 	ZoO_knowledge_word[] words = [
-		ZoO_knowledge_word(0, "START OF LINE".dup, ZoO_knowledge_special_effect.STARTS_SENTENCE, 0, [], []),
-		ZoO_knowledge_word(0, "END OF LINE".dup, ZoO_knowledge_special_effect.ENDS_SENTENCE, 0, [], []),
-		ZoO_knowledge_word(0, "!".dup, ZoO_knowledge_special_effect.REMOVES_LEFT_SPACE, 0, [], []),
-		ZoO_knowledge_word(0, ",".dup, ZoO_knowledge_special_effect.REMOVES_LEFT_SPACE, 0, [], []),
-		ZoO_knowledge_word(0, ".".dup, ZoO_knowledge_special_effect.REMOVES_LEFT_SPACE, 0, [], []),
-		ZoO_knowledge_word(0, ":".dup, ZoO_knowledge_special_effect.REMOVES_LEFT_SPACE, 0, [], []),
-		ZoO_knowledge_word(0, ";".dup, ZoO_knowledge_special_effect.REMOVES_LEFT_SPACE, 0, [], []),
-		ZoO_knowledge_word(0, "?".dup, ZoO_knowledge_special_effect.REMOVES_LEFT_SPACE, 0, [], []),
-		ZoO_knowledge_word(0, "~".dup, ZoO_knowledge_special_effect.REMOVES_LEFT_SPACE, 0, [], []),
-		ZoO_knowledge_word(0, "\x01".dup, ZoO_knowledge_special_effect.REMOVES_LEFT_SPACE, 0, [], [])
+		ZoO_knowledge_word("START OF LINE".dup, ZoO_knowledge_special_effect.STARTS_SENTENCE, 0, [], []),
+		ZoO_knowledge_word("END OF LINE".dup, ZoO_knowledge_special_effect.ENDS_SENTENCE, 0, [], []),
+		ZoO_knowledge_word("!".dup, ZoO_knowledge_special_effect.REMOVES_LEFT_SPACE, 0, [], []),
+		ZoO_knowledge_word(",".dup, ZoO_knowledge_special_effect.REMOVES_LEFT_SPACE, 0, [], []),
+		ZoO_knowledge_word(".".dup, ZoO_knowledge_special_effect.REMOVES_LEFT_SPACE, 0, [], []),
+		ZoO_knowledge_word(":".dup, ZoO_knowledge_special_effect.REMOVES_LEFT_SPACE, 0, [], []),
+		ZoO_knowledge_word(";".dup, ZoO_knowledge_special_effect.REMOVES_LEFT_SPACE, 0, [], []),
+		ZoO_knowledge_word("?".dup, ZoO_knowledge_special_effect.REMOVES_LEFT_SPACE, 0, [], []),
+		ZoO_knowledge_word("~".dup, ZoO_knowledge_special_effect.REMOVES_LEFT_SPACE, 0, [], []),
+		ZoO_knowledge_word("\x01".dup, ZoO_knowledge_special_effect.REMOVES_LEFT_SPACE, 0, [], [])
 	];
 
 	/*
