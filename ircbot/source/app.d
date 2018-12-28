@@ -26,8 +26,6 @@ struct ZoO_state {
 	ZoO_network network;
 
 	int initialize(const string[] args) @safe {
-		trace(ZoO_DEBUG_PROGRAM_FLOW, "Zero of One is initializing...");
-
 		if (ZoO_parameters_initialize(param, args) < 1) {
 			return -1;
 		}
@@ -163,25 +161,16 @@ int main(string[] args) @system {
 	}
 
 	if (s.load_data_file() < 0) {
-		goto CRASH;
+		return -1;
 	}
 
 	if (s.network_connect() < 0) {
-		goto CRASH;
+		return -1;
 	}
 
 	if (main_loop(s) < 0) {
-		goto CRASH;
-	}
-
-	trace(ZoO_DEBUG_PROGRAM_FLOW, "Zero of One terminated normally.");
-
-	return 0;
-
-	CRASH:
-	{
-		trace(ZoO_DEBUG_PROGRAM_FLOW, "Zero of One terminated by crashing.");
-
 		return -1;
 	}
+
+	return 0;
 }
