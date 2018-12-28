@@ -99,15 +99,11 @@ struct ZoO_knowledge {
 		size_t temp;
 
 		if (find(word, result) == 0) {
-			assert(words[result].occurrences < size_t.max, "Maximum number of occurrences has been reached for word '"~word~"'.");
-
 			/* overflow-safe: (< k.words[*result].occurrences ZoO_INDEX_MAX) */
 			words[result].occurrences += 1;
 
 			return 0;
 		}
-
-		assert(words.length < size_t.max, "Maximum number of words has been reached.");
 
 		words.length++;
 
