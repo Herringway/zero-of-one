@@ -24,7 +24,7 @@ struct ZoO_strings {
 	}
 
 
-	int parse_word(const string punctuations, char[] line) @safe {
+	int parse_word(const string punctuations, string line) @safe {
 		if (line.length == 0) {
 			return 0;
 		}
@@ -35,7 +35,7 @@ struct ZoO_strings {
 			/* overflow-safe: line_size > 1 */
 			if (line[$ - 1] == punctuation) {
 				if (line.length > 1) {
-					if ((add_word(line.idup) < 0) || (add_word(line[$ - 1..$].idup) < 0)) {
+					if ((add_word(line) < 0) || (add_word(line[$ - 1..$]) < 0)) {
 						return -1;
 					}
 
@@ -44,7 +44,7 @@ struct ZoO_strings {
 			}
 		}
 
-		return add_word(line.idup);
+		return add_word(line);
 	}
 
 	int parse(char[] input, const string punctuations) @safe {
@@ -76,7 +76,7 @@ struct ZoO_strings {
 
 		for (; i < input.length; ++i) {
 			if (input[i] == ' ') {
-				if (parse_word(punctuations, input[w_start..i]) < 0) {
+				if (parse_word(punctuations, input[w_start..i].idup) < 0) {
 					return -1;
 				}
 
@@ -90,7 +90,7 @@ struct ZoO_strings {
 			}
 		}
 
-		if (parse_word(punctuations, input[w_start..i]) < 0) {
+		if (parse_word(punctuations, input[w_start..i].idup) < 0) {
 			return -1;
 		}
 
