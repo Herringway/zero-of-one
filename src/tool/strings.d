@@ -120,7 +120,7 @@ struct ZoO_strings {
 				++i;
 
 				/* safe, as input is terminated by '\0' */
-				while (input[i] == ' ') {
+				while ((i < input.length-1) && (input[i] == ' ')) {
 					++i;
 				}
 
@@ -148,4 +148,6 @@ struct ZoO_strings {
 	assert(str.words.canFind("7", "8", "9"));
 	assert(str.parse("HELLO WORLD".dup, ",") == 0);
 	assert(str.words.canFind("hello", "world"));
+	assert(str.parse("                   yeah                        ".dup, ",") == 0);
+	assert(str.words.canFind("yeah"));
 }
