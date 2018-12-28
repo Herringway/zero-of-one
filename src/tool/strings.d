@@ -24,25 +24,12 @@ struct ZoO_strings {
 	}
 
 
-	int parse_word(const string punctuations, string line) @safe {
+	int parse_word(string line) @safe {
 		if (line.length == 0) {
 			return 0;
 		}
 
 		line = line.toLower();
-
-		foreach (punctuation; punctuations) {
-			/* overflow-safe: line_size > 1 */
-			if (line[$ - 1] == punctuation) {
-				if (line.length > 1) {
-					if ((add_word(line) < 0) || (add_word(line[$ - 1..$]) < 0)) {
-						return -1;
-					}
-
-					return 0;
-				}
-			}
-		}
 
 		return add_word(line);
 	}
@@ -75,7 +62,7 @@ struct ZoO_strings {
 		}
 
 		foreach (split; input.splitter!(x => (x.isWhite || punctuations.canFind(x))).filter!(x => !x.empty)) {
-			if (parse_word(punctuations, split) < 0) {
+			if (parse_word(split) < 0) {
 				return -1;
 			}
 		}
