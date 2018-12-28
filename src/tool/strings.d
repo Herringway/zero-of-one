@@ -43,4 +43,11 @@ struct ZoO_strings {
 	str.words = [];
 	str.parse("\001", "");
 	assert(str.words.canFind("\001"));
+	str.parse("a", "a");
+	assert(!str.words.canFind("a"));
+	str.parse("a", "");
+	assert(str.words.canFind("a"));
+	str.parse("def", "e");
+	assert(str.words.canFind("d", "f"));
+	assert(!str.words.canFind("e"));
 }
