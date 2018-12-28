@@ -48,8 +48,9 @@ struct ZoO_strings {
 	}
 
 	int parse(string input, const string punctuations) @safe {
-		import std.algorithm.iteration : splitter;
+		import std.algorithm.iteration : filter, splitter;
 		import std.algorithm.searching : canFind;
+		import std.range : empty;
 		import std.uni : isWhite;
 		size_t i, w_start;
 
@@ -73,7 +74,7 @@ struct ZoO_strings {
 			}
 		}
 
-		foreach (split; input.splitter!(x => (x.isWhite || punctuations.canFind(x)))) {
+		foreach (split; input.splitter!(x => (x.isWhite || punctuations.canFind(x))).filter!(x => !x.empty)) {
 			if (parse_word(punctuations, split) < 0) {
 				return -1;
 			}
@@ -97,4 +98,5 @@ struct ZoO_strings {
 	assert(str.words.canFind("hello", "world"));
 	assert(str.parse("                   yeah                        ", ",") == 0);
 	assert(str.words.canFind("yeah"));
+	assert(!str.words.canFind(""));
 }
