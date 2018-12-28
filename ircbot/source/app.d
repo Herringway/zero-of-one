@@ -90,13 +90,14 @@ void handle_user_join(ref ZoO_state s, ref ZoO_strings string_) @system {
 
 	string_.parse(s.network.msg.idup, ZoO_knowledge_punctuation_chars);
 
+	ZoO_strings* strs = &string_;
+
 	if ((s.knowledge.find(string_.words[0], loc) < 0) || (s.knowledge.words[loc].backward_links.length <= 3) || (s.knowledge.words[loc].forward_links.length <= 3)) {
-		auto line = ZoO_knowledge_extend(s.knowledge, null, null);
-		s.network.send(line);
-	} else {
-		auto line = ZoO_knowledge_extend(s.knowledge, &string_, null);
-		s.network.send(line);
+		strs = null;
 	}
+
+	auto line = ZoO_knowledge_extend(s.knowledge, strs, null);
+	s.network.send(line);
 }
 
 void handle_message(ref ZoO_state s, ref ZoO_strings string_) @system {
