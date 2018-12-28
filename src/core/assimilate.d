@@ -57,8 +57,6 @@ int add_word_occurrence(ref ZoO_knowledge k, const size_t[(ZoO_MARKOV_ORDER * 2)
 
 
 int should_assimilate(const ZoO_strings string, const string[] aliases) @safe {
-	size_t i;
-
 	/* Don't assimilate empty strings. */
 	if (string.words.length == 0) {
 		return 0;
