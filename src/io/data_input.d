@@ -27,7 +27,7 @@ struct ZoO_data_input {
 
 	int read_line(const string punctuations) @system {
 		size_t i, w_start;
-		ZoO_char[] line;
+		char[] line;
 
 		line = null;
 

@@ -13,8 +13,9 @@ import tool.strings;
 
 /** Functions to assimilate sentences using a ZoO_knowledge structure *********/
 
-int add_sequence(ref ZoO_knowledge_link[] links, const ZoO_index[] sequence, const ZoO_index target_i, const ZoO_index offset) @system {
-	ZoO_index link_index, i;
+int add_sequence(ref ZoO_knowledge_link[] links, const size_t[] sequence, const size_t target_i, const size_t offset) @system {
+	size_t link_index;
+	size_t i;
 	ZoO_knowledge_link * link;
 
 	if (ZoO_knowledge_get_link(links, sequence[offset..$], link_index) < 0) {
@@ -41,8 +42,8 @@ int add_sequence(ref ZoO_knowledge_link[] links, const ZoO_index[] sequence, con
 	return 0;
 }
 
-int add_word_occurrence(ref ZoO_knowledge k, const ZoO_index[(ZoO_MARKOV_ORDER * 2) + 1] sequence) @system {
-	ZoO_index w;
+int add_word_occurrence(ref ZoO_knowledge k, const size_t[(ZoO_MARKOV_ORDER * 2) + 1] sequence) @system {
+	size_t w;
 	int error;
 
 	w = sequence[ZoO_MARKOV_ORDER];
@@ -56,7 +57,7 @@ int add_word_occurrence(ref ZoO_knowledge k, const ZoO_index[(ZoO_MARKOV_ORDER *
 
 
 int should_assimilate(const ZoO_strings string, const string[] aliases) @safe {
-	ZoO_index i;
+	size_t i;
 
 	/* Don't assimilate empty strings. */
 	if (string.words.length == 0) {
@@ -82,8 +83,8 @@ int should_assimilate(const ZoO_strings string, const string[] aliases) @safe {
 	assert(should_assimilate(str, ["hello"]) == 1);
 }
 
-int init_sequence(ref ZoO_knowledge k, ref ZoO_strings string, ref ZoO_index[(ZoO_MARKOV_ORDER * 2) + 1] sequence) @safe {
-	ZoO_index i;
+int init_sequence(ref ZoO_knowledge k, ref ZoO_strings string, ref size_t[(ZoO_MARKOV_ORDER * 2) + 1] sequence) @safe {
+	size_t i;
 
 	/* We are going to link this sequence to ZoO_WORD_START_OF_LINE */
 	sequence[ZoO_MARKOV_ORDER] = ZoO_WORD_START_OF_LINE;
@@ -107,7 +108,7 @@ int init_sequence(ref ZoO_knowledge k, ref ZoO_strings string, ref ZoO_index[(Zo
 @safe unittest {
 	ZoO_knowledge k;
 	ZoO_strings str;
-	ZoO_index[(ZoO_MARKOV_ORDER * 2) + 1] seq;
+	size_t[(ZoO_MARKOV_ORDER * 2) + 1] seq;
 	assert(init_sequence(k, str, seq) == 0);
 	assert(seq[0] == ZoO_WORD_START_OF_LINE);
 	assert(seq[$-1] == ZoO_WORD_END_OF_LINE);
@@ -115,8 +116,9 @@ int init_sequence(ref ZoO_knowledge k, ref ZoO_strings string, ref ZoO_index[(Zo
 
 int ZoO_knowledge_assimilate(ref ZoO_knowledge k, ref ZoO_strings string, const string[] aliases) @system {
 	int error;
-	ZoO_index[(ZoO_MARKOV_ORDER * 2) + 1] sequence;
-	ZoO_index next_word, new_word, new_word_id;
+	size_t[(ZoO_MARKOV_ORDER * 2) + 1] sequence;
+	size_t next_word, new_word;
+	size_t new_word_id;
 
 	if (!should_assimilate(string, aliases)) {
 		return 0;
@@ -150,7 +152,7 @@ int ZoO_knowledge_assimilate(ref ZoO_knowledge k, ref ZoO_strings string, const 
 			new_word_id = ZoO_WORD_END_OF_LINE;
 		}
 
-		memmove(sequence.ptr, sequence.ptr + 1, (ZoO_index.sizeof * (ZoO_MARKOV_ORDER * 2)));
+		memmove(sequence.ptr, sequence.ptr + 1, (size_t.sizeof * (ZoO_MARKOV_ORDER * 2)));
 
 		sequence[ZoO_MARKOV_ORDER * 2] = new_word_id;
 

@@ -8,8 +8,8 @@ import tool.sorted_list;
 
 import pervasive;
 
-int cmp_seq_link(const ZoO_index[] sequence, const ZoO_knowledge_link link, const typeof(null)) @safe {
-	ZoO_index j;
+int cmp_seq_link(const size_t[] sequence, const ZoO_knowledge_link link, const typeof(null)) @safe {
+	size_t j;
 	for (j = 0; j < ZoO_SEQUENCE_SIZE; ++j) {
 		if (sequence[j] < link.sequence[j]) {
 			return -1;
@@ -21,11 +21,11 @@ int cmp_seq_link(const ZoO_index[] sequence, const ZoO_knowledge_link link, cons
 	return 0;
 }
 
-int ZoO_knowledge_find_link(ref ZoO_knowledge_link[] links, const ZoO_index[] sequence, out ZoO_index result) @safe {
+int ZoO_knowledge_find_link(ref ZoO_knowledge_link[] links, const size_t[] sequence, out size_t result) @safe {
 	return ZoO_sorted_list_index_of(links, sequence, &cmp_seq_link, null, result);
 }
 
-int ZoO_knowledge_get_link(ref ZoO_knowledge_link[] links, const ZoO_index[] sequence, out ZoO_index result) @system {
+int ZoO_knowledge_get_link(ref ZoO_knowledge_link[] links, const size_t[] sequence, out size_t result) @system {
 	if (ZoO_sorted_list_index_of(links, sequence, &cmp_seq_link, null, result) == 0) {
 		return 0;
 	}
@@ -45,8 +45,8 @@ int ZoO_knowledge_get_link(ref ZoO_knowledge_link[] links, const ZoO_index[] seq
 @system unittest {
 	import std.stdio;
 	ZoO_knowledge_link[] links =[ZoO_knowledge_link([10, 11], [1], [0]), ZoO_knowledge_link([10, 11], [1], [0])];
-	ZoO_index[] sequence;
-	ZoO_index result;
+	size_t[] sequence;
+	size_t result;
 
 	assert(ZoO_knowledge_get_link(links, [1,1,1,1,1,1], result) == 0);
 	assert(result == 0);

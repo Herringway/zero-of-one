@@ -22,8 +22,8 @@ import pervasive;
  *    (== (sum links_occurrences) occurrences).
  *    (can_store ZoO_index (length links)).
  */
-ZoO_index pick_index(const ZoO_index[] links_occurrences) @safe {
-	ZoO_index result, accumulator, random_number;
+size_t pick_index(const size_t[] links_occurrences) @safe {
+	size_t result, accumulator, random_number;
 
 	result = 0;
 
@@ -33,7 +33,7 @@ ZoO_index pick_index(const ZoO_index[] links_occurrences) @safe {
 	*/
 	accumulator = links_occurrences[0];
 
-	random_number = uniform(0, cast(uint)links_occurrences.length);
+	random_number = uniform(0, links_occurrences.length);
 
 	while (accumulator < random_number) {
 		/*
@@ -62,11 +62,11 @@ ZoO_index pick_index(const ZoO_index[] links_occurrences) @safe {
 	return result;
 }
 
-string extend_left(ref ZoO_knowledge k, ZoO_index[] sequence, string current_sentence, ref ZoO_index credits) @system {
+string extend_left(ref ZoO_knowledge k, size_t[] sequence, string current_sentence, ref size_t credits) @system {
 	size_t addition_size;
 	ZoO_knowledge_word * w;
 	string next_sentence;
-	ZoO_index j;
+	size_t j;
 
 	next_sentence = current_sentence;
 
@@ -131,10 +131,9 @@ string extend_left(ref ZoO_knowledge k, ZoO_index[] sequence, string current_sen
 				break;
 		}
 
-		/* prevents current_sentence [const] */
 		current_sentence = next_sentence;
 
-		memmove(&sequence[1], &sequence[0], (ZoO_index.sizeof * (ZoO_MARKOV_ORDER - 1)));
+		memmove(&sequence[1], &sequence[0], (size_t.sizeof * (ZoO_MARKOV_ORDER - 1)));
 
 		if (ZoO_knowledge_find_link(w.backward_links, sequence[1..$], j) < 0) {
 			error("Unexpectedly, no backtracking link was found.");
@@ -150,11 +149,11 @@ string extend_left(ref ZoO_knowledge k, ZoO_index[] sequence, string current_sen
 	assert(0);
 }
 
-string extend_right(ref ZoO_knowledge k, ZoO_index[] sequence, string current_sentence, ref ZoO_index credits) @system {
+string extend_right(ref ZoO_knowledge k, size_t[] sequence, string current_sentence, ref size_t credits) @system {
 	size_t addition_size;
 	ZoO_knowledge_word * w;
 	string next_sentence;
-	ZoO_index j;
+	size_t j;
 
 	next_sentence = current_sentence;
 
@@ -219,7 +218,7 @@ string extend_right(ref ZoO_knowledge k, ZoO_index[] sequence, string current_se
 
 		current_sentence = next_sentence;
 
-		memmove(sequence.ptr, sequence.ptr + 1, (ZoO_index.sizeof * (ZoO_MARKOV_ORDER - 1)));
+		memmove(sequence.ptr, sequence.ptr + 1, (size_t.sizeof * (ZoO_MARKOV_ORDER - 1)));
 
 		if (ZoO_knowledge_find_link(w.forward_links, sequence, j) < 0) {
 			error("Unexpectedly, no forward link was found.");
@@ -232,12 +231,12 @@ string extend_right(ref ZoO_knowledge k, ZoO_index[] sequence, string current_se
 	assert(0);
 }
 
-ZoO_index select_first_word(ref ZoO_knowledge k, const ZoO_strings* string, const string[] aliases) @safe {
-	ZoO_index i, j, word_id, word_min_score, word_min_id;
+size_t select_first_word(ref ZoO_knowledge k, const ZoO_strings* string, const string[] aliases) @safe {
+	size_t i, j, word_min_score, word_id, word_min_id;
 	bool word_found;
 
 	if (string == null) {
-		return word_min_id = uniform(0, cast(uint)k.words.length);
+		return word_min_id = uniform(0, k.words.length);
 	}
 
 	word_found = false;
@@ -282,9 +281,9 @@ ZoO_index select_first_word(ref ZoO_knowledge k, const ZoO_strings* string, cons
 }
 
 
-void init_sequence(ref ZoO_knowledge k, const ZoO_strings* string, const string[] aliases, ref ZoO_index[(ZoO_MARKOV_ORDER * 2) + 1] sequence) @safe {
+void init_sequence(ref ZoO_knowledge k, const ZoO_strings* string, const string[] aliases, ref size_t[(ZoO_MARKOV_ORDER * 2) + 1] sequence) @safe {
 	import std.conv : text;
-	ZoO_index i, j, accumulator, random_number;
+	size_t i, j, accumulator, random_number;
 	ZoO_knowledge_word * fiw;
 
 	sequence[ZoO_MARKOV_ORDER] = select_first_word(k, string, aliases);
@@ -304,7 +303,7 @@ void init_sequence(ref ZoO_knowledge k, const ZoO_strings* string, const string[
 
 	/* Chooses a likely forward link for the pillar. */
 	i = 0;
-	accumulator = cast(uint)fiw.forward_links[0].targets_occurrences.length;
+	accumulator = fiw.forward_links[0].targets_occurrences.length;
 
 	random_number = uniform(0, fiw.occurrences);
 
@@ -348,9 +347,9 @@ void init_sequence(ref ZoO_knowledge k, const ZoO_strings* string, const string[
 }
 int ZoO_knowledge_extend(ref ZoO_knowledge k, const ZoO_strings* string, const string[] aliases, out string result) @system {
 	int word_found;
-	size_t sentence_size;
-	ZoO_index[(ZoO_MARKOV_ORDER * 2) + 1] sequence;
-	ZoO_index first_word, credits;
+	size_t[(ZoO_MARKOV_ORDER * 2) + 1] sequence;
+	size_t credits;
+	size_t first_word;
 
 	credits = ZoO_MAX_REPLY_WORDS;
 

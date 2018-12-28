@@ -22,9 +22,9 @@ struct ZoO_network {
 	private size_t buffer_index;
 	private size_t buffer_remaining;
 	AddressInfo[] addrInfo;
-	private ZoO_char[513] buffer;
-	private ZoO_char[] in_;
-	private ZoO_char[] out_;
+	private char[513] buffer;
+	private char[] in_;
+	private char[] out_;
 	char[] msg;
 	Socket socket;
 	string channel;

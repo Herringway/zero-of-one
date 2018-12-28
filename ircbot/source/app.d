@@ -58,7 +58,7 @@ struct ZoO_state {
 
 
 int should_reply(ref ZoO_parameters param, ref ZoO_strings string_, out int should_learn) @safe {
-	ZoO_index i, j;
+	size_t i, j;
 
 	for (i = 0; i < param.aliases.length; ++i) {
 		if (param.aliases[i] == string_.words[0]) {
@@ -83,7 +83,7 @@ int should_reply(ref ZoO_parameters param, ref ZoO_strings string_, out int shou
 
 void handle_user_join(ref ZoO_state s, ref ZoO_strings string_) @system {
 	string line;
-	ZoO_index loc;
+	size_t loc;
 
 	if (s.param.reply_rate < uniform(0, 101)) {
 		return;

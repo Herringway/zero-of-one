@@ -10,7 +10,7 @@ struct ZoO_strings {
 	string[] words;
 
 	int add_word(string line) @safe {
-		if (words.length == ZoO_INDEX_MAX) {
+		if (words.length == size_t.max) {
 			warning("Data input sentence has too many words.");
 
 			return -1;
@@ -25,7 +25,7 @@ struct ZoO_strings {
 
 
 	int parse_word(const string punctuations, char[] line) @safe {
-		ZoO_index j;
+		size_t j;
 
 		if (line.length == 0) {
 			return 0;

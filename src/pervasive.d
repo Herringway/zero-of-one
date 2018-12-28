@@ -23,11 +23,3 @@ enum ZoO_DEFAULT_IRC_REALNAME = "Zero of One (bot)";
 enum ZoO_DEFAULT_REPLY_RATE = 8;
 
 enum ZoO_MARKOV_ORDER = 3;
-
-alias ZoO_index = uint;
-enum ZoO_INDEX_MAX = uint.max;
-
-/* ZoO_char = UTF-8 char */
-alias ZoO_char = char;
-/* Functions that can handle UTF-8 'char' will use this symbol. */
-enum ZoO_CHAR_STRING_SYMBOL = "%s";

@@ -2,9 +2,9 @@ module tool.sorted_list;
 
 import pervasive;
 
-int ZoO_sorted_list_index_of(T, U, V)(const T[] sorted_list, const U elem, int function(const U, const T, const V) @safe compare, const V other, out ZoO_index result) @safe {
+int ZoO_sorted_list_index_of(T, U, V)(const T[] sorted_list, const U elem, int function(const U, const T, const V) @safe compare, const V other, out size_t result) @safe {
 	int cmp;
-	ZoO_index i, current_min, current_max;
+	size_t current_min, current_max;
 	/* This is a binary search. */
 
 	if (sorted_list.length == 0) {
@@ -15,16 +15,16 @@ int ZoO_sorted_list_index_of(T, U, V)(const T[] sorted_list, const U elem, int f
 
 	current_min = 0;
 
-	current_max = cast(uint)(sorted_list.length - 1);
+	current_max = sorted_list.length - 1;
 
 	for (;;) {
 		/* FIXME: overflow-safe? */
 		/* No: (and (> current_min (/ Max 2)) (> current_max (/ Max 2))) */
-		i = ((current_min + current_max) / 2);
+		size_t i = ((current_min + current_max) / 2);
 
 		if (i == sorted_list.length) {
 			/* FIXME: I don't see how this one can be true */
-			result = cast(uint)sorted_list.length;
+			result = sorted_list.length;
 
 			return -1;
 		}
@@ -71,7 +71,7 @@ int ZoO_sorted_list_index_of(T, U, V)(const T[] sorted_list, const U elem, int f
 		}
 	}
 	auto arr = [1, 2, 4, 6, 8];
-	ZoO_index result;
+	size_t result;
 	assert(ZoO_sorted_list_index_of(arr, arr[3], &testCmpFunc, arr[3], result) == 0);
 	assert(result == 3);
 }

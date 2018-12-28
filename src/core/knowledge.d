@@ -30,22 +30,22 @@ enum ZoO_knowledge_special_effect {
 }
 
 struct ZoO_knowledge_link {
-	ZoO_index[ZoO_SEQUENCE_SIZE] sequence;
-	ZoO_index[] targets_occurrences;
-	ZoO_index[] targets;
+	size_t[ZoO_SEQUENCE_SIZE] sequence;
+	size_t[] targets_occurrences;
+	size_t[] targets;
 }
 
 struct ZoO_knowledge_word {
 	size_t word_size = 0;
-	ZoO_char[] word = null;
+	char[] word = null;
 	ZoO_knowledge_special_effect special = ZoO_knowledge_special_effect.HAS_NO_EFFECT;
-	ZoO_index occurrences = 1;
+	size_t occurrences = 1;
 	ZoO_knowledge_link[] forward_links = null;
 	ZoO_knowledge_link[] backward_links = null;
 }
 
 struct ZoO_knowledge {
-	ZoO_index[] sorted_indices = [9, 2, 3, 4, 5, 6, 7, 1, 0, 8];
+	size_t[] sorted_indices = [9, 2, 3, 4, 5, 6, 7, 1, 0, 8];
 	ZoO_knowledge_word[] words = [
 		ZoO_knowledge_word(0, "START OF LINE".dup, ZoO_knowledge_special_effect.STARTS_SENTENCE, 0, [], []),
 		ZoO_knowledge_word(0, "END OF LINE".dup, ZoO_knowledge_special_effect.ENDS_SENTENCE, 0, [], []),
@@ -69,8 +69,8 @@ struct ZoO_knowledge {
 	 *    {*result} is where {word} was expected to be found in
 	 *    {k.sorted_indices}.
 	 */
-	int find(const ZoO_char[] word, out ZoO_index result) const @safe {
-		ZoO_index r;
+	int find(const char[] word, out size_t result) const @safe {
+		size_t r;
 
 		if (ZoO_sorted_list_index_of(sorted_indices, word, &cmp_word, this, r) == 0) {
 			result = sorted_indices[r];
@@ -94,12 +94,12 @@ struct ZoO_knowledge {
 	 *    {k} remains semantically unchanged.
 	 *    {*result} may or may not have been altered.
 	 */
-	int learn(const ZoO_char[] word, out ZoO_index result) @safe {
+	int learn(const char[] word, out size_t result) @safe {
 		import std.array : insertInPlace;
-		ZoO_index temp;
+		size_t temp;
 
 		if (find(word, result) == 0) {
-			assert(words[result].occurrences < ZoO_INDEX_MAX, "Maximum number of occurrences has been reached for word '"~word~"'.");
+			assert(words[result].occurrences < size_t.max, "Maximum number of occurrences has been reached for word '"~word~"'.");
 
 			/* overflow-safe: (< k.words[*result].occurrences ZoO_INDEX_MAX) */
 			words[result].occurrences += 1;
@@ -107,13 +107,13 @@ struct ZoO_knowledge {
 			return 0;
 		}
 
-		assert(words.length < ZoO_INDEX_MAX, "Maximum number of words has been reached.");
+		assert(words.length < size_t.max, "Maximum number of words has been reached.");
 
 		words.length++;
 
 		sorted_indices.insertInPlace(result, [cast(uint)words.length-1]);
 
-		result = cast(uint)words.length-1;
+		result = words.length-1;
 
 		words[$-1].word = word.dup;
 
@@ -127,7 +127,7 @@ struct ZoO_knowledge {
 	ZoO_knowledge knowledge;
 	assert(knowledge.words[0].word == "START OF LINE");
 	assert(knowledge.words[$-1].word == [ZoO_knowledge_punctuation_chars[$-1]]);
-	ZoO_index i;
+	size_t i;
 	knowledge.learn("hello", i);
 	assert(knowledge.words[i].word == "hello");
 	assert(knowledge.words[i].occurrences == 1);
@@ -143,7 +143,7 @@ struct ZoO_knowledge {
 	assert(knowledge.sorted_indices == [9, 2, 3, 4, 5, 6, 7, 1, 0, 10, 11, 8]);
 }
 
-int cmp_word(const ZoO_char[] word, const ZoO_index sorted_index, const ZoO_knowledge other) @safe {
+int cmp_word(const char[] word, const size_t sorted_index, const ZoO_knowledge other) @safe {
 	import std.algorithm.comparison : cmp;
 	return cmp(word, other.words[sorted_index].word);
 }
