@@ -89,11 +89,7 @@ void handle_user_join(ref ZoO_state s, ref ZoO_strings string_) @system {
 		return;
 	}
 
-	if (string_.parse(s.network.msg.idup, ZoO_knowledge_punctuation_chars) < 0) {
-		trace(ZoO_DEBUG_PROGRAM_FLOW, "Could not dissect join username.");
-
-		return;
-	}
+	string_.parse(s.network.msg.idup, ZoO_knowledge_punctuation_chars);
 
 	if ((s.knowledge.find(string_.words[0], loc) < 0) || (s.knowledge.words[loc].backward_links.length <= 3) || (s.knowledge.words[loc].forward_links.length <= 3)) {
 		if (ZoO_knowledge_extend(s.knowledge, null, null, line) == 0) {
@@ -119,11 +115,7 @@ void handle_message(ref ZoO_state s, ref ZoO_strings string_) @system {
 	string line;
 	int reply, learn;
 
-	if (string_.parse(s.network.msg.idup, ZoO_knowledge_punctuation_chars) < 0) {
-		trace(ZoO_DEBUG_PROGRAM_FLOW, "Could not dissect msg.");
-
-		return;
-	}
+	string_.parse(s.network.msg.idup, ZoO_knowledge_punctuation_chars);
 
 	if (string_.words.length == 0) {
 		return;

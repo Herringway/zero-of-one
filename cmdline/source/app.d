@@ -45,11 +45,7 @@ void main() {
 
 	while(true) {
 		auto input = readln().strip();
-		if (str.parse(input.dup, ZoO_knowledge_punctuation_chars) < 0) {
-			trace(ZoO_DEBUG_PROGRAM_FLOW, "Could not dissect msg.");
-
-			break;
-		}
+		str.parse(input.dup, ZoO_knowledge_punctuation_chars);
 
 		if (str.words.length == 0) {
 			//break;
