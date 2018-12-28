@@ -167,7 +167,7 @@ string extend_right(ref ZoO_knowledge k, size_t[] sequence, string current_sente
 }
 
 size_t select_first_word(ref ZoO_knowledge k, const ZoO_strings* string, const string[] aliases) @safe {
-	size_t i, j, word_min_score, word_id, word_min_id;
+	size_t i, word_min_score, word_id, word_min_id;
 	bool word_found;
 
 	if (string == null) {
@@ -177,8 +177,8 @@ size_t select_first_word(ref ZoO_knowledge k, const ZoO_strings* string, const s
 	word_found = false;
 
 	for (i = 0; i < string.words.length; ++i) {
-		for (j = 0; j < aliases.length; ++j) {
-			if (aliases[j] == string.words[i]) {
+		foreach (alias_; aliases) {
+			if (alias_ == string.words[i]) {
 				goto NEXT_WORD;
 			}
 		}
@@ -198,8 +198,8 @@ size_t select_first_word(ref ZoO_knowledge k, const ZoO_strings* string, const s
 	}
 
 	for (; i < string.words.length; ++i) {
-		for (j = 0; j < aliases.length; ++j) {
-			if (aliases[j] == string.words[i]) {
+		foreach (alias_; aliases) {
+			if (alias_ == string.words[i]) {
 				goto NEXT_WORD_BIS;
 			}
 		}
