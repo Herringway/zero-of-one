@@ -25,17 +25,15 @@ struct ZoO_strings {
 
 
 	int parse_word(const string punctuations, char[] line) @safe {
-		size_t j;
-
 		if (line.length == 0) {
 			return 0;
 		}
 
 		line = line.toLower();
 
-		for (j = 0; j < punctuations.length; ++j) {
+		foreach (punctuation; punctuations) {
 			/* overflow-safe: line_size > 1 */
-			if (line[$ - 1] == punctuations[j]) {
+			if (line[$ - 1] == punctuation) {
 				if (line.length > 1) {
 					if ((add_word(line.idup) < 0) || (add_word(line[$ - 1..$].idup) < 0)) {
 						return -1;
