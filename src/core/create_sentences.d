@@ -63,7 +63,6 @@ size_t pick_index(const size_t[] links_occurrences) @safe {
 }
 
 string extend_left(ref ZoO_knowledge k, size_t[] sequence, string current_sentence, ref size_t credits) @system {
-	size_t addition_size;
 	ZoO_knowledge_word * w;
 	string next_sentence;
 	size_t j;
@@ -79,39 +78,7 @@ string extend_left(ref ZoO_knowledge k, size_t[] sequence, string current_senten
 
 		w = &k.words[sequence[ZoO_MARKOV_ORDER - 1]];
 
-		switch (w.special) {
-			case ZoO_knowledge_special_effect.HAS_NO_EFFECT:
-				/* FIXME: not overflow-safe. */
-				/* word also contains an '\0', which we will replace by a ' ' */
-				addition_size = w.word_size;
-				break;
-
-			case ZoO_knowledge_special_effect.ENDS_SENTENCE:
-				warning("END OF LINE should not be prefixable.");
-				return current_sentence;
-
-			case ZoO_knowledge_special_effect.STARTS_SENTENCE:
-				return current_sentence;
-
-			case ZoO_knowledge_special_effect.REMOVES_LEFT_SPACE:
-			case ZoO_knowledge_special_effect.REMOVES_RIGHT_SPACE:
-				/* word also contains an '\0', which we will remove. */
-				addition_size = w.word_size - 1;
-				break;
-			default: assert(0);
-		}
-
-		if (current_sentence.length > (size_t.max - addition_size)) {
-			warning("Sentence construction aborted to avoid size_t overflow.");
-
-			return current_sentence;
-		}
-
 		next_sentence = current_sentence;
-
-		/* overflow-safe */
-		next_sentence.length = (current_sentence.length + addition_size);
-		current_sentence.length = (current_sentence.length + addition_size);
 
 		switch(w.special) {
 			case ZoO_knowledge_special_effect.HAS_NO_EFFECT:
@@ -150,7 +117,6 @@ string extend_left(ref ZoO_knowledge k, size_t[] sequence, string current_senten
 }
 
 string extend_right(ref ZoO_knowledge k, size_t[] sequence, string current_sentence, ref size_t credits) @system {
-	size_t addition_size;
 	ZoO_knowledge_word * w;
 	string next_sentence;
 	size_t j;
@@ -166,38 +132,7 @@ string extend_right(ref ZoO_knowledge k, size_t[] sequence, string current_sente
 
 		w = &k.words[sequence[0]];
 
-		switch (w.special) {
-			case ZoO_knowledge_special_effect.HAS_NO_EFFECT:
-				/* FIXME: Assumed to be overflow-safe. */
-				/* word also contains an '\0', which we will replace by a ' '. */
-				addition_size = w.word_size;
-				break;
-
-			case ZoO_knowledge_special_effect.ENDS_SENTENCE:
-				return current_sentence;
-
-			case ZoO_knowledge_special_effect.STARTS_SENTENCE:
-				warning("START OF LINE should not be suffixable.");
-				return current_sentence;
-
-			case ZoO_knowledge_special_effect.REMOVES_LEFT_SPACE:
-			case ZoO_knowledge_special_effect.REMOVES_RIGHT_SPACE:
-				/* word also contains an '\0', which we will remove. */
-				addition_size = w.word_size - 1;
-				break;
-			default: assert(0);
-		}
-
-		if (current_sentence.length > (size_t.max - addition_size)) {
-			warning("Sentence construction aborted to avoid size_t overflow.");
-
-			return current_sentence;
-		}
-
 		next_sentence = current_sentence;
-
-		next_sentence.length = (current_sentence.length + addition_size);
-		current_sentence.length = (current_sentence.length + addition_size);
 
 		switch (w.special) {
 			case ZoO_knowledge_special_effect.REMOVES_LEFT_SPACE:
@@ -359,22 +294,6 @@ int ZoO_knowledge_extend(ref ZoO_knowledge k, const ZoO_strings* string, const s
 
 	switch (k.words[first_word].special) {
 		case ZoO_knowledge_special_effect.REMOVES_LEFT_SPACE:
-		case ZoO_knowledge_special_effect.REMOVES_RIGHT_SPACE:
-			sentence_size = k.words[first_word].word.length + 2;
-			break;
-
-		case ZoO_knowledge_special_effect.HAS_NO_EFFECT:
-			sentence_size = k.words[first_word].word.length + 3;
-			break;
-
-		default:
-			warningf("'%s' was unexpectedly selected as pillar.", k.words[first_word].word);
-			sentence_size = k.words[first_word].word.length + 5;
-			break;
-	}
-
-	switch (k.words[first_word].special) {
-		case ZoO_knowledge_special_effect.REMOVES_LEFT_SPACE:
 			result = format!"%s "(k.words[first_word].word);
 			break;
 
@@ -387,6 +306,7 @@ int ZoO_knowledge_extend(ref ZoO_knowledge k, const ZoO_strings* string, const s
 			break;
 
 		default:
+			warningf("'%s' was unexpectedly selected as pillar.", k.words[first_word].word);
 			result = format!" [%s] "(k.words[first_word].word);
 			break;
 	}
