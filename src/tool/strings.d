@@ -10,7 +10,7 @@ struct ZoO_strings {
 		import std.string : toLower;
 		import std.uni : isWhite;
 
-		if (input == null) {
+		if (input.empty) {
 			return;
 		}
 
