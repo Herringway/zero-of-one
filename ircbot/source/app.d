@@ -57,28 +57,28 @@ struct ZoO_state {
 }
 
 
-int should_reply(ref ZoO_parameters param, ref ZoO_strings string_, out int should_learn) @safe {
+bool should_reply(ref ZoO_parameters param, ref ZoO_strings string_, out bool should_learn) @safe {
 	size_t i, j;
 
 	for (i = 0; i < param.aliases.length; ++i) {
 		if (param.aliases[i] == string_.words[0]) {
-			should_learn = 0;
+			should_learn = false;
 
-			return 1;
+			return true;
 		}
 
 		for (j = 1; j < string_.words.length; ++j) {
 			if (param.aliases[i] == string_.words[j]) {
-				should_learn = 1;
+				should_learn = true;
 
-				return 1;
+				return true;
 			}
 		}
 	}
 
-	should_learn = 1;
+	should_learn = true;
 
-	return (param.reply_rate >= uniform(0, 101));
+	return param.reply_rate >= uniform(0, 101);
 }
 
 void handle_user_join(ref ZoO_state s, ref ZoO_strings string_) @system {
@@ -101,7 +101,7 @@ void handle_user_join(ref ZoO_state s, ref ZoO_strings string_) @system {
 }
 
 void handle_message(ref ZoO_state s, ref ZoO_strings string_) @system {
-	int reply, learn;
+	bool reply, learn;
 
 	string_.parse(s.network.msg.idup, ZoO_knowledge_punctuation_chars);
 
