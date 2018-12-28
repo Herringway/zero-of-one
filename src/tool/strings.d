@@ -135,3 +135,17 @@ struct ZoO_strings {
 		return 0;
 	}
 }
+
+@safe unittest {
+	import std.algorithm.searching : canFind;
+	ZoO_strings str;
+	assert(str.parse("".dup, "") == 0);
+	assert(str.parse("test 1 2 3".dup, "") == 0);
+	assert(str.words.canFind("test", "1", "2", "3"));
+	assert(str.parse("\001ACTION 4 5 6\001".dup, "") == 0);
+	assert(str.words.canFind("\001ACTION", "4", "5", "6"));
+	assert(str.parse("7, 8, 9".dup, ",") == 0);
+	assert(str.words.canFind("7", "8", "9"));
+	assert(str.parse("HELLO WORLD".dup, ",") == 0);
+	assert(str.words.canFind("hello", "world"));
+}
