@@ -9,15 +9,7 @@ import std.string;
 struct ZoO_strings {
 	string[] words;
 
-	void parse_word(string line) @safe {
-		if (line.length == 0) {
-			return;
-		}
-
-		words ~= line.toLower();
-	}
-
-	void parse(string input, const string punctuations) @safe {
+	void parse(string input, const string punctuations) @safe pure {
 		import std.algorithm.iteration : filter, splitter;
 		import std.algorithm.searching : canFind;
 		import std.range : empty;
@@ -38,18 +30,16 @@ struct ZoO_strings {
 
 			if ((input.length >= 1) && (input[$ - 1] == '\001')) {
 				input = input[0..$ - 1];
-			} else {
-				warningf("CTCP sequence '%s' did not end with a \\001 character.", input);
 			}
 		}
 
 		foreach (split; input.splitter!(x => (x.isWhite || punctuations.canFind(x))).filter!(x => !x.empty)) {
-			parse_word(split);
+			words ~= split.toLower();
 		}
 	}
 }
 
-@safe unittest {
+@safe pure unittest {
 	import std.algorithm.searching : canFind;
 	ZoO_strings str;
 	str.parse("", "");
