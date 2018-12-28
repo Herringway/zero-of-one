@@ -3,6 +3,7 @@ module core.create_sentences;
 import core.stdc.string;
 import std.random;
 import std.string;
+import std.uni;
 import std.experimental.logger;
 
 import core.sequence;
@@ -280,7 +281,12 @@ void init_sequence(ref ZoO_knowledge k, const ZoO_strings* string, const string[
 		sequence[ZoO_MARKOV_ORDER - i - 1] = fiw.backward_links[j].targets[pick_index(fiw.backward_links[j].targets_occurrences)];
 	}
 }
-int ZoO_knowledge_extend(ref ZoO_knowledge k, const ZoO_strings* string, const string[] aliases, out string result) @system {
+string ZoO_knowledge_extend(ref ZoO_knowledge k, const ZoO_strings* str, const string[] aliases) @system
+out(result; result.length > 0)
+out(result; isWhite(result[0]))
+out(result; isWhite(result[$-1]))
+{
+	string result;
 	int word_found;
 	size_t[(ZoO_MARKOV_ORDER * 2) + 1] sequence;
 	size_t credits;
@@ -288,7 +294,7 @@ int ZoO_knowledge_extend(ref ZoO_knowledge k, const ZoO_strings* string, const s
 
 	credits = ZoO_MAX_REPLY_WORDS;
 
-	init_sequence(k, string, aliases, sequence);
+	init_sequence(k, str, aliases, sequence);
 
 	first_word = sequence[ZoO_MARKOV_ORDER];
 
@@ -315,12 +321,5 @@ int ZoO_knowledge_extend(ref ZoO_knowledge k, const ZoO_strings* string, const s
 
 	result = extend_left(k, sequence, result, credits);
 
-	return 0;
-}
-
-unittest {
-	ZoO_knowledge k;
-	ZoO_strings str;
-	string result;
-	assert(ZoO_knowledge_extend(k, &str, ["hi"], result) == 0);
+	return result.strip();
 }

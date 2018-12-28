@@ -82,7 +82,6 @@ int should_reply(ref ZoO_parameters param, ref ZoO_strings string_, out int shou
 }
 
 void handle_user_join(ref ZoO_state s, ref ZoO_strings string_) @system {
-	string line;
 	size_t loc;
 
 	if (s.param.reply_rate < uniform(0, 101)) {
@@ -92,27 +91,15 @@ void handle_user_join(ref ZoO_state s, ref ZoO_strings string_) @system {
 	string_.parse(s.network.msg.idup, ZoO_knowledge_punctuation_chars);
 
 	if ((s.knowledge.find(string_.words[0], loc) < 0) || (s.knowledge.words[loc].backward_links.length <= 3) || (s.knowledge.words[loc].forward_links.length <= 3)) {
-		if (ZoO_knowledge_extend(s.knowledge, null, null, line) == 0) {
-			if (line[0] == ' ') {
-				s.network.send(line[1..$]);
-			} else {
-				s.network.send(line);
-			}
-
-		}
+		auto line = ZoO_knowledge_extend(s.knowledge, null, null);
+		s.network.send(line);
 	} else {
-		if (ZoO_knowledge_extend(s.knowledge, &string_, null, line) == 0) {
-			if (line[0] == ' ') {
-				s.network.send(line[1..$]);
-			} else {
-				s.network.send(line);
-			}
-		}
+		auto line = ZoO_knowledge_extend(s.knowledge, &string_, null);
+		s.network.send(line);
 	}
 }
 
 void handle_message(ref ZoO_state s, ref ZoO_strings string_) @system {
-	string line;
 	int reply, learn;
 
 	string_.parse(s.network.msg.idup, ZoO_knowledge_punctuation_chars);
@@ -131,12 +118,9 @@ void handle_message(ref ZoO_state s, ref ZoO_strings string_) @system {
 		ZoO_data_output_write_line(s.param.new_data_filename, s.network.msg.idup);
 	}
 
-	if (reply && (ZoO_knowledge_extend(s.knowledge, &string_, s.param.aliases, line) == 0)) {
-		if (line[0] == ' ') {
-			s.network.send(line[1..$]);
-		} else {
-			s.network.send(line);
-		}
+	if (reply) {
+		auto line = ZoO_knowledge_extend(s.knowledge, &string_, s.param.aliases);
+		s.network.send(line);
 	}
 
 	if (learn) {

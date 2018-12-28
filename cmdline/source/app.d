@@ -53,9 +53,8 @@ void main() {
 		if (ZoO_data_output_write_line(state.param.new_data_filename, input) != 0) {
 			break;
 		}
-		string line;
-		ZoO_knowledge_extend(state.knowledge, &str, state.param.aliases, line);
-		writeln(line.strip);
+		auto line = ZoO_knowledge_extend(state.knowledge, &str, state.param.aliases);
+		writeln(line);
 		ZoO_knowledge_assimilate(state.knowledge, str, state.param.aliases);
 	}
 }
