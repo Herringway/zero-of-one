@@ -5,27 +5,16 @@ struct ZoO_strings {
 
 	void parse(string input, const string punctuations) @safe pure {
 		import std.algorithm.iteration : filter, splitter;
-		import std.algorithm.searching : canFind;
+		import std.algorithm.searching : canFind, endsWith, startsWith;
 		import std.range : empty;
 		import std.string : toLower;
 		import std.uni : isWhite;
 
-		if (input.empty) {
-			return;
-		}
-
-		while (input[0] == ' ') {
-			input = input[1..$];
-		}
-
-		if (input[0] == '\001') {
-			/* This is a CTCP command. */
-			/* We'll remove the trailing '\001' so that only the first word */
-			/* indicates the need for CTCP (uppercase) syntax. */
-
-			if ((input.length >= 1) && (input[$ - 1] == '\001')) {
-				input = input[0..$ - 1];
-			}
+		/* This is a CTCP command. */
+		/* We'll remove the trailing '\001' so that only the first word */
+		/* indicates the need for CTCP (uppercase) syntax. */
+		if ((input.length > 1) && input.startsWith('\001') && input.endsWith('\001')) {
+			input = input[0..$ - 1];
 		}
 
 		foreach (split; input.splitter!(x => (x.isWhite || punctuations.canFind(x))).filter!(x => !x.empty)) {
@@ -49,4 +38,9 @@ struct ZoO_strings {
 	str.parse("                   yeah                        ", ",");
 	assert(str.words.canFind("yeah"));
 	assert(!str.words.canFind(""));
+	str.parse("\001\001", "");
+	assert(str.words.canFind("\001"));
+	str.words = [];
+	str.parse("\001", "");
+	assert(str.words.canFind("\001"));
 }
