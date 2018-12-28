@@ -134,8 +134,12 @@ struct ZoO_knowledge {
 	assert(i > 0);
 	assert(knowledge.words[i-1].word != "hello");
 
-	knowledge.find("hello", i);
+	assert(knowledge.find("hello", i) == 0);
 	assert(knowledge.words[i].word == "hello");
+
+	assert(knowledge.find("hellp", i) == -1);
+	assert(knowledge.words[i].word == "hello");
+
 	assert(knowledge.sorted_indices == [9, 2, 3, 4, 5, 6, 7, 1, 0, 10, 11, 8]);
 }
 
