@@ -92,7 +92,6 @@ struct ZoO_strings {
 
 		i = 0;
 
-		/* overflow-safe: input is '\0' terminated. */
 		while (input[i] == ' ') {
 			++i;
 		}
@@ -119,7 +118,6 @@ struct ZoO_strings {
 
 				++i;
 
-				/* safe, as input is terminated by '\0' */
 				while ((i < input.length-1) && (input[i] == ' ')) {
 					++i;
 				}
