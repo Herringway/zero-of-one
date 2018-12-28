@@ -1,11 +1,5 @@
 module tool.strings;
 
-import pervasive;
-import io.error;
-
-import std.experimental.logger;
-import std.string;
-
 struct ZoO_strings {
 	string[] words;
 
@@ -13,6 +7,7 @@ struct ZoO_strings {
 		import std.algorithm.iteration : filter, splitter;
 		import std.algorithm.searching : canFind;
 		import std.range : empty;
+		import std.string : toLower;
 		import std.uni : isWhite;
 
 		if (input == null) {
