@@ -19,7 +19,7 @@ struct ZoO_strings {
 		}
 
 		if (input[0] == '\001') {
-			/* This is an CTCP command. */
+			/* This is a CTCP command. */
 			/* We'll remove the trailing '\001' so that only the first word */
 			/* indicates the need for CTCP (uppercase) syntax. */
 
