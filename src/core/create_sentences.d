@@ -167,12 +167,12 @@ string extend_right(ref ZoO_knowledge k, size_t[ZoO_MARKOV_ORDER] sequence, ref 
 	assert(0);
 }
 
-size_t select_first_word(ref ZoO_knowledge k, const ZoO_strings* string, const string[] aliases) @safe {
+size_t select_first_word(ref ZoO_knowledge k, const ZoO_strings string, const string[] aliases, const bool useRandomWord) @safe {
 	size_t i, word_min_score, word_id, word_min_id;
 	bool word_found;
 
-	if (string == null) {
-		return word_min_id = uniform(0, k.words.length);
+	if (useRandomWord) {
+		return uniform(0, k.words.length);
 	}
 
 	word_found = false;
@@ -217,12 +217,12 @@ size_t select_first_word(ref ZoO_knowledge k, const ZoO_strings* string, const s
 }
 
 
-void init_sequence(ref ZoO_knowledge k, const ZoO_strings* string, const string[] aliases, ref size_t[(ZoO_MARKOV_ORDER * 2) + 1] sequence) @safe {
+void init_sequence(ref ZoO_knowledge k, const ZoO_strings string, const string[] aliases, ref size_t[(ZoO_MARKOV_ORDER * 2) + 1] sequence, bool randomStart) @safe {
 	import std.conv : text;
 	size_t i, j, accumulator, random_number;
 	ZoO_knowledge_word * fiw;
 
-	sequence[ZoO_MARKOV_ORDER] = select_first_word(k, string, aliases);
+	sequence[ZoO_MARKOV_ORDER] = select_first_word(k, string, aliases, randomStart);
 
 	fiw = &k.words[sequence[ZoO_MARKOV_ORDER]];
 
@@ -281,7 +281,7 @@ void init_sequence(ref ZoO_knowledge k, const ZoO_strings* string, const string[
 		sequence[ZoO_MARKOV_ORDER - i - 1] = fiw.backward_links[j].targets[pick_index(fiw.backward_links[j].targets_occurrences)];
 	}
 }
-string ZoO_knowledge_extend(ref ZoO_knowledge k, const ZoO_strings* str, const string[] aliases) @system
+string ZoO_knowledge_extend(ref ZoO_knowledge k, const ZoO_strings str, const string[] aliases, bool randomStart) @safe
 out(result; result.length > 0)
 out(result; !isWhite(result[0]))
 out(result; !isWhite(result[$-1]))
@@ -294,7 +294,7 @@ out(result; !isWhite(result[$-1]))
 
 	credits = ZoO_MAX_REPLY_WORDS;
 
-	init_sequence(k, str, aliases, sequence);
+	init_sequence(k, str, aliases, sequence, randomStart);
 
 	first_word = sequence[ZoO_MARKOV_ORDER];
 

@@ -80,13 +80,13 @@ void handle_user_join(ref ZoO_state s, ref ZoO_strings string_) @system {
 
 	string_.parse(s.network.msg.idup, ZoO_knowledge_punctuation_chars);
 
-	ZoO_strings* strs = &string_;
+	bool useRandom;
 
 	if ((s.knowledge.find(string_.words[0], loc) < 0) || (s.knowledge.words[loc].backward_links.length <= 3) || (s.knowledge.words[loc].forward_links.length <= 3)) {
-		strs = null;
+		useRandom = true;
 	}
 
-	auto line = ZoO_knowledge_extend(s.knowledge, strs, null);
+	auto line = ZoO_knowledge_extend(s.knowledge, string_, null, useRandom);
 	s.network.send(line);
 }
 
@@ -110,7 +110,7 @@ void handle_message(ref ZoO_state s, ref ZoO_strings string_) @system {
 	}
 
 	if (reply) {
-		auto line = ZoO_knowledge_extend(s.knowledge, &string_, s.param.aliases);
+		auto line = ZoO_knowledge_extend(s.knowledge, string_, s.param.aliases, false);
 		s.network.send(line);
 	}
 
