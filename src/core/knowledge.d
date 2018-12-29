@@ -95,7 +95,6 @@ struct ZoO_knowledge {
 	 */
 	int learn(const string word, out size_t result) @safe pure {
 		import std.array : insertInPlace;
-		size_t temp;
 
 		if (find(word, result) == 0) {
 			words[result].occurrences += 1;
@@ -107,11 +106,11 @@ struct ZoO_knowledge {
 
 		sorted_indices.insertInPlace(result, [cast(uint)words.length-1]);
 
+		debug(learning) tracef("Learned word {'%s', id: %u, rank: %u}", word, words.length, result);
+
 		result = words.length-1;
 
 		words[$-1].word = word.dup;
-
-		debug(learning) tracef("Learned word {'%s', id: %u, rank: %u}", word, words.length, temp);
 
 		return 0;
 	}
