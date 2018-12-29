@@ -21,6 +21,11 @@ struct ZoO_parameters {
 	int reply_rate = ZoO_DEFAULT_REPLY_RATE;
 
 	const(string)[] aliases = [];
+
+	bool random_reply() const @safe {
+		import std.random : uniform;
+		return reply_rate >= uniform(0, 101);
+	}
 }
 
 void print_help(const string exec) @safe {

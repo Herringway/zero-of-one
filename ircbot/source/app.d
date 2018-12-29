@@ -68,13 +68,13 @@ bool should_reply(ref ZoO_parameters param, ref ZoO_strings string_, out bool sh
 
 	should_learn = true;
 
-	return param.reply_rate >= uniform(0, 101);
+	return param.random_reply();
 }
 
 void handle_user_join(ref ZoO_state s, ref ZoO_strings string_) @system {
 	size_t loc;
 
-	if (s.param.reply_rate < uniform(0, 101)) {
+	if (!s.param.random_reply()) {
 		return;
 	}
 
