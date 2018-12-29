@@ -55,20 +55,20 @@ int add_word_occurrence(ref ZoO_knowledge k, const size_t[(ZoO_MARKOV_ORDER * 2)
 }
 
 
-int should_assimilate(const ZoO_strings string, const string[] aliases) @safe {
+bool should_assimilate(const ZoO_strings string, const string[] aliases) @safe {
 	/* Don't assimilate empty strings. */
 	if (string.words.length == 0) {
-		return 0;
+		return false;
 	}
 
 	/* Don't assimilate things that start with our name. */
 	foreach (alias_; aliases) {
 		if (alias_ == string.words[0]) {
-			return 0;
+			return false;
 		}
 	}
 
-	return 1;
+	return true;
 }
 
 @safe unittest {
