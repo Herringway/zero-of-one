@@ -64,7 +64,6 @@ size_t pick_index(const size_t[] links_occurrences) @safe {
 }
 
 string extend_left(ref ZoO_knowledge k, size_t[ZoO_MARKOV_ORDER] sequence, ref string current_sentence, ref size_t credits) @system {
-	ZoO_knowledge_word * w;
 	string next_sentence;
 	size_t j;
 
@@ -77,7 +76,7 @@ string extend_left(ref ZoO_knowledge k, size_t[ZoO_MARKOV_ORDER] sequence, ref s
 
 		credits -= 1;
 
-		w = &k.words[sequence[ZoO_MARKOV_ORDER - 1]];
+		const w = k.words[sequence[ZoO_MARKOV_ORDER - 1]];
 
 		next_sentence = current_sentence;
 
@@ -118,7 +117,6 @@ string extend_left(ref ZoO_knowledge k, size_t[ZoO_MARKOV_ORDER] sequence, ref s
 }
 
 string extend_right(ref ZoO_knowledge k, size_t[ZoO_MARKOV_ORDER] sequence, ref string current_sentence, ref size_t credits) @system {
-	ZoO_knowledge_word * w;
 	string next_sentence;
 	size_t j;
 
@@ -131,7 +129,7 @@ string extend_right(ref ZoO_knowledge k, size_t[ZoO_MARKOV_ORDER] sequence, ref 
 
 		credits -= 1;
 
-		w = &k.words[sequence[0]];
+		const w = k.words[sequence[0]];
 
 		next_sentence = current_sentence;
 
