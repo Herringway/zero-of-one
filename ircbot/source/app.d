@@ -56,8 +56,6 @@ struct ZoO_state {
 
 
 bool should_reply(ref ZoO_parameters param, ref ZoO_strings string_, out bool should_learn) @safe {
-	size_t i, j;
-
 	foreach (alias_; param.aliases) {
 		foreach (idx, word; string_.words) {
 			if (alias_ == word) {
