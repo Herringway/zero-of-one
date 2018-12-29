@@ -195,7 +195,7 @@ size_t select_first_word(ref ZoO_knowledge k, const ZoO_strings* string, const s
 	}
 
 	if (!word_found) {
-		return word_min_id = uniform(0, cast(uint)k.words.length);
+		return uniform(0, k.words.length);
 	}
 
 	for (; i < string.words.length; ++i) {

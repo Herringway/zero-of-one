@@ -104,7 +104,7 @@ struct ZoO_knowledge {
 
 		words.length++;
 
-		sorted_indices.insertInPlace(result, [cast(uint)words.length-1]);
+		sorted_indices.insertInPlace(result, [words.length-1]);
 
 		debug(learning) tracef("Learned word {'%s', id: %u, rank: %u}", word, words.length, result);
 
