@@ -2,14 +2,6 @@ module io.error;
 
 import pervasive;
 
-enum ZoO_DEBUG_ALL = 1;
-
-enum ZoO_DEBUG_PROGRAM_FLOW = (0 || ZoO_DEBUG_ALL);
-
-enum ZoO_DEBUG_CONFIG = (0 || ZoO_DEBUG_ALL);
-
-enum ZoO_DEBUG_LEARNING = (0 || ZoO_DEBUG_ALL);
-
 enum ZoO_DEBUG_NETWORK = 1;
 enum ZoO_DEBUG_NETWORK_PING = 0;
 enum ZoO_RANDOMLY_IGNORE_PING = 0;
