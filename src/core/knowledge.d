@@ -68,7 +68,7 @@ struct ZoO_knowledge {
 	 *    {*result} is where {word} was expected to be found in
 	 *    {k.sorted_indices}.
 	 */
-	int find(const char[] word, out size_t result) const @safe {
+	int find(const char[] word, out size_t result) const @safe pure {
 		size_t r;
 
 		if (ZoO_sorted_list_index_of!cmp_word(sorted_indices, word, this, r) == 0) {
@@ -93,12 +93,11 @@ struct ZoO_knowledge {
 	 *    {k} remains semantically unchanged.
 	 *    {*result} may or may not have been altered.
 	 */
-	int learn(const char[] word, out size_t result) @safe {
+	int learn(const string word, out size_t result) @safe pure {
 		import std.array : insertInPlace;
 		size_t temp;
 
 		if (find(word, result) == 0) {
-			/* overflow-safe: (< k.words[*result].occurrences ZoO_INDEX_MAX) */
 			words[result].occurrences += 1;
 
 			return 0;
@@ -112,13 +111,13 @@ struct ZoO_knowledge {
 
 		words[$-1].word = word.dup;
 
-		tracef(ZoO_DEBUG_LEARNING, "Learned word {'%s', id: %u, rank: %u}", word, words.length, temp);
+		debug(learning) tracef("Learned word {'%s', id: %u, rank: %u}", word, words.length, temp);
 
 		return 0;
 	}
 }
 
-@safe unittest {
+@safe pure unittest {
 	ZoO_knowledge knowledge;
 	assert(knowledge.words[0].word == "START OF LINE");
 	assert(knowledge.words[$-1].word == [ZoO_knowledge_punctuation_chars[$-1]]);
@@ -142,7 +141,7 @@ struct ZoO_knowledge {
 	assert(knowledge.sorted_indices == [9, 2, 3, 4, 5, 6, 7, 1, 0, 10, 11, 8]);
 }
 
-int cmp_word(const char[] word, const size_t sorted_index, const ZoO_knowledge other) @safe {
+int cmp_word(const char[] word, const size_t sorted_index, const ZoO_knowledge other) @safe pure {
 	import std.algorithm.comparison : cmp;
 	return cmp(word, other.words[sorted_index].word);
 }

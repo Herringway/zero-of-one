@@ -60,8 +60,8 @@ int ZoO_sorted_list_index_of(alias compare, T, U, V)(const T[] sorted_list, cons
 }
 
 
-@safe unittest {
-	static int testCmpFunc(const int a, const int b, const int) @safe {
+@safe pure unittest {
+	static int testCmpFunc(const int a, const int b, const int) @safe pure {
 		if (a > b) {
 			return 1;
 		} else if (a < b) {
