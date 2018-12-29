@@ -35,6 +35,7 @@ struct ZoO_data_input {
 			return -1;
 		}
 
+		str = ZoO_strings.init;
 		str.parse(line[0..$-1].idup, punctuations);
 
 		return 0;

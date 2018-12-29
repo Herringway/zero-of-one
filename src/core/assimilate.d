@@ -13,7 +13,7 @@ import tool.strings;
 
 /** Functions to assimilate sentences using a ZoO_knowledge structure *********/
 
-int add_sequence(ref ZoO_knowledge_link[] links, const size_t[] sequence, const size_t target_i, const size_t offset) @system {
+int add_sequence(ref ZoO_knowledge_link[] links, const size_t[ZoO_MARKOV_ORDER] sequence, const size_t target_i, const size_t offset) @system {
 	size_t link_index;
 	size_t i;
 	ZoO_knowledge_link * link;
@@ -36,8 +36,7 @@ int add_sequence(ref ZoO_knowledge_link[] links, const size_t[] sequence, const 
 
 	link.targets[link.targets.length - 1] = sequence[target_i];
 
-	link.targets_occurrences.length++;
-	link.targets_occurrences[link.targets.length - 1] = 1;
+	link.targets_occurrences ~= 1;
 
 	return 0;
 }
@@ -50,7 +49,7 @@ int add_word_occurrence(ref ZoO_knowledge k, const size_t[(ZoO_MARKOV_ORDER * 2)
 
 	error = add_sequence(k.words[w].forward_links, sequence[ZoO_MARKOV_ORDER + 1..$], (ZoO_MARKOV_ORDER - 1), 0);
 
-	error = (add_sequence(k.words[w].backward_links, sequence[], 0, 1) | error);
+	error = (add_sequence(k.words[w].backward_links, sequence[0..ZoO_MARKOV_ORDER], 0, 1) | error);
 
 	return error;
 }

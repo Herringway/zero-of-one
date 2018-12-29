@@ -39,12 +39,12 @@ struct ZoO_state {
 
 void main() {
 	ZoO_state state;
-	ZoO_strings str;
 
 	state.load_data_file();
 
 	while(true) {
 		auto input = readln().strip();
+		ZoO_strings str;
 		str.parse(input.dup, ZoO_knowledge_punctuation_chars);
 
 		if (str.words.length == 0) {

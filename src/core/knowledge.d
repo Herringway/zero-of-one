@@ -38,7 +38,7 @@ struct ZoO_knowledge_link {
 struct ZoO_knowledge_word {
 	char[] word = null;
 	ZoO_knowledge_special_effect special = ZoO_knowledge_special_effect.HAS_NO_EFFECT;
-	size_t occurrences = 1;
+	size_t occurrences = 0;
 	ZoO_knowledge_link[] forward_links = null;
 	ZoO_knowledge_link[] backward_links = null;
 }

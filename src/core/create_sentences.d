@@ -63,7 +63,7 @@ size_t pick_index(const size_t[] links_occurrences) @safe {
 	return result;
 }
 
-string extend_left(ref ZoO_knowledge k, size_t[] sequence, string current_sentence, ref size_t credits) @system {
+string extend_left(ref ZoO_knowledge k, size_t[ZoO_MARKOV_ORDER] sequence, ref string current_sentence, ref size_t credits) @system {
 	ZoO_knowledge_word * w;
 	string next_sentence;
 	size_t j;
@@ -117,7 +117,7 @@ string extend_left(ref ZoO_knowledge k, size_t[] sequence, string current_senten
 	assert(0);
 }
 
-string extend_right(ref ZoO_knowledge k, size_t[] sequence, string current_sentence, ref size_t credits) @system {
+string extend_right(ref ZoO_knowledge k, size_t[ZoO_MARKOV_ORDER] sequence, ref string current_sentence, ref size_t credits) @system {
 	ZoO_knowledge_word * w;
 	string next_sentence;
 	size_t j;
@@ -283,8 +283,8 @@ void init_sequence(ref ZoO_knowledge k, const ZoO_strings* string, const string[
 }
 string ZoO_knowledge_extend(ref ZoO_knowledge k, const ZoO_strings* str, const string[] aliases) @system
 out(result; result.length > 0)
-out(result; isWhite(result[0]))
-out(result; isWhite(result[$-1]))
+out(result; !isWhite(result[0]))
+out(result; !isWhite(result[$-1]))
 {
 	string result;
 	int word_found;
@@ -319,7 +319,7 @@ out(result; isWhite(result[$-1]))
 
 	result = extend_right(k, sequence[ZoO_MARKOV_ORDER + 1..$], result, credits);
 
-	result = extend_left(k, sequence, result, credits);
+	result = extend_left(k, sequence[0..ZoO_MARKOV_ORDER], result, credits);
 
 	return result.strip();
 }
