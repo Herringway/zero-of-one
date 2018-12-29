@@ -36,7 +36,7 @@ struct ZoO_knowledge_link {
 }
 
 struct ZoO_knowledge_word {
-	char[] word;
+	string word;
 	ZoO_knowledge_special_effect special = ZoO_knowledge_special_effect.HAS_NO_EFFECT;
 	size_t occurrences = 1;
 	ZoO_knowledge_link[] forward_links;
@@ -46,16 +46,16 @@ struct ZoO_knowledge_word {
 struct ZoO_knowledge {
 	size_t[] sorted_indices = [9, 2, 3, 4, 5, 6, 7, 1, 0, 8];
 	ZoO_knowledge_word[] words = [
-		ZoO_knowledge_word("START OF LINE".dup, ZoO_knowledge_special_effect.STARTS_SENTENCE, 0, [], []),
-		ZoO_knowledge_word("END OF LINE".dup, ZoO_knowledge_special_effect.ENDS_SENTENCE, 0, [], []),
-		ZoO_knowledge_word("!".dup, ZoO_knowledge_special_effect.REMOVES_LEFT_SPACE, 0, [], []),
-		ZoO_knowledge_word(",".dup, ZoO_knowledge_special_effect.REMOVES_LEFT_SPACE, 0, [], []),
-		ZoO_knowledge_word(".".dup, ZoO_knowledge_special_effect.REMOVES_LEFT_SPACE, 0, [], []),
-		ZoO_knowledge_word(":".dup, ZoO_knowledge_special_effect.REMOVES_LEFT_SPACE, 0, [], []),
-		ZoO_knowledge_word(";".dup, ZoO_knowledge_special_effect.REMOVES_LEFT_SPACE, 0, [], []),
-		ZoO_knowledge_word("?".dup, ZoO_knowledge_special_effect.REMOVES_LEFT_SPACE, 0, [], []),
-		ZoO_knowledge_word("~".dup, ZoO_knowledge_special_effect.REMOVES_LEFT_SPACE, 0, [], []),
-		ZoO_knowledge_word("\x01".dup, ZoO_knowledge_special_effect.REMOVES_LEFT_SPACE, 0, [], [])
+		ZoO_knowledge_word("START OF LINE", ZoO_knowledge_special_effect.STARTS_SENTENCE, 0, [], []),
+		ZoO_knowledge_word("END OF LINE", ZoO_knowledge_special_effect.ENDS_SENTENCE, 0, [], []),
+		ZoO_knowledge_word("!", ZoO_knowledge_special_effect.REMOVES_LEFT_SPACE, 0, [], []),
+		ZoO_knowledge_word(",", ZoO_knowledge_special_effect.REMOVES_LEFT_SPACE, 0, [], []),
+		ZoO_knowledge_word(".", ZoO_knowledge_special_effect.REMOVES_LEFT_SPACE, 0, [], []),
+		ZoO_knowledge_word(":", ZoO_knowledge_special_effect.REMOVES_LEFT_SPACE, 0, [], []),
+		ZoO_knowledge_word(";", ZoO_knowledge_special_effect.REMOVES_LEFT_SPACE, 0, [], []),
+		ZoO_knowledge_word("?", ZoO_knowledge_special_effect.REMOVES_LEFT_SPACE, 0, [], []),
+		ZoO_knowledge_word("~", ZoO_knowledge_special_effect.REMOVES_LEFT_SPACE, 0, [], []),
+		ZoO_knowledge_word("\x01", ZoO_knowledge_special_effect.REMOVES_LEFT_SPACE, 0, [], [])
 	];
 
 	/*
@@ -68,7 +68,7 @@ struct ZoO_knowledge {
 	 *    {*result} is where {word} was expected to be found in
 	 *    {k.sorted_indices}.
 	 */
-	int find(const char[] word, out size_t result) const @safe pure {
+	int find(const string word, out size_t result) const @safe pure {
 		size_t r;
 
 		if (ZoO_sorted_list_index_of!cmp_word(sorted_indices, word, this, r) == 0) {
@@ -110,7 +110,7 @@ struct ZoO_knowledge {
 
 		result = words.length-1;
 
-		words[$-1].word = word.dup;
+		words[$-1].word = word;
 
 		return 0;
 	}
@@ -140,7 +140,7 @@ struct ZoO_knowledge {
 	assert(knowledge.sorted_indices == [9, 2, 3, 4, 5, 6, 7, 1, 0, 10, 11, 8]);
 }
 
-int cmp_word(const char[] word, const size_t sorted_index, const ZoO_knowledge other) @safe pure {
+int cmp_word(const string word, const size_t sorted_index, const ZoO_knowledge other) @safe pure {
 	import std.algorithm.comparison : cmp;
 	return cmp(word, other.words[sorted_index].word);
 }

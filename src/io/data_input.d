@@ -1,5 +1,6 @@
 module io.data_input;
 
+import core.exception;
 import std.experimental.logger;
 import std.stdio;
 import std.string;
@@ -27,16 +28,18 @@ struct ZoO_data_input {
 
 	int read_line(const string punctuations) @system {
 		size_t i, w_start;
-		char[] line;
+		string line;
 
-		line = null;
-
-		if (file.readln(line) < 1) {
+		try {
+			line = file.readln();
+		} catch (UnicodeException) {
+			return -1;
+		} catch (StdioException) {
 			return -1;
 		}
 
 		str = ZoO_strings.init;
-		str.parse(line[0..$-1].idup, punctuations);
+		str.parse(line[0..$-1], punctuations);
 
 		return 0;
 	}
