@@ -69,114 +69,30 @@ void print_help(const string exec) @safe {
 	);
 }
 
-int parse_string_arg(out string dest, const int i, const string[] args) @safe {
-	if (i == args.length) {
-		criticalf("Missing value for parameter '%s'.", args[i - 1]);
-
-		return -1;
-	}
-
-	dest = args[i];
-
-	return 0;
-}
-
-
-int parse_integer_arg(out int dest, const int i, const string[] args, const int min_val, const int max_val) @safe {
-	import std.conv : to;
-	if (i == args.length) {
-		criticalf("Missing value for parameter '%s'.", args[i - 1]);
-
-		return -1;
-	}
-
-	dest = args[i].to!int;
-
-	return 0;
-}
-
-int ZoO_parameters_initialize(ref ZoO_parameters param, const string[] args) @safe {
-	int i;
-
-	for (i = 1; i < args.length; ++i) {
-		if ((args[i] == "--data-filename") || (args[i] == "-df")) {
-			i += 1;
-
-			if (parse_string_arg(param.data_filename, i, args) < 0) {
-				return -1;
-			}
-		}
-		else if ((args[i] == "--new-data-filename") || (args[i] == "-ndf")) {
-			i += 1;
-
-			if (parse_string_arg(param.new_data_filename, i, args) < 0) {
-				return -1;
-			}
-		}
-		else if ((args[i] == "--irc-server-addr") || (args[i] == "-isa")) {
-			i += 1;
-
-			if (parse_string_arg(param.irc_server_addr, i, args) < 0) {
-				return -1;
-			}
-		}
-		else if ((args[i] == "--irc-server-port") || (args[i] == "-isp")) {
-			i += 1;
-
-			if (parse_string_arg(param.irc_server_port, i, args) < 0) {
-				return -1;
-			}
-		}
-		else if ((args[i] == "--irc-server-channel") || (args[i] == "-isc")) {
-			i += 1;
-
-			if (parse_string_arg(param.irc_server_channel, i, args) < 0) {
-				return -1;
-			}
-		}
-		else if ((args[i] == "--irc-username") || (args[i] == "-iu")) {
-			i += 1;
-
-			if (parse_string_arg(param.irc_username, i, args ) < 0) {
-				return -1;
-			}
-		}
-		else if ((args[i] == "--irc-realname") || (args[i] == "-in")) {
-			i += 1;
-
-			if (parse_string_arg(param.irc_realname, i, args) < 0) {
-				return -1;
-			}
-		}
-		else if ((args[i] == "--reply-rate") || (args[i] == "-rr")) {
-			i += 1;
-
-			if (parse_integer_arg(param.reply_rate, i, args, 0, 100) < 0) {
-				return -1;
-			}
-		}
-		else if ((args[i] == "--help") || (args[i] == "-h")) {
-			print_help(args[0]);
-
-			return 0;
-		}
-		else {
-			break;
-		}
-	}
-
-	if (i == args.length) {
-		critical("Missing argument: NICKNAME");
-
+int ZoO_parameters_initialize(ref ZoO_parameters param, string[] args_) @safe {
+	auto args = args_;
+	import std.getopt : config, defaultGetoptPrinter, getopt;
+	auto info = getopt(
+		args,
+		config.caseSensitive,
+		"data-filename|f", "Learn content from FILENAME before connecting.", &param.data_filename,
+		"new-data-filename|n", "Store new data learned in FILENAME.", &param.new_data_filename,
+		"irc-server-addr|s", "Connect to this server address.", &param.irc_server_addr,
+		"irc-server-port|p", "Connect to this server port.", &param.irc_server_port,
+		"irc-server-channel|c", "Join this channel upon connecting.", &param.irc_server_channel,
+		"irc-username|u", "Connect using this as 'username' (shown in WHOIS).", &param.irc_username,
+		"irc-realname|R", "Connect using this as 'realname' (shown in WHOIS)", &param.irc_realname,
+		"reply-rate|r", "Chance to reply to an event (integer in the range [0, 100]).", &param.reply_rate
+	);
+	if (info.helpWanted || (args.length < 2)) {
 		print_help(args[0]);
-
 		return -1;
 	}
 	if ((param.data_filename != ZoO_parameters.init.data_filename) && (param.new_data_filename == ZoO_parameters.init.new_data_filename)) {
 		param.new_data_filename = param.data_filename;
 	}
 
-	param.aliases = args[i..$];
+	param.aliases = args[1..$];
 
 	return 1;
 }

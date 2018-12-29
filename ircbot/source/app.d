@@ -25,7 +25,7 @@ struct ZoO_state {
 	ZoO_knowledge knowledge;
 	ZoO_network network;
 
-	int initialize(const string[] args) @safe {
+	int initialize(ref string[] args) @safe {
 		if (ZoO_parameters_initialize(param, args) < 1) {
 			return -1;
 		}
