@@ -21,7 +21,7 @@ int cmp_seq_link(const size_t[] sequence, const ZoO_knowledge_link link, const t
 	return 0;
 }
 
-int ZoO_knowledge_find_link(ref ZoO_knowledge_link[] links, const size_t[] sequence, out size_t result) @safe {
+int ZoO_knowledge_find_link(const ZoO_knowledge_link[] links, const size_t[] sequence, out size_t result) @safe {
 	return ZoO_sorted_list_index_of!cmp_seq_link(links, sequence, null, result);
 }
 
