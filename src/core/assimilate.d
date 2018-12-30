@@ -80,7 +80,7 @@ bool should_assimilate(const ZoO_strings string, const string[] aliases) @safe {
 	assert(should_assimilate(str, ["hello"]) == 1);
 }
 
-int init_sequence(ref ZoO_knowledge k, ref ZoO_strings string, ref size_t[(ZoO_MARKOV_ORDER * 2) + 1] sequence) @safe {
+int init_sequence(ref ZoO_knowledge k, const ZoO_strings string, ref size_t[(ZoO_MARKOV_ORDER * 2) + 1] sequence) @safe {
 	size_t i;
 
 	/* We are going to link this sequence to ZoO_WORD_START_OF_LINE */
@@ -90,11 +90,8 @@ int init_sequence(ref ZoO_knowledge k, ref ZoO_strings string, ref size_t[(ZoO_M
 		sequence[ZoO_MARKOV_ORDER - i] = ZoO_WORD_START_OF_LINE;
 
 		if (i <= string.words.length) {
-			if (k.learn(string.words[i - 1], sequence[ZoO_MARKOV_ORDER + i]) < 0) {
-				return -1;
-			}
-		}
-		else {
+			sequence[ZoO_MARKOV_ORDER + i] = k.learn(string.words[i - 1]);
+		} else {
 			sequence[ZoO_MARKOV_ORDER + i] = ZoO_WORD_END_OF_LINE;
 		}
 	}
@@ -111,7 +108,7 @@ int init_sequence(ref ZoO_knowledge k, ref ZoO_strings string, ref size_t[(ZoO_M
 	assert(seq[$-1] == ZoO_WORD_END_OF_LINE);
 }
 
-int ZoO_knowledge_assimilate(ref ZoO_knowledge k, ref ZoO_strings string, const string[] aliases) @system {
+int ZoO_knowledge_assimilate(ref ZoO_knowledge k, const ZoO_strings string, const string[] aliases) @system {
 	int error;
 	size_t[(ZoO_MARKOV_ORDER * 2) + 1] sequence;
 	size_t next_word, new_word;
@@ -141,11 +138,8 @@ int ZoO_knowledge_assimilate(ref ZoO_knowledge k, ref ZoO_strings string, const 
 
 	while (next_word <= (string.words.length + ZoO_MARKOV_ORDER)) {
 		if (new_word < string.words.length) {
-			if (k.learn(string.words[new_word], new_word_id) < 0) {
-				return -1;
-			}
-		}
-		else {
+			new_word_id = k.learn(string.words[new_word]);
+		} else {
 			new_word_id = ZoO_WORD_END_OF_LINE;
 		}
 
@@ -178,6 +172,5 @@ int ZoO_knowledge_assimilate(ref ZoO_knowledge k, ref ZoO_strings string, const 
 
 @system unittest {
 	ZoO_knowledge k;
-	ZoO_strings str;
-	assert(ZoO_knowledge_assimilate(k, str, []) == 0);
+	assert(ZoO_knowledge_assimilate(k, ZoO_strings(), []) == 0);
 }

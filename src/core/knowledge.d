@@ -85,24 +85,14 @@ struct ZoO_knowledge {
 		return -1;
 	}
 
-	/*
-	 * When returning 0:
-	 *    {word} was either added to {k} or its representation in {k} has its
-	 *    occurrences count increased.
-	 *    {*result} indicates where {word} is in {k.words}.
-	 *
-	 * When returning -1:
-	 *    Something went wrong when adding the occurrence of {word} to {k}.
-	 *    {k} remains semantically unchanged.
-	 *    {*result} may or may not have been altered.
-	 */
-	int learn(const string word, out size_t result) @safe pure {
+	size_t learn(const string word) @safe pure {
 		import std.array : insertInPlace;
+		size_t result;
 
 		if (find(word, result) == 0) {
 			words[result].occurrences += 1;
 
-			return 0;
+			return result;
 		}
 
 		words.length++;
@@ -115,7 +105,7 @@ struct ZoO_knowledge {
 
 		words[$-1].word = word;
 
-		return 0;
+		return result;
 	}
 }
 
@@ -123,12 +113,11 @@ struct ZoO_knowledge {
 	ZoO_knowledge knowledge;
 	assert(knowledge.words[0].word == "START OF LINE");
 	assert(knowledge.words[$-1].word == [ZoO_knowledge_punctuation_chars[$-1]]);
-	size_t i;
-	knowledge.learn("hello", i);
+	size_t i = knowledge.learn("hello");
 	assert(knowledge.words[i].word == "hello");
 	assert(knowledge.words[i].occurrences == 1);
-	knowledge.learn("word", i);
-	knowledge.learn("hello", i);
+	knowledge.learn("word");
+	knowledge.learn("hello");
 	assert(knowledge.words[i].word == "hello");
 	assert(knowledge.words[i].occurrences == 2);
 	assert(i > 0);
