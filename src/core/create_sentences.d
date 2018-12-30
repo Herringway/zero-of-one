@@ -84,18 +84,14 @@ string extend_left(ref ZoO_knowledge k, size_t[ZoO_MARKOV_ORDER] sequence, ref s
 			case ZoO_knowledge_special_effect.HAS_NO_EFFECT:
 				next_sentence = format!" %s%s"(w.word, current_sentence);
 				break;
-
 			case ZoO_knowledge_special_effect.REMOVES_LEFT_SPACE:
 				next_sentence = format!"%s%s"(w.word, current_sentence);
 				break;
-
 			case ZoO_knowledge_special_effect.REMOVES_RIGHT_SPACE:
 				next_sentence = format!"%s%s"(w.word, current_sentence[1..$]);
 				break;
-
 			default:
-				/* TODO: PROGRAM LOGIC ERROR */
-				break;
+				assert(0);
 		}
 
 		current_sentence = next_sentence;
@@ -144,20 +140,14 @@ string extend_right(ref ZoO_knowledge k, size_t[ZoO_MARKOV_ORDER] sequence, ref 
 		next_sentence = current_sentence;
 
 		switch (w.special) {
-			case ZoO_knowledge_special_effect.REMOVES_LEFT_SPACE:
-				goto case;
-
-			case ZoO_knowledge_special_effect.HAS_NO_EFFECT:
+			case ZoO_knowledge_special_effect.HAS_NO_EFFECT, ZoO_knowledge_special_effect.REMOVES_LEFT_SPACE:
 				next_sentence = format!"%s%s "(current_sentence, w.word);
 				break;
-
 			case ZoO_knowledge_special_effect.REMOVES_RIGHT_SPACE:
 				next_sentence = format!"%s%s"(current_sentence, w.word);
 				break;
-
 			default:
-				/* TODO: PROGRAM LOGIC ERROR */
-				break;
+				assert(0);
 		}
 
 		current_sentence = next_sentence;
@@ -187,6 +177,7 @@ string extend_right(ref ZoO_knowledge k, size_t[ZoO_MARKOV_ORDER] sequence, ref 
 }
 
 size_t select_first_word(ref ZoO_knowledge k, const ZoO_strings string, const string[] aliases, const bool useRandomWord) @safe {
+	import std.algorithm.searching : canFind;
 	size_t i, word_min_score, word_id, word_min_id;
 	bool word_found;
 
@@ -197,10 +188,8 @@ size_t select_first_word(ref ZoO_knowledge k, const ZoO_strings string, const st
 	word_found = false;
 
 	for (i = 0; i < string.words.length; ++i) {
-		foreach (alias_; aliases) {
-			if (alias_ == string.words[i]) {
-				goto NEXT_WORD;
-			}
+		if (aliases.canFind(string.words[i])) {
+			continue;
 		}
 
 		if (k.find(string.words[i], word_min_id) == 0) {
@@ -209,8 +198,6 @@ size_t select_first_word(ref ZoO_knowledge k, const ZoO_strings string, const st
 
 			break;
 		}
-
-		NEXT_WORD:;
 	}
 
 	if (!word_found) {
@@ -218,18 +205,14 @@ size_t select_first_word(ref ZoO_knowledge k, const ZoO_strings string, const st
 	}
 
 	for (; i < string.words.length; ++i) {
-		foreach (alias_; aliases) {
-			if (alias_ == string.words[i]) {
-				goto NEXT_WORD_BIS;
-			}
+		if (aliases.canFind(string.words[i])) {
+			continue;
 		}
 
 		if ((k.find(string.words[i], word_id) == 0) && (k.words[word_id].occurrences < word_min_score)) {
 			word_min_score = k.words[word_id].occurrences;
 			word_min_id = word_id;
 		}
-
-		NEXT_WORD_BIS:;
 	}
 
 	return word_min_id;
