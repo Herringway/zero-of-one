@@ -149,7 +149,7 @@ int ZoO_knowledge_assimilate(ref ZoO_knowledge k, ref ZoO_strings string, const 
 			new_word_id = ZoO_WORD_END_OF_LINE;
 		}
 
-		memmove(sequence.ptr, sequence.ptr + 1, (size_t.sizeof * (ZoO_MARKOV_ORDER * 2)));
+		sequence = sequence[1..$]~0;
 
 		sequence[ZoO_MARKOV_ORDER * 2] = new_word_id;
 

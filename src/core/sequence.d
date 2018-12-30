@@ -25,14 +25,14 @@ int ZoO_knowledge_find_link(const ZoO_knowledge_link[] links, const size_t[] seq
 	return ZoO_sorted_list_index_of!cmp_seq_link(links, sequence, null, result);
 }
 
-int ZoO_knowledge_get_link(ref ZoO_knowledge_link[] links, const size_t[] sequence, out size_t result) @system {
+int ZoO_knowledge_get_link(ref ZoO_knowledge_link[] links, const size_t[] sequence, out size_t result) @safe {
 	if (ZoO_sorted_list_index_of!cmp_seq_link(links, sequence, null, result) == 0) {
 		return 0;
 	}
 	links.length += 1;
 
 	if (result < (links.length - 1)) {
-		memmove(&links[result + 1], &links[result], (ZoO_knowledge_link.sizeof * (links.length - 1 - result)));
+		links = links[0..result+1]~links[result..$-1];
 	}
 
 	links[result].sequence = sequence[0..2];

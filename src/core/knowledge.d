@@ -68,7 +68,10 @@ struct ZoO_knowledge {
 	 *    {*result} is where {word} was expected to be found in
 	 *    {k.sorted_indices}.
 	 */
-	int find(const string word, out size_t result) const @safe pure {
+	int find(const string word, out size_t result) const @safe pure
+	in(words.length > 0)
+	out(; result < words.length)
+	{
 		size_t r;
 
 		if (ZoO_sorted_list_index_of!cmp_word(sorted_indices, word, this, r) == 0) {

@@ -63,7 +63,7 @@ size_t pick_index(const size_t[] links_occurrences) @safe {
 	return result;
 }
 
-string extend_left(ref ZoO_knowledge k, size_t[ZoO_MARKOV_ORDER] sequence, ref string current_sentence, ref size_t credits) @system {
+string extend_left(ref ZoO_knowledge k, size_t[ZoO_MARKOV_ORDER] sequence, ref string current_sentence, ref size_t credits) @safe {
 	string next_sentence;
 	size_t j;
 
@@ -100,7 +100,7 @@ string extend_left(ref ZoO_knowledge k, size_t[ZoO_MARKOV_ORDER] sequence, ref s
 
 		current_sentence = next_sentence;
 
-		memmove(&sequence[1], &sequence[0], (size_t.sizeof * (ZoO_MARKOV_ORDER - 1)));
+		sequence = 0~sequence[0..$-1];
 
 		if (ZoO_knowledge_find_link(w.backward_links, sequence[1..$], j) < 0) {
 			error("Unexpectedly, no backtracking link was found.");
@@ -116,7 +116,17 @@ string extend_left(ref ZoO_knowledge k, size_t[ZoO_MARKOV_ORDER] sequence, ref s
 	assert(0);
 }
 
-string extend_right(ref ZoO_knowledge k, size_t[ZoO_MARKOV_ORDER] sequence, ref string current_sentence, ref size_t credits) @system {
+@system unittest {
+	import core.assimilate : ZoO_knowledge_assimilate;
+	ZoO_knowledge k;
+	string str;
+	size_t credits = 3;
+	auto strs = ZoO_strings(["hello", "world", "3"]);
+	ZoO_knowledge_assimilate(k, strs, []);
+	assert(extend_left(k, [10,11,12], str, credits) == " hello world 3");
+}
+
+string extend_right(ref ZoO_knowledge k, size_t[ZoO_MARKOV_ORDER] sequence, ref string current_sentence, ref size_t credits) @safe {
 	string next_sentence;
 	size_t j;
 
@@ -152,7 +162,7 @@ string extend_right(ref ZoO_knowledge k, size_t[ZoO_MARKOV_ORDER] sequence, ref 
 
 		current_sentence = next_sentence;
 
-		memmove(sequence.ptr, sequence.ptr + 1, (size_t.sizeof * (ZoO_MARKOV_ORDER - 1)));
+		sequence = sequence[1..$]~0;
 
 		if (ZoO_knowledge_find_link(w.forward_links, sequence, j) < 0) {
 			error("Unexpectedly, no forward link was found.");
@@ -163,6 +173,17 @@ string extend_right(ref ZoO_knowledge k, size_t[ZoO_MARKOV_ORDER] sequence, ref 
 		sequence[ZoO_MARKOV_ORDER - 1] = w.forward_links[j].targets[pick_index(w.forward_links[j].targets_occurrences)];
 	}
 	assert(0);
+}
+
+@system unittest {
+	import core.assimilate : ZoO_knowledge_assimilate;
+	ZoO_knowledge k;
+	string str;
+	size_t credits = 3;
+	auto strs = ZoO_strings(["hello", "world", "3"]);
+	ZoO_knowledge_assimilate(k, strs, []);
+	auto result = extend_right(k, [10,11,12], str, credits);
+	assert(result == "hello world 3 ");
 }
 
 size_t select_first_word(ref ZoO_knowledge k, const ZoO_strings string, const string[] aliases, const bool useRandomWord) @safe {
@@ -279,7 +300,7 @@ void init_sequence(ref ZoO_knowledge k, const ZoO_strings string, const string[]
 		sequence[ZoO_MARKOV_ORDER - i - 1] = fiw.backward_links[j].targets[pick_index(fiw.backward_links[j].targets_occurrences)];
 	}
 }
-string ZoO_knowledge_extend(ref ZoO_knowledge k, const ZoO_strings str, const string[] aliases, bool randomStart) @system
+string ZoO_knowledge_extend(ref ZoO_knowledge k, const ZoO_strings str, const string[] aliases, bool randomStart) @safe
 out(result; result.length > 0)
 out(result; !isWhite(result[0]))
 out(result; !isWhite(result[$-1]))
