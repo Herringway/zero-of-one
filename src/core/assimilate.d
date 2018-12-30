@@ -80,7 +80,7 @@ bool should_assimilate(const ZoO_strings string, const string[] aliases) @safe {
 	assert(should_assimilate(str, ["hello"]) == 1);
 }
 
-int init_sequence(ref ZoO_knowledge k, const ZoO_strings string, ref size_t[(ZoO_MARKOV_ORDER * 2) + 1] sequence) @safe {
+void init_sequence(ref ZoO_knowledge k, const ZoO_strings string, ref size_t[(ZoO_MARKOV_ORDER * 2) + 1] sequence) @safe {
 	size_t i;
 
 	/* We are going to link this sequence to ZoO_WORD_START_OF_LINE */
@@ -95,15 +95,13 @@ int init_sequence(ref ZoO_knowledge k, const ZoO_strings string, ref size_t[(ZoO
 			sequence[ZoO_MARKOV_ORDER + i] = ZoO_WORD_END_OF_LINE;
 		}
 	}
-
-	return 0;
 }
 
 @safe unittest {
 	ZoO_knowledge k;
 	ZoO_strings str;
 	size_t[(ZoO_MARKOV_ORDER * 2) + 1] seq;
-	assert(init_sequence(k, str, seq) == 0);
+	init_sequence(k, str, seq);
 	assert(seq[0] == ZoO_WORD_START_OF_LINE);
 	assert(seq[$-1] == ZoO_WORD_END_OF_LINE);
 }
@@ -120,9 +118,7 @@ int ZoO_knowledge_assimilate(ref ZoO_knowledge k, const ZoO_strings string, cons
 		return 0;
 	}
 
-	if (init_sequence(k, string, sequence) < 0) {
-		return -1;
-	}
+	init_sequence(k, string, sequence);
 
 	if (add_word_occurrence(k, sequence) < 0) {
 		error = -1;
