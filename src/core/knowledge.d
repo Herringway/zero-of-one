@@ -92,6 +92,7 @@ struct ZoO_knowledge {
 		if (find(word, result) == 0) {
 			words[result].occurrences += 1;
 
+			debug(learning) tracef("Increased occurrences for word {'%s', occurrences: %s}", word, words[result].occurrences);
 			return result;
 		}
 

@@ -114,6 +114,8 @@ int ZoO_knowledge_assimilate(ref ZoO_knowledge k, const ZoO_strings string, cons
 	size_t next_word, new_word;
 	size_t new_word_id;
 
+	debug(learning) trace("Learning phrase ", string);
+
 	if (!should_assimilate(string, aliases)) {
 		return 0;
 	}
