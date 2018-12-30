@@ -27,8 +27,11 @@ struct ZoO_data_input {
 	}
 
 	int read_line(const string punctuations) @system {
-		size_t i, w_start;
 		string line;
+
+		if (file.eof) {
+			return -1;
+		}
 
 		try {
 			line = file.readln();
@@ -39,7 +42,7 @@ struct ZoO_data_input {
 		}
 
 		str = ZoO_strings.init;
-		str.parse(line[0..$-1], punctuations);
+		str.parse(line.chomp, punctuations);
 
 		return 0;
 	}
