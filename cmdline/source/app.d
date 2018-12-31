@@ -5,7 +5,6 @@ import std.stdio;
 import std.string;
 
 import pervasive;
-import io.parameters;
 import io.data_input;
 import io.data_output;
 import tool.strings;
@@ -13,8 +12,9 @@ import core.assimilate;
 import core.create_sentences;
 import core.knowledge;
 
+enum memoryFile = "memory.txt";
+
 struct ZoO_state {
-	ZoO_parameters param;
 	ZoO_knowledge knowledge;
 
 
@@ -22,12 +22,12 @@ struct ZoO_state {
 		ZoO_data_input input;
 		char* result;
 
-		if (input.open(param.data_filename) < 0) {
+		if (input.open(memoryFile) < 0) {
 			return -1;
 		}
 
 		while (input.read_line(ZoO_knowledge_punctuation_chars) == 0) {
-			ZoO_knowledge_assimilate(knowledge, input.str, param.aliases);
+			ZoO_knowledge_assimilate(knowledge, input.str, []);
 		}
 
 		input.close();
@@ -49,11 +49,11 @@ void main() {
 		if (str.words.length == 0) {
 			//break;
 		}
-		if (ZoO_data_output_write_line(state.param.new_data_filename, input) != 0) {
+		if (ZoO_data_output_write_line(memoryFile, input) != 0) {
 			break;
 		}
-		auto line = ZoO_knowledge_extend(state.knowledge, str, state.param.aliases, false);
+		auto line = ZoO_knowledge_extend(state.knowledge, str, [], false);
 		writeln(line);
-		ZoO_knowledge_assimilate(state.knowledge, str, state.param.aliases);
+		ZoO_knowledge_assimilate(state.knowledge, str, []);
 	}
 }
