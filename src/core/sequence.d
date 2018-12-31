@@ -42,7 +42,7 @@ int ZoO_knowledge_get_link(ref ZoO_knowledge_link[] links, const size_t[] sequen
 	return 0;
 }
 
-@system unittest {
+@safe unittest {
 	import std.stdio;
 	ZoO_knowledge_link[] links =[ZoO_knowledge_link([10, 11], [1], [0]), ZoO_knowledge_link([10, 11], [1], [0])];
 	size_t[] sequence;

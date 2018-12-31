@@ -13,7 +13,7 @@ import tool.strings;
 
 /** Functions to assimilate sentences using a ZoO_knowledge structure *********/
 
-int add_sequence(ref ZoO_knowledge_link[] links, const size_t[ZoO_MARKOV_ORDER] sequence, const size_t target_i, const size_t offset) @system {
+int add_sequence(ref ZoO_knowledge_link[] links, const size_t[ZoO_MARKOV_ORDER] sequence, const size_t target_i, const size_t offset) @safe {
 	size_t link_index;
 	size_t i;
 	ZoO_knowledge_link * link;
@@ -41,7 +41,7 @@ int add_sequence(ref ZoO_knowledge_link[] links, const size_t[ZoO_MARKOV_ORDER] 
 	return 0;
 }
 
-int add_word_occurrence(ref ZoO_knowledge k, const size_t[(ZoO_MARKOV_ORDER * 2) + 1] sequence) @system {
+int add_word_occurrence(ref ZoO_knowledge k, const size_t[(ZoO_MARKOV_ORDER * 2) + 1] sequence) @safe {
 	size_t w;
 	int error;
 
@@ -106,7 +106,7 @@ void init_sequence(ref ZoO_knowledge k, const ZoO_strings string, ref size_t[(Zo
 	assert(seq[$-1] == ZoO_WORD_END_OF_LINE);
 }
 
-int ZoO_knowledge_assimilate(ref ZoO_knowledge k, const ZoO_strings string, const string[] aliases) @system {
+int ZoO_knowledge_assimilate(ref ZoO_knowledge k, const ZoO_strings string, const string[] aliases) @safe {
 	int error;
 	size_t[(ZoO_MARKOV_ORDER * 2) + 1] sequence;
 	size_t next_word, new_word;
@@ -168,7 +168,7 @@ int ZoO_knowledge_assimilate(ref ZoO_knowledge k, const ZoO_strings string, cons
 	return error;
 }
 
-@system unittest {
+@safe unittest {
 	ZoO_knowledge k;
 	assert(ZoO_knowledge_assimilate(k, ZoO_strings(), []) == 0);
 }

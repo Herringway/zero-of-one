@@ -112,7 +112,7 @@ string extend_left(ref ZoO_knowledge k, size_t[ZoO_MARKOV_ORDER] sequence, ref s
 	assert(0);
 }
 
-@system unittest {
+@safe unittest {
 	import core.assimilate : ZoO_knowledge_assimilate;
 	ZoO_knowledge k;
 	string str;
@@ -165,7 +165,7 @@ string extend_right(ref ZoO_knowledge k, size_t[ZoO_MARKOV_ORDER] sequence, ref 
 	assert(0);
 }
 
-@system unittest {
+@safe unittest {
 	import core.assimilate : ZoO_knowledge_assimilate;
 	ZoO_knowledge k;
 	string str;
