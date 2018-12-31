@@ -10,8 +10,10 @@ zero-of-one.a
 zero-of-one.lib
 zero-of-one-test-*
 *.exe
+*.dll
 *.o
 *.obj
 *.lst
 dub.selections.json
 memory.txt
+settings.yml

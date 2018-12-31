@@ -1,168 +1,182 @@
 module app;
 
-import std.string;
-import std.experimental.logger;
-import std.random;
+import std.range;
+import std.stdio;
+import vibe.core.core;
+import vibe.core.net;
+import vibe.stream.operations;
+import vibe.stream.stdio;
+import vibe.stream.tls;
+import vibe.stream.wrapper;
+import virc;
+import siryul;
 
-import tool.strings;
 
-import io.error;
-import io.parameters;
-import io.data_input;
-import io.data_output;
-import io.network;
+struct Settings {
+	string address;
+	ushort port;
+	bool tls;
+	string nickname;
+	string username;
+	string realname;
+	ubyte replyRate = 8;
+	string memoryFile = "memory.txt";
+	string[] aliases;
+	string[] channels;
+}
 
-import core.assimilate;
-import core.create_sentences;
-import core.knowledge;
+mixin template Client() {
+	import tool.strings;
 
-import pervasive;
+	import io.error;
+	import io.parameters;
+	import io.data_input;
+	import io.data_output;
 
-alias ssize_t = ptrdiff_t;
+	import core.assimilate;
+	import core.create_sentences;
+	import core.knowledge;
 
-struct ZoO_state {
-	ZoO_parameters param;
+	import pervasive;
+	import std.stdio : writefln, writef;
+	import std.format : format;
 	ZoO_knowledge knowledge;
-	ZoO_network network;
-
-	int initialize(ref string[] args) @safe {
-		if (ZoO_parameters_initialize(param, args) < 1) {
-			return -1;
+	string[] aliases;
+	string[] channelsToJoin;
+	ubyte replyRate;
+	string memoryFile;
+	void onMessage(const User user, const Target target, const Message msg, const MessageMetadata metadata) @safe {
+		if (user.nickname == nickname) {
+			return;
 		}
-
-		return 0;
+		if (msg.isCTCP) {
+			if (msg.ctcpCommand == "ACTION") {
+				tryReply(target, format!"\001ACTION %s %s\001"(user.nickname, msg.ctcpArgs));
+			} else if (msg.ctcpCommand == "VERSION") {
+				ctcpReply(Target(user), "VERSION", "zero-of-one");
+			}
+		} else if (msg.isReplyable) {
+			tryReply(target, msg.msg);
+		}
 	}
 
+	void onJoin(const User user, const Channel channel, const MessageMetadata metadata) @safe {
+		tryReply(Target(channel), user.nickname);
+	}
+
+	void onPart(const User user, const Channel channel, const string message, const MessageMetadata metadata) @safe {
+		if (message == "") {
+			tryReply(Target(channel), user.nickname);
+		} else {
+			tryReply(Target(channel), format!"%s has left (%s)"(user.nickname, message));
+		}
+	}
+
+	void onKick(const User user, const Channel channel, const User initiator, const string message, const MessageMetadata metadata) @safe {
+		tryReply(Target(channel), format!"%s was kicked by %s (%s)"(user.nickname, initiator, message));
+	}
+
+	void onTopic(const User user, const Channel channel, const string topic, const MessageMetadata metadata) @safe {
+		tryReply(Target(channel), format!"%s changed topic to %s"(user.nickname, topic));
+	}
+	void tryReply(const Target target, const string message) @safe {
+		writefln!"Attempting to learn/reply to %s for: %s"(target, message);
+		ZoO_strings string_;
+
+		string_.parse(message, ZoO_knowledge_punctuation_chars);
+
+		if (string_.words.length == 0) {
+			return;
+		}
+
+		auto howToProceed = shouldLearnAndReply(string_);
+
+		if (howToProceed.reply) {
+			auto line = ZoO_knowledge_extend(knowledge, string_, aliases, false);
+			msg(target, Message(line));
+		}
+
+		if (howToProceed.learn) {
+			ZoO_data_output_write_line(memoryFile, message);
+			ZoO_knowledge_assimilate(knowledge, string_, aliases);
+		}
+	}
+
+	auto shouldLearnAndReply(ref ZoO_strings str) @safe {
+		import std.random : uniform;
+		import std.typecons : tuple;
+		foreach (alias_; aliases) {
+			foreach (idx, word; str.words) {
+				if (alias_ == word) {
+					return tuple!("learn", "reply")(idx != 0, true);
+				}
+			}
+		}
+		return tuple!("learn", "reply")(true, replyRate >= uniform(0, 101));
+	}
+
+	void onConnect() @safe {
+		foreach (channel; channelsToJoin) {
+			join(channel);
+		}
+	}
 	int load_data_file() @system {
 		ZoO_data_input input;
 
-		if (input.open(param.data_filename) < 0) {
+		if (input.open(memoryFile) < 0) {
 			return -1;
 		}
 
 		while (input.read_line(ZoO_knowledge_punctuation_chars) == 0) {
-			ZoO_knowledge_assimilate(knowledge, input.str, param.aliases);
+			ZoO_knowledge_assimilate(knowledge, input.str, aliases);
 		}
 
 		input.close();
 
 		return 0;
 	}
-
-	int network_connect() @safe {
-		return network.connect(param.irc_server_addr, param.irc_server_port, param.irc_server_channel, param.irc_username, param.irc_realname, param.aliases[0]);
-	}
 }
 
+auto runClient(T)(Settings settings, ref T stream) {
+	import std.typecons;
+	auto output = refCounted(streamOutputRange(stream));
+	auto client = ircClient!Client(output, NickInfo(settings.nickname, settings.username, settings.realname));
+	client.channelsToJoin = settings.channels;
+	client.aliases = settings.nickname~settings.aliases;
+	client.replyRate = settings.replyRate;
+	client.memoryFile = settings.memoryFile;
 
-bool should_reply(ref ZoO_parameters param, ref ZoO_strings string_, out bool should_learn) @safe {
-	foreach (alias_; param.aliases) {
-		foreach (idx, word; string_.words) {
-			if (alias_ == word) {
-				should_learn = (idx != 0);
-
-				return true;
-			}
+	void readIRC() {
+		while(!stream.empty) {
+			put(client, stream.readLine().idup);
 		}
 	}
-
-	should_learn = true;
-
-	return param.random_reply();
+	runTask(&readIRC);
+	return runApplication();
 }
 
-void handle_user_join(ref ZoO_state s, ref ZoO_strings string_) @system {
-	size_t loc;
-
-	if (!s.param.random_reply()) {
-		return;
+int main() {
+	import std.file : exists, readText;
+	import std.json : JSON_TYPE, parseJSON;
+	if (!exists("settings.yml")) {
+		toFile!YAML(Settings(), "settings.yml");
+		stderr.writeln("Please edit settings.yml");
+		return -1;
 	}
-
-	string_.parse(s.network.msg.idup, ZoO_knowledge_punctuation_chars);
-
-	bool useRandom;
-
-	if ((s.knowledge.find(string_.words[0], loc) < 0) || (s.knowledge.words[loc].backward_links.length <= 3) || (s.knowledge.words[loc].forward_links.length <= 3)) {
-		useRandom = true;
-	}
-
-	auto line = ZoO_knowledge_extend(s.knowledge, string_, null, useRandom);
-	s.network.send(line);
-}
-
-void handle_message(ref ZoO_state s, ref ZoO_strings string_) @system {
-	bool reply, learn;
-
-	string_.parse(s.network.msg.idup, ZoO_knowledge_punctuation_chars);
-
-	if (string_.words.length == 0) {
-		return;
-	}
-
-	reply = should_reply(s.param, string_, learn);
-
-	if (learn) {
-		/*
-		* It would be best to do that after replying, but by then we no longer
-		* have the string in 's.network.in'.
-		*/
-		ZoO_data_output_write_line(s.param.new_data_filename, s.network.msg.idup);
-	}
-
-	if (reply) {
-		auto line = ZoO_knowledge_extend(s.knowledge, string_, s.param.aliases, false);
-		s.network.send(line);
-	}
-
-	if (learn) {
-		ZoO_knowledge_assimilate(s.knowledge, string_, s.param.aliases	);
-	}
-}
-
-int main_loop(ref ZoO_state s) @system {
-	ZoO_strings string_;
-	ssize_t msg_offset, msg_size;
-	ZoO_msg_type msg_type;
-
-	msg_offset = 0;
-	msg_size = 0;
-
-	if (s.network.receive(msg_type) == 0) {
-		switch (msg_type) {
-			case ZoO_msg_type.JOIN:
-				handle_user_join(s, string_);
-				break;
-
-			case ZoO_msg_type.PRIVMSG:
-				handle_message(s, string_);
-				break;
-			default: assert(0);
+	auto settings = fromFile!(Settings, YAML)("settings.yml");
+	auto conn = connectTCP(settings.address, settings.port);
+	Stream stream;
+	if (settings.tls) {
+		auto sslctx = createTLSContext(TLSContextKind.client);
+		sslctx.peerValidationMode = TLSPeerValidationMode.none;
+		try {
+			stream = createTLSStream(conn, sslctx);
+		} catch (Exception) {
+			writeln("SSL connection failed!");
+			return 1;
 		}
+		return runClient(settings, stream);
+	} else {
+		return runClient(settings, conn);
 	}
-
-	s.network.disconnect();
-
-	return 0;
-}
-
-int main(string[] args) @system {
-	ZoO_state s;
-
-	if (s.initialize(args) < 0) {
-		return -1;
-	}
-
-	if (s.load_data_file() < 0) {
-		return -1;
-	}
-
-	if (s.network_connect() < 0) {
-		return -1;
-	}
-
-	if (main_loop(s) < 0) {
-		return -1;
-	}
-
-	return 0;
 }
