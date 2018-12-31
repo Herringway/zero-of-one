@@ -8,7 +8,6 @@ import std.experimental.logger;
 
 import core.sequence;
 import core.knowledge;
-import io.error;
 import tool.strings;
 import pervasive;
 

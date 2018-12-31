@@ -4,8 +4,6 @@ import core.stdc.string;
 import std.string;
 import std.experimental.logger;
 
-import io.error;
-
 import core.knowledge;
 import core.sequence;
 import pervasive;

@@ -6,7 +6,6 @@ import std.experimental.logger;
 
 import tool.strings;
 import tool.sorted_list;
-import io.error;
 import pervasive;
 
 

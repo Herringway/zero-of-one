@@ -6,7 +6,6 @@ import std.stdio;
 import std.string;
 
 import tool.strings;
-import io.error;
 
 import pervasive;
 

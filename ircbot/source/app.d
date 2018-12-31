@@ -28,8 +28,6 @@ struct Settings {
 mixin template Client() {
 	import tool.strings;
 
-	import io.error;
-	import io.parameters;
 	import io.data_input;
 	import io.data_output;
 

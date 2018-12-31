@@ -8,7 +8,6 @@ import pervasive;
 import io.parameters;
 import io.data_input;
 import io.data_output;
-import io.error;
 import tool.strings;
 import core.assimilate;
 import core.create_sentences;
