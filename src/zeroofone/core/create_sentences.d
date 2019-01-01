@@ -234,10 +234,8 @@ void init_sequence(ref ZoO_knowledge k, const ZoO_strings string, const string[]
 
 	fiw = &k.words[sequence[ZoO_MARKOV_ORDER]];
 
-	for (i = 0; i < ZoO_MARKOV_ORDER; ++i) {
-		sequence[ZoO_MARKOV_ORDER - i - 1] = ZoO_WORD_START_OF_LINE;
-		sequence[ZoO_MARKOV_ORDER + i + 1] = ZoO_WORD_END_OF_LINE;
-	}
+	sequence[0..ZoO_MARKOV_ORDER] = ZoO_WORD_START_OF_LINE;
+	sequence[ZoO_MARKOV_ORDER+1..$] = ZoO_WORD_END_OF_LINE;
 
 	if (fiw.forward_links.length == 0) {
 		critical("First word has no forward links.");
