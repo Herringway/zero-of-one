@@ -112,13 +112,15 @@ string extend_left(ref ZoO_knowledge k, size_t[ZoO_MARKOV_ORDER] sequence, ref s
 }
 
 @safe unittest {
-	import core.assimilate : ZoO_knowledge_assimilate;
 	ZoO_knowledge k;
 	string str;
 	size_t credits = 3;
-	auto strs = ZoO_strings(["hello", "world", "3"]);
-	ZoO_knowledge_assimilate(k, strs, []);
-	assert(extend_left(k, [10,11,12], str, credits) == " hello world 3");
+	k.learnString("hello world 3");
+	size_t[3] seq;
+	k.find("hello", seq[0]);
+	k.find("world", seq[1]);
+	k.find("3", seq[2]);
+	assert(extend_left(k, seq, str, credits) == " hello world 3");
 }
 
 string extend_right(ref ZoO_knowledge k, size_t[ZoO_MARKOV_ORDER] sequence, ref string current_sentence, ref size_t credits) @safe {
@@ -165,13 +167,15 @@ string extend_right(ref ZoO_knowledge k, size_t[ZoO_MARKOV_ORDER] sequence, ref 
 }
 
 @safe unittest {
-	import core.assimilate : ZoO_knowledge_assimilate;
 	ZoO_knowledge k;
 	string str;
 	size_t credits = 3;
-	auto strs = ZoO_strings(["hello", "world", "3"]);
-	ZoO_knowledge_assimilate(k, strs, []);
-	auto result = extend_right(k, [10,11,12], str, credits);
+	k.learnString("hello world 3");
+	size_t[3] seq;
+	k.find("hello", seq[0]);
+	k.find("world", seq[1]);
+	k.find("3", seq[2]);
+	auto result = extend_right(k, seq, str, credits);
 	assert(result == "hello world 3 ");
 }
 

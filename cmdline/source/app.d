@@ -27,7 +27,7 @@ struct ZoO_state {
 		}
 
 		while (input.read_line(ZoO_knowledge_punctuation_chars) == 0) {
-			ZoO_knowledge_assimilate(knowledge, input.str, []);
+			ZoO_knowledge_assimilate(knowledge, input.str);
 		}
 
 		input.close();
@@ -54,6 +54,6 @@ void main() {
 		}
 		auto line = ZoO_knowledge_extend(state.knowledge, str, [], false);
 		writeln(line);
-		ZoO_knowledge_assimilate(state.knowledge, str, []);
+		state.knowledge.learnString(input);
 	}
 }

@@ -96,7 +96,7 @@ mixin template Client() {
 
 		if (howToProceed.learn) {
 			ZoO_data_output_write_line(memoryFile, message);
-			ZoO_knowledge_assimilate(knowledge, string_, aliases);
+			knowledge.learnString(message);
 		}
 	}
 
@@ -118,31 +118,20 @@ mixin template Client() {
 			join(channel);
 		}
 	}
-	int load_data_file() @system {
-		ZoO_data_input input;
-
-		if (input.open(memoryFile) < 0) {
-			return -1;
-		}
-
-		while (input.read_line(ZoO_knowledge_punctuation_chars) == 0) {
-			ZoO_knowledge_assimilate(knowledge, input.str, aliases);
-		}
-
-		input.close();
-
-		return 0;
-	}
 }
 
 auto runClient(T)(Settings settings, ref T stream) {
-	import std.typecons;
+	import std.stdio : File;
+	import std.typecons : refCounted;
 	auto output = refCounted(streamOutputRange(stream));
 	auto client = ircClient!Client(output, NickInfo(settings.nickname, settings.username, settings.realname));
 	client.channelsToJoin = settings.channels;
 	client.aliases = settings.nickname~settings.aliases;
 	client.replyRate = settings.replyRate;
 	client.memoryFile = settings.memoryFile;
+	foreach (str; File(settings.memoryFile, "r").byLineCopy()) {
+		client.knowledge.learnString(str);
+	}
 
 	void readIRC() {
 		while(!stream.empty) {

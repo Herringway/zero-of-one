@@ -107,6 +107,12 @@ struct ZoO_knowledge {
 
 		return result;
 	}
+	void learnString(const string str) @safe {
+		import core.assimilate : ZoO_knowledge_assimilate;
+		ZoO_strings parsedString;
+		parsedString.parse(str, ZoO_knowledge_punctuation_chars);
+		ZoO_knowledge_assimilate(this, parsedString);
+	}
 }
 
 @safe pure unittest {

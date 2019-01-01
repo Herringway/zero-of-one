@@ -104,7 +104,7 @@ void init_sequence(ref ZoO_knowledge k, const ZoO_strings string, ref size_t[(Zo
 	assert(seq[$-1] == ZoO_WORD_END_OF_LINE);
 }
 
-int ZoO_knowledge_assimilate(ref ZoO_knowledge k, const ZoO_strings string, const string[] aliases) @safe {
+int ZoO_knowledge_assimilate(ref ZoO_knowledge k, const ZoO_strings string) @safe {
 	int error;
 	size_t[(ZoO_MARKOV_ORDER * 2) + 1] sequence;
 	size_t next_word, new_word;
@@ -112,7 +112,7 @@ int ZoO_knowledge_assimilate(ref ZoO_knowledge k, const ZoO_strings string, cons
 
 	debug(learning) trace("Learning phrase ", string);
 
-	if (!should_assimilate(string, aliases)) {
+	if (string.words.length == 0) {
 		return 0;
 	}
 
@@ -168,5 +168,5 @@ int ZoO_knowledge_assimilate(ref ZoO_knowledge k, const ZoO_strings string, cons
 
 @safe unittest {
 	ZoO_knowledge k;
-	assert(ZoO_knowledge_assimilate(k, ZoO_strings(), []) == 0);
+	assert(ZoO_knowledge_assimilate(k, ZoO_strings()) == 0);
 }
