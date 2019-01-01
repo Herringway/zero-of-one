@@ -21,7 +21,7 @@ void main() {
 		str.parse(input.dup, ZoO_knowledge_punctuation_chars);
 
 		if (str.words.length == 0) {
-			//break;
+			continue;
 		}
 		File(memoryFile, "a").writeln(input);
 		auto line = ZoO_knowledge_extend(knowledge, str, [], false);
