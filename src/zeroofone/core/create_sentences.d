@@ -1,6 +1,7 @@
 module zeroofone.core.create_sentences;
 
 import core.stdc.string;
+import std.algorithm;
 import std.random;
 import std.string;
 import std.uni;
@@ -67,6 +68,7 @@ string extend_left(ref ZoO_knowledge k, size_t[ZoO_MARKOV_ORDER] sequence, ref s
 	size_t j;
 
 	next_sentence = current_sentence;
+	debug(create) tracef("extend-left: sequence: %s (%s), credits: %s, sentence: %s", sequence, sequence[].map!(x => k.words[x].word), credits, current_sentence);
 
 	for (;;) {
 		if (credits == 0) {
@@ -128,6 +130,7 @@ string extend_right(ref ZoO_knowledge k, size_t[ZoO_MARKOV_ORDER] sequence, ref 
 	size_t j;
 
 	next_sentence = current_sentence;
+	debug(create) tracef("extend-right: sequence: %s (%s), credits: %s, sentence: %s", sequence, sequence[].map!(x => k.words[x].word), credits, current_sentence);
 
 	for (;;) {
 		if (credits == 0) {
@@ -321,6 +324,8 @@ out(result; !isWhite(result[$-1]))
 			result = format!" [%s] "(k.words[first_word].word);
 			break;
 	}
+
+	debug(create) tracef("full sequence: sequence: %s (%s), start of sentence: %s", sequence, sequence[].map!(x => k.words[x].word), result);
 
 	result = extend_right(k, sequence[ZoO_MARKOV_ORDER + 1..$], result, credits);
 
