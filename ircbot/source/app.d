@@ -28,15 +28,12 @@ struct Settings {
 mixin template Client() {
 	import tool.strings;
 
-	import io.data_input;
-	import io.data_output;
-
 	import core.assimilate;
 	import core.create_sentences;
 	import core.knowledge;
 
 	import pervasive;
-	import std.stdio : writefln, writef;
+	import std.stdio : File, writefln, writef;
 	import std.format : format;
 	ZoO_knowledge knowledge;
 	string[] aliases;
@@ -95,7 +92,7 @@ mixin template Client() {
 		}
 
 		if (howToProceed.learn) {
-			ZoO_data_output_write_line(memoryFile, message);
+			File(memoryFile, "a").writeln(message);
 			knowledge.learnString(message);
 		}
 	}
