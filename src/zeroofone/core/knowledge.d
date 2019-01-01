@@ -1,12 +1,12 @@
-module core.knowledge;
+module zeroofone.core.knowledge;
 
 import std.string;
 
 import std.experimental.logger;
 
-import tool.strings;
-import tool.sorted_list;
-import pervasive;
+import zeroofone.tool.strings;
+import zeroofone.tool.sorted_list;
+import zeroofone.pervasive;
 
 
 enum ZoO_WORD_START_OF_LINE = 0;
@@ -108,7 +108,7 @@ struct ZoO_knowledge {
 		return result;
 	}
 	void learnString(const string str) @safe {
-		import core.assimilate : ZoO_knowledge_assimilate;
+		import zeroofone.core.assimilate : ZoO_knowledge_assimilate;
 		ZoO_strings parsedString;
 		parsedString.parse(str, ZoO_knowledge_punctuation_chars);
 		ZoO_knowledge_assimilate(this, parsedString);

@@ -1,4 +1,4 @@
-module pervasive;
+module zeroofone.pervasive;
 
 enum ZoO_MAX_REPLY_WORDS =  64;
 

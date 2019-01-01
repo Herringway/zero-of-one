@@ -1,12 +1,12 @@
-module core.sequence;
+module zeroofone.core.sequence;
 
 import core.stdc.string;
 
-import core.knowledge;
+import zeroofone.core.knowledge;
 
-import tool.sorted_list;
+import zeroofone.tool.sorted_list;
 
-import pervasive;
+import zeroofone.pervasive;
 
 int cmp_seq_link(const size_t[] sequence, const ZoO_knowledge_link link, const typeof(null)) @safe {
 	size_t j;

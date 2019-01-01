@@ -1,13 +1,13 @@
-module core.assimilate;
+module zeroofone.core.assimilate;
 
 import core.stdc.string;
 import std.string;
 import std.experimental.logger;
 
-import core.knowledge;
-import core.sequence;
-import pervasive;
-import tool.strings;
+import zeroofone.core.knowledge;
+import zeroofone.core.sequence;
+import zeroofone.pervasive;
+import zeroofone.tool.strings;
 
 /** Functions to assimilate sentences using a ZoO_knowledge structure *********/
 

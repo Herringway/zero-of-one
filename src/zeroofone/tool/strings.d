@@ -1,4 +1,4 @@
-module tool.strings;
+module zeroofone.tool.strings;
 
 struct ZoO_strings {
 	string[] words;

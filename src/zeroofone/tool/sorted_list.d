@@ -1,6 +1,6 @@
-module tool.sorted_list;
+module zeroofone.tool.sorted_list;
 
-import pervasive;
+import zeroofone.pervasive;
 
 int ZoO_sorted_list_index_of(alias compare, T, U, V)(const T[] sorted_list, const U elem, const V other, out size_t result) @safe {
 	int cmp;

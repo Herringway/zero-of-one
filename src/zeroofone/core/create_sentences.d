@@ -1,4 +1,4 @@
-module core.create_sentences;
+module zeroofone.core.create_sentences;
 
 import core.stdc.string;
 import std.random;
@@ -6,10 +6,10 @@ import std.string;
 import std.uni;
 import std.experimental.logger;
 
-import core.sequence;
-import core.knowledge;
-import tool.strings;
-import pervasive;
+import zeroofone.core.sequence;
+import zeroofone.core.knowledge;
+import zeroofone.tool.strings;
+import zeroofone.pervasive;
 
 /** Functions to create sentences using a ZoO_knowledge structure *************/
 
