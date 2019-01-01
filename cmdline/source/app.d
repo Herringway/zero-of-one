@@ -4,11 +4,7 @@ import std.experimental.logger;
 import std.stdio;
 import std.string;
 
-import zeroofone.pervasive;
-import zeroofone.tool.strings;
-import zeroofone.core.assimilate;
-import zeroofone.core.create_sentences;
-import zeroofone.core.knowledge;
+import zeroofone;
 
 enum memoryFile = "memory.txt";
 

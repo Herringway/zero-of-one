@@ -26,13 +26,7 @@ struct Settings {
 }
 
 mixin template Client() {
-	import zeroofone.tool.strings;
-
-	import zeroofone.core.assimilate;
-	import zeroofone.core.create_sentences;
-	import zeroofone.core.knowledge;
-
-	import zeroofone.pervasive;
+	import zeroofone;
 	import std.stdio : File, writefln, writef;
 	import std.format : format;
 	ZoO_knowledge knowledge;
