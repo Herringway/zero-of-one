@@ -228,11 +228,11 @@ size_t select_first_word(ref ZoO_knowledge k, const ZoO_strings string, const st
 void init_sequence(ref ZoO_knowledge k, const ZoO_strings string, const string[] aliases, ref size_t[(ZoO_MARKOV_ORDER * 2) + 1] sequence, bool randomStart) @safe {
 	import std.conv : text;
 	size_t i, j, accumulator, random_number;
-	ZoO_knowledge_word * fiw;
+	ZoO_knowledge_word fiw;
 
 	sequence[ZoO_MARKOV_ORDER] = select_first_word(k, string, aliases, randomStart);
 
-	fiw = &k.words[sequence[ZoO_MARKOV_ORDER]];
+	fiw = k.words[sequence[ZoO_MARKOV_ORDER]];
 
 	sequence[0..ZoO_MARKOV_ORDER] = ZoO_WORD_START_OF_LINE;
 	sequence[ZoO_MARKOV_ORDER+1..$] = ZoO_WORD_END_OF_LINE;
@@ -269,7 +269,7 @@ void init_sequence(ref ZoO_knowledge k, const ZoO_strings string, const string[]
 	/* build the left one, one word at a time. */
 	for (i = 0; i < ZoO_MARKOV_ORDER; ++i) {
 		/* temporary pillar (starts on the right side, minus one so we don't */
-		fiw = &k.words[sequence[(ZoO_MARKOV_ORDER * 2) - i - 1]];
+		fiw = k.words[sequence[(ZoO_MARKOV_ORDER * 2) - i - 1]];
 
 		/* finds the backward link corresponding to the words left of the */
 		/* temporary pillar. */
