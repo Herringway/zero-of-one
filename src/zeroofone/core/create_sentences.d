@@ -259,7 +259,7 @@ void init_sequence(ref ZoO_knowledge k, const ZoO_strings string, const string[]
 	/* Copies the forward link data into the sequence. */
 	/* This adds (ZoO_MARKOV_ORDER - 1) words, as the ZoO_MARKOV_ORDERth word */
 	/* is chosen aftewards. */
-	fiw.forward_links[i].sequence = sequence[ZoO_MARKOV_ORDER+1];
+	sequence[ZoO_MARKOV_ORDER + 1..ZoO_MARKOV_ORDER + 3] = fiw.forward_links[i].sequence;
 
 	/* selects the last word */
 	sequence[ZoO_MARKOV_ORDER * 2] = fiw.forward_links[i].targets[pick_index(fiw.forward_links[i].targets_occurrences)];
