@@ -275,11 +275,7 @@ void init_sequence(ref ZoO_knowledge k, const ZoO_strings string, const string[]
 		/* temporary pillar. */
 		if (ZoO_knowledge_find_link(fiw.backward_links, sequence[ZoO_MARKOV_ORDER - i..$], j) < 0) {
 			errorf("Unexpectedly, no back link was found at i=%u, expected to find a backlink with %s, from %s.", i, k.words[sequence[(ZoO_MARKOV_ORDER - i)]].word, fiw.word);
-			error("Sequence was:");
-
-			for (j = 0; j <= (ZoO_MARKOV_ORDER * 2); ++j) {
-				errorf("[%u] %s", j, k.words[sequence[j]].word);
-			}
+			errorf("Sequence was: [%(%u, %)] -> %-(%s %)", sequence, sequence[].map!(x => k.words[x].word));
 
 			break;
 		}
@@ -302,6 +298,8 @@ out(result; !isWhite(result[$-1]))
 
 	init_sequence(k, str, aliases, sequence, randomStart);
 
+	debug(create) tracef("initial sequence: sequence: %s (%s)", sequence, sequence[].map!(x => k.words[x].word));
+
 	first_word = sequence[ZoO_MARKOV_ORDER];
 
 	switch (k.words[first_word].special) {
@@ -323,7 +321,7 @@ out(result; !isWhite(result[$-1]))
 			break;
 	}
 
-	debug(create) tracef("full sequence: sequence: %s (%s), start of sentence: %s", sequence, sequence[].map!(x => k.words[x].word), result);
+	debug(create) tracef("start of sentence: %s", result);
 
 	result = extend_right(k, sequence[ZoO_MARKOV_ORDER + 1..$], result, credits);
 
