@@ -1,8 +1,8 @@
 module zeroofone.core.knowledge;
 
-import std.string;
-
+import std.conv;
 import std.experimental.logger;
+import std.string;
 
 import zeroofone.tool.strings;
 import zeroofone.tool.sorted_list;
@@ -69,7 +69,7 @@ struct ZoO_knowledge {
 	 */
 	int find(const string word, out size_t result) const @safe pure
 	in(words.length > 0)
-	out(; result < words.length)
+	out(; result <= words.length, text(result, " > ", words.length))
 	{
 		size_t r;
 
