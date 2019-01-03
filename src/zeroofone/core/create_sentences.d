@@ -69,9 +69,9 @@ string extend_left(ref ZoO_knowledge k, size_t[ZoO_MARKOV_ORDER] sequence, ref s
 	size_t credits = 3;
 	k.learnString("hello world 3");
 	size_t[3] seq;
-	k.find("hello", seq[0]);
-	k.find("world", seq[1]);
-	k.find("3", seq[2]);
+	assert(k.find("hello", seq[0]));
+	assert(k.find("world", seq[1]));
+	assert(k.find("3", seq[2]));
 	assert(extend_left(k, seq, str, credits) == " hello world 3");
 }
 
@@ -123,9 +123,9 @@ string extend_right(ref ZoO_knowledge k, size_t[ZoO_MARKOV_ORDER] sequence, ref 
 	size_t credits = 3;
 	k.learnString("hello world 3");
 	size_t[3] seq;
-	k.find("hello", seq[0]);
-	k.find("world", seq[1]);
-	k.find("3", seq[2]);
+	assert(k.find("hello", seq[0]));
+	assert(k.find("world", seq[1]));
+	assert(k.find("3", seq[2]));
 	auto result = extend_right(k, seq, str, credits);
 	assert(result == "hello world 3 ");
 }
