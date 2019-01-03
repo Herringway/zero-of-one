@@ -151,14 +151,3 @@ immutable string ZoO_knowledge_punctuation_chars = [
 		'~',
 		'\001'
 	];
-
-immutable string ZoO_knowledge_forbidden_chars = [
-		'(',
-		')',
-		'[',
-		']',
-		'{',
-		'}',
-		'<',
-		'>'
-	];
