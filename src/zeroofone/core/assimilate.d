@@ -12,15 +12,10 @@ import zeroofone.tool.strings;
 /** Functions to assimilate sentences using a ZoO_knowledge structure *********/
 
 void add_sequence(ref ZoO_knowledge_link[] links, const size_t[ZoO_MARKOV_ORDER] sequence, const size_t target_i, const size_t offset) @safe {
-	size_t link_index;
-	size_t i;
-	ZoO_knowledge_link * link;
+	auto link_index = ZoO_knowledge_get_link(links, sequence[offset..$]);
+	auto link = &links[link_index];
 
-	ZoO_knowledge_get_link(links, sequence[offset..$], link_index);
-
-	link = &links[link_index];
-
-	for (i = 0; i < link.targets.length; ++i) {
+	foreach (i; 0..link.targets.length) {
 		if (link.targets[i] == sequence[target_i]) {
 			link.targets_occurrences[i] += 1;
 
@@ -29,20 +24,15 @@ void add_sequence(ref ZoO_knowledge_link[] links, const size_t[ZoO_MARKOV_ORDER]
 	}
 
 	link.targets.length += 1;
-
 	link.targets[link.targets.length - 1] = sequence[target_i];
-
 	link.targets_occurrences ~= 1;
 }
 
 void add_word_occurrence(ref ZoO_knowledge k, const size_t[(ZoO_MARKOV_ORDER * 2) + 1] sequence) @safe {
-	size_t w;
+	auto word = &k.words[sequence[ZoO_MARKOV_ORDER]];
 
-	w = sequence[ZoO_MARKOV_ORDER];
-
-	add_sequence(k.words[w].forward_links, sequence[ZoO_MARKOV_ORDER + 1..$], (ZoO_MARKOV_ORDER - 1), 0);
-
-	add_sequence(k.words[w].backward_links, sequence[0..ZoO_MARKOV_ORDER], 0, 1);
+	add_sequence(word.forward_links, sequence[ZoO_MARKOV_ORDER + 1..$], (ZoO_MARKOV_ORDER - 1), 0);
+	add_sequence(word.backward_links, sequence[0..ZoO_MARKOV_ORDER], 0, 1);
 }
 
 

@@ -21,9 +21,10 @@ int cmp_seq_link(const size_t[] sequence, const ZoO_knowledge_link link, const t
 	return 0;
 }
 
-void ZoO_knowledge_get_link(ref ZoO_knowledge_link[] links, const size_t[] sequence, out size_t result) @safe {
+size_t ZoO_knowledge_get_link(ref ZoO_knowledge_link[] links, const size_t[] sequence) @safe {
+	size_t result;
 	if (ZoO_sorted_list_index_of!cmp_seq_link(links, sequence, null, result) == 0) {
-		return;
+		return result;
 	}
 	links.length += 1;
 
@@ -34,6 +35,7 @@ void ZoO_knowledge_get_link(ref ZoO_knowledge_link[] links, const size_t[] seque
 	links[result].sequence = sequence[0..2];
 	links[result].targets_occurrences = null;
 	links[result].targets = null;
+	return result;
 }
 
 @safe unittest {
@@ -42,7 +44,6 @@ void ZoO_knowledge_get_link(ref ZoO_knowledge_link[] links, const size_t[] seque
 	size_t[] sequence;
 	size_t result;
 
-	ZoO_knowledge_get_link(links, [1,1,1,1,1,1], result);
-	assert(result == 0);
+	assert(ZoO_knowledge_get_link(links, [1,1,1,1,1,1]) == 0);
 	assert(links == [ZoO_knowledge_link([1, 1], [], []), ZoO_knowledge_link([10, 11], [1], [0]), ZoO_knowledge_link([10, 11], [1], [0])]);
 }
