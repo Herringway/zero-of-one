@@ -18,8 +18,6 @@ static if (ZoO_MARKOV_ORDER == 1) {
 	enum ZoO_SEQUENCE_SIZE = ZoO_MARKOV_ORDER - 1;
 }
 
-enum ZoO_S_LINK_SIZE = ZoO_SEQUENCE_SIZE + 1;
-
 enum ZoO_knowledge_special_effect {
 	HAS_NO_EFFECT,
 	ENDS_SENTENCE,
