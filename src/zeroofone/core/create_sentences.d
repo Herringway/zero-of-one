@@ -101,11 +101,8 @@ string extend_left(ref ZoO_knowledge k, size_t[ZoO_MARKOV_ORDER] sequence, ref s
 
 		sequence = 0~sequence[0..$-1];
 
-		if (ZoO_knowledge_find_link(w.backward_links, sequence[1..$], j) < 0) {
-			error("Unexpectedly, no backtracking link was found.");
-
-			break;
-		}
+		auto x = ZoO_knowledge_find_link(w.backward_links, sequence[1..$], j);
+		assert(x >= 0, "Unexpectedly, no backtracking link was found.");
 
 		sequence[0] = w.backward_links[j].targets[pick_index(w.backward_links[j].targets_occurrences)];
 
@@ -162,11 +159,8 @@ string extend_right(ref ZoO_knowledge k, size_t[ZoO_MARKOV_ORDER] sequence, ref 
 
 		sequence = sequence[1..$]~0;
 
-		if (ZoO_knowledge_find_link(w.forward_links, sequence, j) < 0) {
-			error("Unexpectedly, no forward link was found.");
-
-			break;
-		}
+		auto x = ZoO_knowledge_find_link(w.forward_links, sequence, j);
+		assert(x >= 0, "Unexpectedly, no forward link was found.");
 
 		sequence[ZoO_MARKOV_ORDER - 1] = w.forward_links[j].targets[pick_index(w.forward_links[j].targets_occurrences)];
 	}
