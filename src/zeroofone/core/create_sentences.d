@@ -66,7 +66,6 @@ size_t pick_index(const size_t[] links_occurrences) @safe {
 
 string extend_left(ref ZoO_knowledge k, size_t[ZoO_MARKOV_ORDER] sequence, ref string current_sentence, ref size_t credits) @safe {
 	string next_sentence;
-	size_t j;
 
 	next_sentence = current_sentence;
 	debug(create) tracef("extend-left: sequence: %s (%s), credits: %s, sentence: %s", sequence, sequence[].map!(x => k.words[x].word), credits, current_sentence);
@@ -127,7 +126,6 @@ string extend_left(ref ZoO_knowledge k, size_t[ZoO_MARKOV_ORDER] sequence, ref s
 
 string extend_right(ref ZoO_knowledge k, size_t[ZoO_MARKOV_ORDER] sequence, ref string current_sentence, ref size_t credits) @safe {
 	string next_sentence;
-	size_t j;
 
 	next_sentence = current_sentence;
 	debug(create) tracef("extend-right: sequence: %s (%s), credits: %s, sentence: %s", sequence, sequence[].map!(x => k.words[x].word), credits, current_sentence);
@@ -279,7 +277,6 @@ out(result; !isWhite(result[0]))
 out(result; !isWhite(result[$-1]))
 {
 	string result;
-	int word_found;
 	size_t[(ZoO_MARKOV_ORDER * 2) + 1] sequence;
 	size_t credits;
 	size_t first_word;
