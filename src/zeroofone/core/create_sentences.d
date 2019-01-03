@@ -15,55 +15,6 @@ import zeroofone.pervasive;
 
 /** Functions to create sentences using a ZoO_knowledge structure *************/
 
-/*
- * Returns the index of a element in {links} chosen randomly according
- * to the distribution in {links_occurrences}.
- * Pre:
- *    (!= occurrences 0).
- *    (== (length links_occurrences) (length links)).
- *    (== (sum links_occurrences) occurrences).
- *    (can_store ZoO_index (length links)).
- */
-size_t pick_index(const size_t[] links_occurrences) @safe {
-	size_t result, accumulator, random_number;
-
-	result = 0;
-
-	/*
-	* Safe:
-	* (> (length links_occurrences) 0).
-	*/
-	accumulator = links_occurrences[0];
-
-	random_number = uniform(0, links_occurrences.length);
-
-	while (accumulator < random_number) {
-		/*
-		* Safe:
-		* (->
-		*    (and
-		*       (== accumulator (sum links_occurrences[0:result]))
-		*       (< accumulator random_number)
-		*       (< random_number occurrences)
-		*       (== occurrences (sum links_occurrences))
-		*       (can_store ZoO_index (length links))
-		*       (== (length links_occurrences) (length links))
-		*    )
-		*    (and
-		*       (< result' (length links_occurrences))
-		*       (can_store ZoO_index result')
-		*       (=< accumulator' occurrences)
-		*    )
-		* )
-*/
-		result += 1;
-		accumulator += links_occurrences[result];
-	}
-
-	/* Safe: (< result (length links)) */
-	return result;
-}
-
 string extend_left(ref ZoO_knowledge k, size_t[ZoO_MARKOV_ORDER] sequence, ref string current_sentence, ref size_t credits) @safe {
 	string next_sentence;
 
@@ -104,7 +55,7 @@ string extend_left(ref ZoO_knowledge k, size_t[ZoO_MARKOV_ORDER] sequence, ref s
 		auto found = w.backward_links.find!((x,y) => x.sequence == y)(sequence[1..$]);
 		assert(!found.empty, "Unexpectedly, no backtracking link was found.");
 
-		sequence[0] = found.front.targets[pick_index(found.front.targets_occurrences)];
+		sequence[0] = found.front.targets[dice(found.front.targets_occurrences)];
 
 		/* prevents current_sentence [const] */
 		current_sentence = next_sentence;
@@ -161,7 +112,7 @@ string extend_right(ref ZoO_knowledge k, size_t[ZoO_MARKOV_ORDER] sequence, ref 
 		auto found = w.forward_links.find!((x,y) => x.sequence == y)(sequence[0..$-1]);
 		assert(!found.empty, "Unexpectedly, no forward link was found.");
 
-		sequence[ZoO_MARKOV_ORDER - 1] = found.front.targets[pick_index(found.front.targets_occurrences)];
+		sequence[ZoO_MARKOV_ORDER - 1] = found.front.targets[dice(found.front.targets_occurrences)];
 	}
 	assert(0);
 }
@@ -249,7 +200,7 @@ void init_sequence(ref ZoO_knowledge k, const ZoO_strings string, const string[]
 	sequence[ZoO_MARKOV_ORDER + 1..ZoO_MARKOV_ORDER + 3] = selectedLinks.sequence;
 
 	/* selects the last word */
-	sequence[ZoO_MARKOV_ORDER * 2] = selectedLinks.targets[pick_index(selectedLinks.targets_occurrences)];
+	sequence[ZoO_MARKOV_ORDER * 2] = selectedLinks.targets[dice(selectedLinks.targets_occurrences)];
 
 	/* FIXME: Not clear enough. */
 	/* Now that we have the right side of the sequence, we are going to */
@@ -268,7 +219,7 @@ void init_sequence(ref ZoO_knowledge k, const ZoO_strings string, const string[]
 			break;
 		}
 
-		sequence[ZoO_MARKOV_ORDER - i - 1] = found.front.targets[pick_index(found.front.targets_occurrences)];
+		sequence[ZoO_MARKOV_ORDER - i - 1] = found.front.targets[dice(found.front.targets_occurrences)];
 	}
 }
 string ZoO_knowledge_extend(ref ZoO_knowledge k, const ZoO_strings str, const string[] aliases, bool randomStart) @safe
