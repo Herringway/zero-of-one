@@ -67,7 +67,7 @@ struct ZoO_knowledge {
 	 *    {*result} is where {word} was expected to be found in
 	 *    {k.sorted_indices}.
 	 */
-	int find(const string word, out size_t result) const @safe pure
+	bool find(const string word, out size_t result) const @safe pure
 	in(words.length > 0)
 	out(; result <= words.length, text(result, " > ", words.length))
 	{
@@ -76,19 +76,19 @@ struct ZoO_knowledge {
 		if (ZoO_sorted_list_index_of!cmp_word(sorted_indices, word, this, r) == 0) {
 			result = sorted_indices[r];
 
-			return 0;
+			return true;
 		}
 
 		result = r;
 
-		return -1;
+		return false;
 	}
 
 	size_t learn(const string word) @safe pure {
 		import std.array : insertInPlace;
 		size_t result;
 
-		if (find(word, result) == 0) {
+		if (find(word, result)) {
 			words[result].occurrences += 1;
 
 			debug(learning) tracef("Increased occurrences for word {'%s', occurrences: %s}", word, words[result].occurrences);
@@ -129,10 +129,10 @@ struct ZoO_knowledge {
 	assert(i > 0);
 	assert(knowledge.words[i-1].word != "hello");
 
-	assert(knowledge.find("hello", i) == 0);
+	assert(knowledge.find("hello", i));
 	assert(knowledge.words[i].word == "hello");
 
-	assert(knowledge.find("hellp", i) == -1);
+	assert(!knowledge.find("hellp", i));
 	assert(knowledge.words[i].word == "hello");
 
 	assert(knowledge.sorted_indices == [9, 2, 3, 4, 5, 6, 7, 1, 0, 10, 11, 8]);

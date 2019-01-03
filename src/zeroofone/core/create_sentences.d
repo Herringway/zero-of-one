@@ -146,7 +146,7 @@ size_t select_first_word(ref ZoO_knowledge k, const ZoO_strings string, const st
 			continue;
 		}
 
-		if (k.find(string.words[i], word_min_id) == 0) {
+		if (k.find(string.words[i], word_min_id)) {
 			word_found = true;
 			word_min_score = k.words[word_min_id].occurrences;
 
@@ -163,7 +163,7 @@ size_t select_first_word(ref ZoO_knowledge k, const ZoO_strings string, const st
 			continue;
 		}
 
-		if ((k.find(string.words[i], word_id) == 0) && (k.words[word_id].occurrences < word_min_score)) {
+		if (k.find(string.words[i], word_id) && (k.words[word_id].occurrences < word_min_score)) {
 			word_min_score = k.words[word_id].occurrences;
 			word_min_id = word_id;
 		}
