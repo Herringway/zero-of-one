@@ -11,14 +11,12 @@ import zeroofone.tool.strings;
 
 /** Functions to assimilate sentences using a ZoO_knowledge structure *********/
 
-int add_sequence(ref ZoO_knowledge_link[] links, const size_t[ZoO_MARKOV_ORDER] sequence, const size_t target_i, const size_t offset) @safe {
+void add_sequence(ref ZoO_knowledge_link[] links, const size_t[ZoO_MARKOV_ORDER] sequence, const size_t target_i, const size_t offset) @safe {
 	size_t link_index;
 	size_t i;
 	ZoO_knowledge_link * link;
 
-	if (ZoO_knowledge_get_link(links, sequence[offset..$], link_index) < 0) {
-		return -1;
-	}
+	ZoO_knowledge_get_link(links, sequence[offset..$], link_index);
 
 	link = &links[link_index];
 
@@ -26,7 +24,7 @@ int add_sequence(ref ZoO_knowledge_link[] links, const size_t[ZoO_MARKOV_ORDER] 
 		if (link.targets[i] == sequence[target_i]) {
 			link.targets_occurrences[i] += 1;
 
-			return 0;
+			return;
 		}
 	}
 
@@ -35,21 +33,16 @@ int add_sequence(ref ZoO_knowledge_link[] links, const size_t[ZoO_MARKOV_ORDER] 
 	link.targets[link.targets.length - 1] = sequence[target_i];
 
 	link.targets_occurrences ~= 1;
-
-	return 0;
 }
 
-int add_word_occurrence(ref ZoO_knowledge k, const size_t[(ZoO_MARKOV_ORDER * 2) + 1] sequence) @safe {
+void add_word_occurrence(ref ZoO_knowledge k, const size_t[(ZoO_MARKOV_ORDER * 2) + 1] sequence) @safe {
 	size_t w;
-	int error;
 
 	w = sequence[ZoO_MARKOV_ORDER];
 
-	error = add_sequence(k.words[w].forward_links, sequence[ZoO_MARKOV_ORDER + 1..$], (ZoO_MARKOV_ORDER - 1), 0);
+	add_sequence(k.words[w].forward_links, sequence[ZoO_MARKOV_ORDER + 1..$], (ZoO_MARKOV_ORDER - 1), 0);
 
-	error = (add_sequence(k.words[w].backward_links, sequence[0..ZoO_MARKOV_ORDER], 0, 1) | error);
-
-	return error;
+	add_sequence(k.words[w].backward_links, sequence[0..ZoO_MARKOV_ORDER], 0, 1);
 }
 
 
@@ -104,8 +97,7 @@ void init_sequence(ref ZoO_knowledge k, const ZoO_strings string, ref size_t[(Zo
 	assert(seq[$-1] == ZoO_WORD_END_OF_LINE);
 }
 
-int ZoO_knowledge_assimilate(ref ZoO_knowledge k, const ZoO_strings string) @safe {
-	int error;
+void ZoO_knowledge_assimilate(ref ZoO_knowledge k, const ZoO_strings string) @safe {
 	size_t[(ZoO_MARKOV_ORDER * 2) + 1] sequence;
 	size_t next_word, new_word;
 	size_t new_word_id;
@@ -113,21 +105,12 @@ int ZoO_knowledge_assimilate(ref ZoO_knowledge k, const ZoO_strings string) @saf
 	debug(learning) trace("Learning phrase ", string);
 
 	if (string.words.length == 0) {
-		return 0;
+		return;
 	}
 
 	init_sequence(k, string, sequence);
 
-	if (add_word_occurrence(k, sequence) < 0) {
-		error = -1;
-
-		/* There's a pun... */
-		warning("Could not add a link between words.");
-
-		return -1;
-	}
-
-	error = 0;
+	add_word_occurrence(k, sequence);
 
 	next_word = 0;
 	new_word = ZoO_MARKOV_ORDER;
@@ -143,14 +126,7 @@ int ZoO_knowledge_assimilate(ref ZoO_knowledge k, const ZoO_strings string) @saf
 
 		sequence[ZoO_MARKOV_ORDER * 2] = new_word_id;
 
-		if (add_word_occurrence(k, sequence) < 0) {
-			error = -1;
-
-			/* There's a pun... */
-			warning("Could not add a link between words.");
-
-			return -1;
-		}
+		add_word_occurrence(k, sequence);
 
 		/*
 		* Safe:
@@ -162,11 +138,9 @@ int ZoO_knowledge_assimilate(ref ZoO_knowledge k, const ZoO_strings string) @saf
 		next_word += 1;
 		new_word += 1;
 	}
-
-	return error;
 }
 
 @safe unittest {
 	ZoO_knowledge k;
-	assert(ZoO_knowledge_assimilate(k, ZoO_strings()) == 0);
+	ZoO_knowledge_assimilate(k, ZoO_strings());
 }
