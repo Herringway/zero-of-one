@@ -226,7 +226,6 @@ size_t select_first_word(ref ZoO_knowledge k, const ZoO_strings string, const st
 
 void init_sequence(ref ZoO_knowledge k, const ZoO_strings string, const string[] aliases, ref size_t[(ZoO_MARKOV_ORDER * 2) + 1] sequence, bool randomStart) @safe {
 	import std.conv : text;
-	size_t i, j, accumulator, random_number;
 	ZoO_knowledge_word fiw;
 
 	sequence[ZoO_MARKOV_ORDER] = select_first_word(k, string, aliases, randomStart);
@@ -243,30 +242,21 @@ void init_sequence(ref ZoO_knowledge k, const ZoO_strings string, const string[]
 	}
 
 	/* Chooses a likely forward link for the pillar. */
-	i = 0;
-	accumulator = fiw.forward_links[0].targets_occurrences.length;
 
-	random_number = uniform(0, fiw.occurrences);
-
-	while (accumulator < random_number) {
-		accumulator += fiw.forward_links[i].targets_occurrences.length;
-		i += 1;
-	}
-
-/*   i = uniform(0, cast(ZoO_index)fiw.forward_links.length); */
+	auto selectedLinks = choice(fiw.forward_links);
 
 	/* Copies the forward link data into the sequence. */
 	/* This adds (ZoO_MARKOV_ORDER - 1) words, as the ZoO_MARKOV_ORDERth word */
 	/* is chosen aftewards. */
-	sequence[ZoO_MARKOV_ORDER + 1..ZoO_MARKOV_ORDER + 3] = fiw.forward_links[i].sequence;
+	sequence[ZoO_MARKOV_ORDER + 1..ZoO_MARKOV_ORDER + 3] = selectedLinks.sequence;
 
 	/* selects the last word */
-	sequence[ZoO_MARKOV_ORDER * 2] = fiw.forward_links[i].targets[pick_index(fiw.forward_links[i].targets_occurrences)];
+	sequence[ZoO_MARKOV_ORDER * 2] = selectedLinks.targets[pick_index(selectedLinks.targets_occurrences)];
 
 	/* FIXME: Not clear enough. */
 	/* Now that we have the right side of the sequence, we are going to */
 	/* build the left one, one word at a time. */
-	for (i = 0; i < ZoO_MARKOV_ORDER; ++i) {
+	foreach (i; 0..ZoO_MARKOV_ORDER) {
 		/* temporary pillar (starts on the right side, minus one so we don't */
 		fiw = k.words[sequence[(ZoO_MARKOV_ORDER * 2) - i - 1]];
 
