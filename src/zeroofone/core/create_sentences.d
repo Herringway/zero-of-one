@@ -2,6 +2,7 @@ module zeroofone.core.create_sentences;
 
 import core.stdc.string;
 import std.algorithm;
+import std.array;
 import std.random;
 import std.string;
 import std.uni;
@@ -101,10 +102,10 @@ string extend_left(ref ZoO_knowledge k, size_t[ZoO_MARKOV_ORDER] sequence, ref s
 
 		sequence = 0~sequence[0..$-1];
 
-		auto x = ZoO_knowledge_find_link(w.backward_links, sequence[1..$], j);
-		assert(x >= 0, "Unexpectedly, no backtracking link was found.");
+		auto found = w.backward_links.find!((x,y) => x.sequence == y)(sequence[1..$]);
+		assert(!found.empty, "Unexpectedly, no backtracking link was found.");
 
-		sequence[0] = w.backward_links[j].targets[pick_index(w.backward_links[j].targets_occurrences)];
+		sequence[0] = found.front.targets[pick_index(found.front.targets_occurrences)];
 
 		/* prevents current_sentence [const] */
 		current_sentence = next_sentence;
@@ -159,10 +160,10 @@ string extend_right(ref ZoO_knowledge k, size_t[ZoO_MARKOV_ORDER] sequence, ref 
 
 		sequence = sequence[1..$]~0;
 
-		auto x = ZoO_knowledge_find_link(w.forward_links, sequence, j);
-		assert(x >= 0, "Unexpectedly, no forward link was found.");
+		auto found = w.forward_links.find!((x,y) => x.sequence == y)(sequence[0..$-1]);
+		assert(!found.empty, "Unexpectedly, no forward link was found.");
 
-		sequence[ZoO_MARKOV_ORDER - 1] = w.forward_links[j].targets[pick_index(w.forward_links[j].targets_occurrences)];
+		sequence[ZoO_MARKOV_ORDER - 1] = found.front.targets[pick_index(found.front.targets_occurrences)];
 	}
 	assert(0);
 }
@@ -271,14 +272,15 @@ void init_sequence(ref ZoO_knowledge k, const ZoO_strings string, const string[]
 
 		/* finds the backward link corresponding to the words left of the */
 		/* temporary pillar. */
-		if (ZoO_knowledge_find_link(fiw.backward_links, sequence[ZoO_MARKOV_ORDER - i..$], j) < 0) {
+		auto found = fiw.backward_links.find!((x,y) => x.sequence == y)(sequence[ZoO_MARKOV_ORDER - i..ZoO_MARKOV_ORDER - i + ZoO_SEQUENCE_SIZE]);
+		if (found.empty) {
 			errorf("Unexpectedly, no back link was found at i=%u, expected to find a backlink with %s, from %s.", i, k.words[sequence[(ZoO_MARKOV_ORDER - i)]].word, fiw.word);
 			errorf("Sequence was: [%(%u, %)] -> %-(%s %)", sequence, sequence[].map!(x => k.words[x].word));
 
 			break;
 		}
 
-		sequence[ZoO_MARKOV_ORDER - i - 1] = fiw.backward_links[j].targets[pick_index(fiw.backward_links[j].targets_occurrences)];
+		sequence[ZoO_MARKOV_ORDER - i - 1] = found.front.targets[pick_index(found.front.targets_occurrences)];
 	}
 }
 string ZoO_knowledge_extend(ref ZoO_knowledge k, const ZoO_strings str, const string[] aliases, bool randomStart) @safe
