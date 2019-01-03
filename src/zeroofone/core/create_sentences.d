@@ -91,6 +91,8 @@ string extend_left(ref ZoO_knowledge k, size_t[ZoO_MARKOV_ORDER] sequence, ref s
 			case ZoO_knowledge_special_effect.REMOVES_RIGHT_SPACE:
 				next_sentence = format!"%s%s"(w.word, current_sentence[1..$]);
 				break;
+			case ZoO_knowledge_special_effect.STARTS_SENTENCE:
+				return current_sentence;
 			default:
 				assert(0);
 		}
@@ -150,6 +152,8 @@ string extend_right(ref ZoO_knowledge k, size_t[ZoO_MARKOV_ORDER] sequence, ref 
 			case ZoO_knowledge_special_effect.REMOVES_RIGHT_SPACE:
 				next_sentence = format!"%s%s"(current_sentence, w.word);
 				break;
+			case ZoO_knowledge_special_effect.ENDS_SENTENCE:
+				return current_sentence;
 			default:
 				assert(0);
 		}
