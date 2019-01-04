@@ -39,10 +39,7 @@ size_t ZoO_knowledge_get_link(ref ZoO_knowledge_link[] links, const size_t[] seq
 }
 
 @safe unittest {
-	import std.stdio;
 	ZoO_knowledge_link[] links =[ZoO_knowledge_link([10, 11], [1], [0]), ZoO_knowledge_link([10, 11], [1], [0])];
-	size_t[] sequence;
-	size_t result;
 
 	assert(ZoO_knowledge_get_link(links, [1,1,1,1,1,1]) == 0);
 	assert(links == [ZoO_knowledge_link([1, 1], [], []), ZoO_knowledge_link([10, 11], [1], [0]), ZoO_knowledge_link([10, 11], [1], [0])]);
