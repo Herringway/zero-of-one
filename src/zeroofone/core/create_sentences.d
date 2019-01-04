@@ -132,7 +132,7 @@ string extend_right(ref ZoO_knowledge k, size_t[ZoO_MARKOV_ORDER] sequence, ref 
 
 size_t select_first_word(ref ZoO_knowledge k, const ZoO_strings string, const bool useRandomWord) @safe {
 	import std.algorithm.searching : canFind;
-	size_t i, word_min_score, word_id, word_min_id;
+	size_t word_min_score, word_id, word_min_id;
 	bool word_found;
 
 	if (useRandomWord) {
@@ -141,8 +141,8 @@ size_t select_first_word(ref ZoO_knowledge k, const ZoO_strings string, const bo
 
 	word_found = false;
 
-	for (i = 0; i < string.words.length; ++i) {
-		if (k.find(string.words[i], word_min_id)) {
+	foreach (word; string.words) {
+		if (k.find(word, word_min_id)) {
 			word_found = true;
 			word_min_score = k.words[word_min_id].occurrences;
 
@@ -154,8 +154,8 @@ size_t select_first_word(ref ZoO_knowledge k, const ZoO_strings string, const bo
 		return uniform(0, k.words.length);
 	}
 
-	for (; i < string.words.length; ++i) {
-		if (k.find(string.words[i], word_id) && (k.words[word_id].occurrences < word_min_score)) {
+	foreach (word; string.words) {
+		if (k.find(word, word_id) && (k.words[word_id].occurrences < word_min_score)) {
 			word_min_score = k.words[word_id].occurrences;
 			word_min_id = word_id;
 		}
