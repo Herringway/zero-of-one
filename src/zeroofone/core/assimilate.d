@@ -15,8 +15,8 @@ void add_sequence(ref ZoO_knowledge_link[] links, const size_t[ZoO_MARKOV_ORDER]
 	auto link_index = ZoO_knowledge_get_link(links, sequence[offset..$]);
 	auto link = &links[link_index];
 
-	foreach (i; 0..link.targets.length) {
-		if (link.targets[i] == sequence[target_i]) {
+	foreach (i, target; link.targets) {
+		if (target == sequence[target_i]) {
 			link.targets_occurrences[i] += 1;
 
 			return;
@@ -36,12 +36,10 @@ void add_word_occurrence(ref ZoO_knowledge k, const size_t[(ZoO_MARKOV_ORDER * 2
 }
 
 void init_sequence(ref ZoO_knowledge k, const ZoO_strings string, ref size_t[(ZoO_MARKOV_ORDER * 2) + 1] sequence) @safe {
-	size_t i;
-
 	/* We are going to link this sequence to ZoO_WORD_START_OF_LINE */
 	sequence[ZoO_MARKOV_ORDER] = ZoO_WORD_START_OF_LINE;
 
-	for (i = 1; i <= ZoO_MARKOV_ORDER; ++i) {
+	foreach (i; 1..ZoO_MARKOV_ORDER+1) {
 		sequence[ZoO_MARKOV_ORDER - i] = ZoO_WORD_START_OF_LINE;
 
 		if (i <= string.words.length) {
@@ -92,13 +90,6 @@ void ZoO_knowledge_assimilate(ref ZoO_knowledge k, const ZoO_strings string) @sa
 
 		add_word_occurrence(k, sequence);
 
-		/*
-		* Safe:
-		*  - next_word < words_count
-		*  - words_count =< ZoO_INDEX_MAX
-		*  ----
-		*  next_word < ZoO_INDEX_MAX
-		*/
 		next_word += 1;
 		new_word += 1;
 	}
