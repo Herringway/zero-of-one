@@ -21,13 +21,7 @@ string extend_left(ref ZoO_knowledge k, size_t[ZoO_MARKOV_ORDER] sequence, ref s
 	next_sentence = current_sentence;
 	debug(create) tracef("extend-left: sequence: %s (%s), credits: %s, sentence: %s", sequence, sequence[].map!(x => k.words[x].word), credits, current_sentence);
 
-	for (;;) {
-		if (credits == 0) {
-			return current_sentence;
-		}
-
-		credits -= 1;
-
+	while (credits--) {
 		const w = k.words[sequence[ZoO_MARKOV_ORDER - 1]];
 
 		next_sentence = current_sentence;
@@ -60,7 +54,7 @@ string extend_left(ref ZoO_knowledge k, size_t[ZoO_MARKOV_ORDER] sequence, ref s
 		/* prevents current_sentence [const] */
 		current_sentence = next_sentence;
 	}
-	assert(0);
+	return current_sentence;
 }
 
 @safe unittest {
@@ -81,13 +75,7 @@ string extend_right(ref ZoO_knowledge k, size_t[ZoO_MARKOV_ORDER] sequence, ref 
 	next_sentence = current_sentence;
 	debug(create) tracef("extend-right: sequence: %s (%s), credits: %s, sentence: %s", sequence, sequence[].map!(x => k.words[x].word), credits, current_sentence);
 
-	for (;;) {
-		if (credits == 0) {
-			return current_sentence;
-		}
-
-		credits -= 1;
-
+	while (credits--) {
 		const w = k.words[sequence[0]];
 
 		next_sentence = current_sentence;
@@ -114,7 +102,7 @@ string extend_right(ref ZoO_knowledge k, size_t[ZoO_MARKOV_ORDER] sequence, ref 
 
 		sequence[ZoO_MARKOV_ORDER - 1] = found.front.targets[dice(found.front.targets_occurrences)];
 	}
-	assert(0);
+	return current_sentence;
 }
 
 @safe unittest {
