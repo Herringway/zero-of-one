@@ -130,7 +130,7 @@ string extend_right(ref ZoO_knowledge k, size_t[ZoO_MARKOV_ORDER] sequence, ref 
 	assert(result == "hello world 3 ");
 }
 
-size_t select_first_word(ref ZoO_knowledge k, const ZoO_strings string, const string[] aliases, const bool useRandomWord) @safe {
+size_t select_first_word(ref ZoO_knowledge k, const ZoO_strings string, const bool useRandomWord) @safe {
 	import std.algorithm.searching : canFind;
 	size_t i, word_min_score, word_id, word_min_id;
 	bool word_found;
@@ -142,10 +142,6 @@ size_t select_first_word(ref ZoO_knowledge k, const ZoO_strings string, const st
 	word_found = false;
 
 	for (i = 0; i < string.words.length; ++i) {
-		if (aliases.canFind(string.words[i])) {
-			continue;
-		}
-
 		if (k.find(string.words[i], word_min_id)) {
 			word_found = true;
 			word_min_score = k.words[word_min_id].occurrences;
@@ -159,10 +155,6 @@ size_t select_first_word(ref ZoO_knowledge k, const ZoO_strings string, const st
 	}
 
 	for (; i < string.words.length; ++i) {
-		if (aliases.canFind(string.words[i])) {
-			continue;
-		}
-
 		if (k.find(string.words[i], word_id) && (k.words[word_id].occurrences < word_min_score)) {
 			word_min_score = k.words[word_id].occurrences;
 			word_min_id = word_id;
@@ -173,11 +165,11 @@ size_t select_first_word(ref ZoO_knowledge k, const ZoO_strings string, const st
 }
 
 
-void init_sequence(ref ZoO_knowledge k, const ZoO_strings string, const string[] aliases, ref size_t[(ZoO_MARKOV_ORDER * 2) + 1] sequence, bool randomStart) @safe {
+void init_sequence(ref ZoO_knowledge k, const ZoO_strings string, ref size_t[(ZoO_MARKOV_ORDER * 2) + 1] sequence, bool randomStart) @safe {
 	import std.conv : text;
 	ZoO_knowledge_word fiw;
 
-	sequence[ZoO_MARKOV_ORDER] = select_first_word(k, string, aliases, randomStart);
+	sequence[ZoO_MARKOV_ORDER] = select_first_word(k, string, randomStart);
 
 	fiw = k.words[sequence[ZoO_MARKOV_ORDER]];
 
@@ -222,7 +214,7 @@ void init_sequence(ref ZoO_knowledge k, const ZoO_strings string, const string[]
 		sequence[ZoO_MARKOV_ORDER - i - 1] = found.front.targets[dice(found.front.targets_occurrences)];
 	}
 }
-string ZoO_knowledge_extend(ref ZoO_knowledge k, const ZoO_strings str, const string[] aliases, bool randomStart) @safe
+string ZoO_knowledge_extend(ref ZoO_knowledge k, const ZoO_strings str, bool randomStart) @safe
 out(result; result.length > 0)
 out(result; !isWhite(result[0]))
 out(result; !isWhite(result[$-1]))
@@ -234,7 +226,7 @@ out(result; !isWhite(result[$-1]))
 
 	credits = ZoO_MAX_REPLY_WORDS;
 
-	init_sequence(k, str, aliases, sequence, randomStart);
+	init_sequence(k, str, sequence, randomStart);
 
 	debug(create) tracef("initial sequence: sequence: %s (%s)", sequence, sequence[].map!(x => k.words[x].word));
 

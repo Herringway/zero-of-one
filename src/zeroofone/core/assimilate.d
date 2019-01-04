@@ -35,32 +35,6 @@ void add_word_occurrence(ref ZoO_knowledge k, const size_t[(ZoO_MARKOV_ORDER * 2
 	add_sequence(word.backward_links, sequence[0..ZoO_MARKOV_ORDER], 0, 1);
 }
 
-
-bool should_assimilate(const ZoO_strings string, const string[] aliases) @safe {
-	/* Don't assimilate empty strings. */
-	if (string.words.length == 0) {
-		return false;
-	}
-
-	/* Don't assimilate things that start with our name. */
-	foreach (alias_; aliases) {
-		if (alias_ == string.words[0]) {
-			return false;
-		}
-	}
-
-	return true;
-}
-
-@safe unittest {
-	ZoO_strings str;
-	assert(should_assimilate(str, []) == 0);
-	str.words = ["hi"];
-	assert(should_assimilate(str, []) == 1);
-	assert(should_assimilate(str, ["hi"]) == 0);
-	assert(should_assimilate(str, ["hello"]) == 1);
-}
-
 void init_sequence(ref ZoO_knowledge k, const ZoO_strings string, ref size_t[(ZoO_MARKOV_ORDER * 2) + 1] sequence) @safe {
 	size_t i;
 

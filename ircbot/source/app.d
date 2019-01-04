@@ -81,7 +81,7 @@ mixin template Client() {
 		auto howToProceed = shouldLearnAndReply(string_);
 
 		if (howToProceed.reply) {
-			auto line = ZoO_knowledge_extend(knowledge, string_, aliases, false);
+			auto line = ZoO_knowledge_extend(knowledge, string_, false);
 			msg(target, Message(line));
 		}
 

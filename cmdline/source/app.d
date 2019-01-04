@@ -37,7 +37,7 @@ void main() {
 			continue;
 		}
 		File(memoryFile, "a").writeln(input);
-		auto line = ZoO_knowledge_extend(knowledge, str, [], false);
+		auto line = ZoO_knowledge_extend(knowledge, str, false);
 		writeln(line);
 		knowledge.learnString(input);
 	}
