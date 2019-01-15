@@ -12,7 +12,8 @@ import zeroofone.tool.strings;
 /** Functions to assimilate sentences using a ZoO_knowledge structure *********/
 
 void add_sequence(ref ZoO_knowledge_link[] links, const size_t[ZoO_MARKOV_ORDER] sequence, const size_t target_i, const size_t offset) @safe {
-	auto link_index = ZoO_knowledge_get_link(links, sequence[offset..$]);
+	const size_t[ZoO_SEQUENCE_SIZE] searchSeq = sequence[offset..offset+ZoO_SEQUENCE_SIZE];
+	auto link_index = ZoO_knowledge_get_link(links, searchSeq);
 	auto link = &links[link_index];
 
 	foreach (i, target; link.targets) {
