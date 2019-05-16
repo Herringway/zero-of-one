@@ -3,6 +3,10 @@ module zeroofone.tool.strings;
 struct ZoO_strings {
 	string[] words;
 
+	this(string str) @safe pure {
+		parse(str, ZoO_knowledge_punctuation_chars);
+	}
+
 	void parse(string input, const string punctuations) @safe pure {
 		import std.algorithm.iteration : filter, splitter;
 		import std.algorithm.searching : canFind, endsWith, startsWith;
@@ -22,6 +26,17 @@ struct ZoO_strings {
 		}
 	}
 }
+
+immutable string ZoO_knowledge_punctuation_chars = [
+	'!',
+	',',
+	'.',
+	':',
+	';',
+	'?',
+	'~',
+	'\001'
+];
 
 @safe pure unittest {
 	import std.algorithm.searching : canFind;
