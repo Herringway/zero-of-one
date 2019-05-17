@@ -26,7 +26,7 @@ string extend_left(ref ZoO_knowledge k, size_t[ZoO_MARKOV_ORDER] sequence, ref s
 
 		next_sentence = current_sentence;
 
-		switch(w.special) {
+		final switch(w.special) {
 			case ZoO_knowledge_special_effect.HAS_NO_EFFECT:
 				next_sentence = format!" %s%s"(w.word, current_sentence);
 				break;
@@ -38,7 +38,7 @@ string extend_left(ref ZoO_knowledge k, size_t[ZoO_MARKOV_ORDER] sequence, ref s
 				break;
 			case ZoO_knowledge_special_effect.STARTS_SENTENCE:
 				return current_sentence;
-			default:
+			case ZoO_knowledge_special_effect.ENDS_SENTENCE:
 				assert(0);
 		}
 
@@ -80,7 +80,7 @@ string extend_right(ref ZoO_knowledge k, size_t[ZoO_MARKOV_ORDER] sequence, ref 
 
 		next_sentence = current_sentence;
 
-		switch (w.special) {
+		final switch (w.special) {
 			case ZoO_knowledge_special_effect.HAS_NO_EFFECT, ZoO_knowledge_special_effect.REMOVES_LEFT_SPACE:
 				next_sentence = format!"%s%s "(current_sentence, w.word);
 				break;
@@ -89,7 +89,7 @@ string extend_right(ref ZoO_knowledge k, size_t[ZoO_MARKOV_ORDER] sequence, ref 
 				break;
 			case ZoO_knowledge_special_effect.ENDS_SENTENCE:
 				return current_sentence;
-			default:
+			case ZoO_knowledge_special_effect.STARTS_SENTENCE:
 				assert(0);
 		}
 
