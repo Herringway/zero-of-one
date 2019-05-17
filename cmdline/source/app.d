@@ -1,6 +1,7 @@
 module app;
 
 import std.experimental.logger;
+import std.getopt;
 import std.range;
 import std.stdio;
 import std.string;
@@ -9,8 +10,13 @@ import zeroofone;
 
 enum memoryFile = "memory.txt";
 
-void main() {
+void main(string[] args) {
+	bool readonly;
+	auto help = getopt(args,
+		"readonly|r", "Don't write to memory file", &readonly
+	);
 	sharedLog = new FileLogger("log.txt");
+	infof("Memory file: %s (read-only: %s)", memoryFile, readonly);
 	ZoO_knowledge knowledge;
 
 	write("Learning line #");
@@ -36,9 +42,13 @@ void main() {
 		if (str.words.length == 0) {
 			continue;
 		}
-		File(memoryFile, "a").writeln(input);
+		if (!readonly) {
+			File(memoryFile, "a").writeln(input);
+		}
 		auto line = ZoO_knowledge_extend(knowledge, str, false);
 		writeln(line);
-		knowledge.learnString(input);
+		if (!readonly) {
+			knowledge.learnString(input);
+		}
 	}
 }
