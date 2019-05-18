@@ -15,5 +15,5 @@ zero-of-one-test-*
 *.obj
 *.lst
 dub.selections.json
-memory.txt
+*.txt
 settings.yml
