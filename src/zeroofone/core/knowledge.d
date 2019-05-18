@@ -82,9 +82,9 @@ struct Knowledge {
 	{
 		size_t r;
 
-		static int cmpWord(const string word, const size_t sorted_index, const Knowledge other) @safe pure {
+		static int cmpWord(const string word, const size_t sortedIndex, const Knowledge other) @safe pure {
 			import std.algorithm.comparison : cmp;
-			return cmp(word, other.words[sorted_index].word);
+			return cmp(word, other.words[sortedIndex].word);
 		}
 
 		if (binarySearch!cmpWord(sortedIndices, word, this, r) == 0) {
