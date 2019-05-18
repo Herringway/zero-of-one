@@ -29,7 +29,7 @@ mixin template Client() {
 	import zeroofone;
 	import std.stdio : File, writefln, writef;
 	import std.format : format;
-	ZoO_knowledge knowledge;
+	Knowledge knowledge;
 	string[] aliases;
 	string[] channelsToJoin;
 	ubyte replyRate;
@@ -70,18 +70,17 @@ mixin template Client() {
 	}
 	void tryReply(const Target target, const string message) @safe {
 		writefln!"Attempting to learn/reply to %s for: %s"(target, message);
-		ZoO_strings string_;
 
-		string_.parse(message, ZoO_knowledge_punctuation_chars);
+		const string_ = Strings(message);
 
 		if (string_.words.length == 0) {
 			return;
 		}
 
-		auto howToProceed = shouldLearnAndReply(string_);
+		const howToProceed = shouldLearnAndReply(string_);
 
 		if (howToProceed.reply) {
-			auto line = ZoO_knowledge_extend(knowledge, string_, false);
+			auto line = knowledgeExtend(knowledge, string_, false);
 			msg(target, Message(line));
 		}
 
@@ -91,7 +90,7 @@ mixin template Client() {
 		}
 	}
 
-	auto shouldLearnAndReply(ref ZoO_strings str) @safe {
+	auto shouldLearnAndReply(const Strings str) @safe {
 		import std.random : uniform;
 		import std.typecons : tuple;
 		foreach (alias_; aliases) {

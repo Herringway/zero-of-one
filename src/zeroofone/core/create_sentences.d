@@ -1,6 +1,5 @@
 module zeroofone.core.create_sentences;
 
-import core.stdc.string;
 import std.algorithm;
 import std.array;
 import std.random;
@@ -11,239 +10,220 @@ import std.experimental.logger;
 import zeroofone.core.sequence;
 import zeroofone.core.knowledge;
 import zeroofone.tool.strings;
-import zeroofone.pervasive;
 
-/** Functions to create sentences using a ZoO_knowledge structure *************/
+enum maximumReplyWords = 64;
 
-string extend_left(ref ZoO_knowledge k, size_t[ZoO_MARKOV_ORDER] sequence, ref string current_sentence, ref size_t credits) @safe {
-	string next_sentence;
+/// Create sentences based on existing Knowledge
 
-	next_sentence = current_sentence;
-	debug(create) tracef("extend-left: sequence: %s (%s), credits: %s, sentence: %s", sequence, sequence[].map!(x => k.words[x].word), credits, current_sentence);
+string extendLeft(const Knowledge k, HalfSentenceSequence sequence, ref string currentSentence, ref size_t credits) @safe {
+	auto nextSentence = currentSentence;
+	debug(create) tracef("extendLeft: sequence: %s (%s), credits: %s, sentence: %s", sequence, sequence[].map!(x => k.words[x].word), credits, currentSentence);
 
 	while (credits--) {
-		const w = k.words[sequence[ZoO_MARKOV_ORDER - 1]];
+		const w = k.words[sequence[$ - 1]];
 
-		next_sentence = current_sentence;
+		nextSentence = currentSentence;
 
 		final switch(w.special) {
-			case ZoO_knowledge_special_effect.HAS_NO_EFFECT:
-				next_sentence = format!" %s%s"(w.word, current_sentence);
+			case SpecialEffect.HAS_NO_EFFECT:
+				nextSentence = format!" %s%s"(w.word, currentSentence);
 				break;
-			case ZoO_knowledge_special_effect.REMOVES_LEFT_SPACE:
-				next_sentence = format!"%s%s"(w.word, current_sentence);
+			case SpecialEffect.REMOVES_LEFT_SPACE:
+				nextSentence = format!"%s%s"(w.word, currentSentence);
 				break;
-			case ZoO_knowledge_special_effect.REMOVES_RIGHT_SPACE:
-				next_sentence = format!"%s%s"(w.word, current_sentence[1..$]);
+			case SpecialEffect.REMOVES_RIGHT_SPACE:
+				nextSentence = format!"%s%s"(w.word, currentSentence[1..$]);
 				break;
-			case ZoO_knowledge_special_effect.STARTS_SENTENCE:
-				return current_sentence;
-			case ZoO_knowledge_special_effect.ENDS_SENTENCE:
+			case SpecialEffect.STARTS_SENTENCE:
+				return currentSentence;
+			case SpecialEffect.ENDS_SENTENCE:
 				assert(0);
 		}
 
-		current_sentence = next_sentence;
+		currentSentence = nextSentence;
 
 		sequence = 0~sequence[0..$-1];
 
-		auto found = w.backward_links.find!((x,y) => x.sequence == y)(sequence[1..$]);
+		auto found = w.backwardLinks.find!((x,y) => x.sequence == y)(sequence[1..$]);
 		assert(!found.empty, "Unexpectedly, no backtracking link was found.");
 
-		sequence[0] = found.front.targets[dice(found.front.targets_occurrences)];
+		sequence[0] = found.front.targets[dice(found.front.targetsOccurrences)];
 
-		/* prevents current_sentence [const] */
-		current_sentence = next_sentence;
+		/* prevents currentSentence [const] */
+		currentSentence = nextSentence;
 	}
-	return current_sentence;
+	return currentSentence;
 }
 
 @safe unittest {
-	ZoO_knowledge k;
+	Knowledge k;
 	string str;
 	size_t credits = 3;
 	k.learnString("hello world 3");
-	size_t[3] seq;
+	HalfSentenceSequence seq;
 	assert(k.find("hello", seq[0]));
 	assert(k.find("world", seq[1]));
 	assert(k.find("3", seq[2]));
-	assert(extend_left(k, seq, str, credits) == " hello world 3");
+	assert(extendLeft(k, seq, str, credits) == " hello world 3");
 }
 
-string extend_right(ref ZoO_knowledge k, size_t[ZoO_MARKOV_ORDER] sequence, ref string current_sentence, ref size_t credits) @safe {
-	string next_sentence;
-
-	next_sentence = current_sentence;
-	debug(create) tracef("extend-right: sequence: %s (%s), credits: %s, sentence: %s", sequence, sequence[].map!(x => k.words[x].word), credits, current_sentence);
+string extendRight(const Knowledge k, HalfSentenceSequence sequence, ref string currentSentence, ref size_t credits) @safe {
+	auto nextSentence = currentSentence;
+	debug(create) tracef("extendRight: sequence: %s (%s), credits: %s, sentence: %s", sequence, sequence[].map!(x => k.words[x].word), credits, currentSentence);
 
 	while (credits--) {
 		const w = k.words[sequence[0]];
 
-		next_sentence = current_sentence;
+		nextSentence = currentSentence;
 
 		final switch (w.special) {
-			case ZoO_knowledge_special_effect.HAS_NO_EFFECT, ZoO_knowledge_special_effect.REMOVES_LEFT_SPACE:
-				next_sentence = format!"%s%s "(current_sentence, w.word);
+			case SpecialEffect.HAS_NO_EFFECT:
+			case SpecialEffect.REMOVES_LEFT_SPACE:
+				nextSentence = format!"%s%s "(currentSentence, w.word);
 				break;
-			case ZoO_knowledge_special_effect.REMOVES_RIGHT_SPACE:
-				next_sentence = format!"%s%s"(current_sentence, w.word);
+			case SpecialEffect.REMOVES_RIGHT_SPACE:
+				nextSentence = format!"%s%s"(currentSentence, w.word);
 				break;
-			case ZoO_knowledge_special_effect.ENDS_SENTENCE:
-				return current_sentence;
-			case ZoO_knowledge_special_effect.STARTS_SENTENCE:
+			case SpecialEffect.ENDS_SENTENCE:
+				return currentSentence;
+			case SpecialEffect.STARTS_SENTENCE:
 				assert(0);
 		}
 
-		current_sentence = next_sentence;
+		currentSentence = nextSentence;
 
 		sequence = sequence[1..$]~0;
 
-		auto found = w.forward_links.find!((x,y) => x.sequence == y)(sequence[0..$-1]);
+		auto found = w.forwardLinks.find!((x,y) => x.sequence == y)(sequence[0..$-1]);
 		assert(!found.empty, "Unexpectedly, no forward link was found.");
 
-		sequence[ZoO_MARKOV_ORDER - 1] = found.front.targets[dice(found.front.targets_occurrences)];
+		sequence[$ - 1] = found.front.targets[dice(found.front.targetsOccurrences)];
 	}
-	return current_sentence;
+	return currentSentence;
 }
 
 @safe unittest {
-	ZoO_knowledge k;
+	Knowledge k;
 	string str;
 	size_t credits = 3;
 	k.learnString("hello world 3");
-	size_t[3] seq;
+	HalfSentenceSequence seq;
 	assert(k.find("hello", seq[0]));
 	assert(k.find("world", seq[1]));
 	assert(k.find("3", seq[2]));
-	auto result = extend_right(k, seq, str, credits);
+	auto result = extendRight(k, seq, str, credits);
 	assert(result == "hello world 3 ");
 }
 
-size_t select_first_word(ref ZoO_knowledge k, const ZoO_strings string, const bool useRandomWord) @safe {
-	import std.algorithm.searching : canFind;
-	size_t word_min_score, word_id, word_min_id;
-	bool word_found;
+size_t selectFirstWord(const Knowledge k, const Strings string, const bool useRandomWord) @safe {
+	size_t wordMinScore;
+	bool wordFound;
 
 	if (useRandomWord) {
 		return uniform(0, k.words.length);
 	}
 
-	word_found = false;
+	wordFound = false;
 
+	size_t wordMinID;
 	foreach (word; string.words) {
-		if (k.find(word, word_min_id)) {
-			word_found = true;
-			word_min_score = k.words[word_min_id].occurrences;
+		if (k.find(word, wordMinID)) {
+			wordFound = true;
+			wordMinScore = k.words[wordMinID].occurrences;
 
 			break;
 		}
 	}
 
-	if (!word_found) {
+	if (!wordFound) {
 		return uniform(0, k.words.length);
 	}
 
+	size_t wordID;
 	foreach (word; string.words) {
-		if (k.find(word, word_id) && (k.words[word_id].occurrences < word_min_score)) {
-			word_min_score = k.words[word_id].occurrences;
-			word_min_id = word_id;
+		if (k.find(word, wordID) && (k.words[wordID].occurrences < wordMinScore)) {
+			wordMinScore = k.words[wordID].occurrences;
+			wordMinID = wordID;
 		}
 	}
 
-	return word_min_id;
+	return wordMinID;
 }
 
 
-void init_sequence(ref ZoO_knowledge k, const ZoO_strings string, ref size_t[(ZoO_MARKOV_ORDER * 2) + 1] sequence, bool randomStart) @safe {
-	import std.conv : text;
-	ZoO_knowledge_word fiw;
+auto newSequence(const Knowledge k, const Strings string, const bool randomStart) @safe {
+	SentenceSequence sequence;
 
-	sequence[ZoO_MARKOV_ORDER] = select_first_word(k, string, randomStart);
+	sequence[SentenceSequence.MarkovOrder] = selectFirstWord(k, string, randomStart);
 
-	fiw = k.words[sequence[ZoO_MARKOV_ORDER]];
+	const anchor = k.words[sequence.startPoint];
 
-	sequence[0..ZoO_MARKOV_ORDER] = ZoO_WORD_START_OF_LINE;
-	sequence[ZoO_MARKOV_ORDER+1..$] = ZoO_WORD_END_OF_LINE;
+	sequence[0..SentenceSequence.MarkovOrder] = Knowledge.startOfLine;
+	sequence[SentenceSequence.MarkovOrder+1..$] = Knowledge.endOfLine;
 
-	if (fiw.forward_links.length == 0) {
-		critical("First word has no forward links.");
-
-		return;
-	}
+	assert(anchor.forwardLinks.length > 0, "First word has no forward links.");
 
 	/* Chooses a likely forward link for the pillar. */
 
-	auto selectedLinks = choice(fiw.forward_links);
+	const selectedLinks = anchor.forwardLinks[uniform(0, anchor.forwardLinks.length)];
 
 	/* Copies the forward link data into the sequence. */
-	/* This adds (ZoO_MARKOV_ORDER - 1) words, as the ZoO_MARKOV_ORDERth word */
+	/* This adds (SentenceSequence.MarkovOrder - 1) words, as the ZoO_SentenceSequence.MarkovOrderth word */
 	/* is chosen aftewards. */
-	sequence[ZoO_MARKOV_ORDER + 1..ZoO_MARKOV_ORDER + 3] = selectedLinks.sequence;
+	sequence[SentenceSequence.MarkovOrder + 1..SentenceSequence.MarkovOrder + 3] = selectedLinks.sequence.sequence;
 
 	/* selects the last word */
-	sequence[ZoO_MARKOV_ORDER * 2] = selectedLinks.targets[dice(selectedLinks.targets_occurrences)];
+	sequence[$ - 1] = selectedLinks.targets[dice(selectedLinks.targetsOccurrences)];
 
 	/* FIXME: Not clear enough. */
 	/* Now that we have the right side of the sequence, we are going to */
 	/* build the left one, one word at a time. */
-	foreach (i; 0..ZoO_MARKOV_ORDER) {
+	foreach (i; 0..SentenceSequence.MarkovOrder) {
 		/* temporary pillar (starts on the right side, minus one so we don't */
-		fiw = k.words[sequence[(ZoO_MARKOV_ORDER * 2) - i - 1]];
+		const fiw = k.words[sequence[$ - i - 2]];
 
-		/* finds the backward link corresponding to the words left of the */
-		/* temporary pillar. */
-		auto found = fiw.backward_links.find!((x,y) => x.sequence == y)(sequence[ZoO_MARKOV_ORDER - i..ZoO_MARKOV_ORDER - i + ZoO_SEQUENCE_SIZE]);
-		if (found.empty) {
-			errorf("Unexpectedly, no back link was found at i=%u, expected to find a backlink with %s, from %s.", i, k.words[sequence[(ZoO_MARKOV_ORDER - i)]].word, fiw.word);
-			errorf("Sequence was: [%(%u, %)] -> %-(%s %)", sequence, sequence[].map!(x => k.words[x].word));
+		// finds the backward link corresponding to the words left of the temporary pillar.
+		const link = sequence.getKnowledgeLink(-i);
+		const found = fiw.backwardLinks.find!((x,y) => x.sequence == y)(link);
+		assert(!found.empty, format!"No back link found for %s"(link));
 
-			break;
-		}
-
-		sequence[ZoO_MARKOV_ORDER - i - 1] = found.front.targets[dice(found.front.targets_occurrences)];
+		sequence[SentenceSequence.MarkovOrder - i - 1] = found.front.targets[dice(found.front.targetsOccurrences)];
 	}
+	return sequence;
 }
-string ZoO_knowledge_extend(ref ZoO_knowledge k, const ZoO_strings str, bool randomStart) @safe
+string knowledgeExtend(const Knowledge k, const Strings str, const bool randomStart) @safe
 out(result; result.length > 0)
 out(result; !isWhite(result[0]))
 out(result; !isWhite(result[$-1]))
 {
-	string result;
-	size_t[(ZoO_MARKOV_ORDER * 2) + 1] sequence;
-	size_t credits;
-	size_t first_word;
-
-	credits = ZoO_MAX_REPLY_WORDS;
-
-	init_sequence(k, str, sequence, randomStart);
+	const sequence = newSequence(k, str, randomStart);
 
 	debug(create) tracef("initial sequence: sequence: %s (%s)", sequence, sequence[].map!(x => k.words[x].word));
 
-	first_word = sequence[ZoO_MARKOV_ORDER];
+	const firstWord = sequence.startPoint;
 
-	switch (k.words[first_word].special) {
-		case ZoO_knowledge_special_effect.REMOVES_LEFT_SPACE:
-			result = format!"%s "(k.words[first_word].word);
+	string result;
+	final switch (k.words[firstWord].special) {
+		case SpecialEffect.REMOVES_LEFT_SPACE:
+			result = format!"%s "(k.words[firstWord].word);
 			break;
-
-		case ZoO_knowledge_special_effect.REMOVES_RIGHT_SPACE:
-			result = format!" %s"(k.words[first_word].word);
+		case SpecialEffect.REMOVES_RIGHT_SPACE:
+			result = format!" %s"(k.words[firstWord].word);
 			break;
-
-		case ZoO_knowledge_special_effect.HAS_NO_EFFECT:
-			result = format!" %s "(k.words[first_word].word);
+		case SpecialEffect.HAS_NO_EFFECT:
+			result = format!" %s "(k.words[firstWord].word);
 			break;
-
-		default:
-			warningf("'%s' was unexpectedly selected as pillar.", k.words[first_word].word);
-			result = format!" [%s] "(k.words[first_word].word);
-			break;
+		case SpecialEffect.STARTS_SENTENCE:
+		case SpecialEffect.ENDS_SENTENCE:
+			assert(0, "START OF LINE or END OF LINE was unexpectedly selected as pillar.");
 	}
 
 	debug(create) tracef("start of sentence: %s", result);
 
-	result = extend_right(k, sequence[ZoO_MARKOV_ORDER + 1..$], result, credits);
+	size_t credits = maximumReplyWords;
+	result = extendRight(k, sequence.secondHalf, result, credits);
 
-	result = extend_left(k, sequence[0..ZoO_MARKOV_ORDER], result, credits);
+	result = extendLeft(k, sequence.firstHalf, result, credits);
 
 	return result.strip();
 }

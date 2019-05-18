@@ -17,12 +17,38 @@ void main(string[] args) {
 	);
 	sharedLog = new FileLogger("log.txt");
 	infof("Memory file: %s (read-only: %s)", memoryFile, readonly);
-	ZoO_knowledge knowledge;
+	Knowledge knowledge;
 
+	foreach (file; args[1..$].chain(only(memoryFile))) {
+		writeln("Learning ", file);
+		learnFile(knowledge, file);
+	}
+	writeln("Learning complete.");
+
+	while(true) {
+		write("> ");
+		auto input = readln().strip();
+		auto str = Strings(input.dup);
+
+		if (str.words.length == 0) {
+			continue;
+		}
+		if (!readonly) {
+			File(memoryFile, "a").writeln(input);
+		}
+		auto line = knowledgeExtend(knowledge, str, false);
+		writeln(line);
+		if (!readonly) {
+			knowledge.learnString(input);
+		}
+	}
+}
+
+void learnFile(ref Knowledge knowledge, string file) {
 	write("Learning line #");
 	ulong digits = 1;
 	ulong tens = 1;
-	foreach (i, str; File(memoryFile, "r").byLineCopy().enumerate) {
+	foreach (i, str; File(file, "r").byLineCopy().enumerate) {
 		if (tens*10 < i) {
 			digits++;
 			tens *= 10;
@@ -31,24 +57,4 @@ void main(string[] args) {
 		writef!"%-(%s%)%s"("\b".repeat(digits), i);
 	}
 	writeln();
-	writeln("Learning complete.");
-
-	while(true) {
-		write("> ");
-		auto input = readln().strip();
-		ZoO_strings str;
-		str.parse(input.dup, ZoO_knowledge_punctuation_chars);
-
-		if (str.words.length == 0) {
-			continue;
-		}
-		if (!readonly) {
-			File(memoryFile, "a").writeln(input);
-		}
-		auto line = ZoO_knowledge_extend(knowledge, str, false);
-		writeln(line);
-		if (!readonly) {
-			knowledge.learnString(input);
-		}
-	}
 }

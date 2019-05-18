@@ -1,10 +1,10 @@
 module zeroofone.tool.strings;
 
-struct ZoO_strings {
+struct Strings {
 	string[] words;
 
 	this(string str) @safe pure {
-		parse(str, ZoO_knowledge_punctuation_chars);
+		parse(str, knowledgePunctuationChars);
 	}
 
 	void parse(string input, const string punctuations) @safe pure {
@@ -27,7 +27,7 @@ struct ZoO_strings {
 	}
 }
 
-immutable string ZoO_knowledge_punctuation_chars = [
+immutable string knowledgePunctuationChars = [
 	'!',
 	',',
 	'.',
@@ -40,7 +40,7 @@ immutable string ZoO_knowledge_punctuation_chars = [
 
 @safe pure unittest {
 	import std.algorithm.searching : canFind;
-	ZoO_strings str;
+	Strings str;
 	str.parse("", "");
 	str.parse("test 1 2 3", "");
 	assert(str.words.canFind("test", "1", "2", "3"));

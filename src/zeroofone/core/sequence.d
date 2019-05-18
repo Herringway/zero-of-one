@@ -1,29 +1,57 @@
 module zeroofone.core.sequence;
 
-import core.stdc.string;
-
 import zeroofone.core.knowledge;
 
 import zeroofone.tool.sorted_list;
 
-import zeroofone.pervasive;
-
-int cmp_seq_link(const size_t[] sequence, const ZoO_knowledge_link link, const typeof(null)) @safe {
-	size_t j;
-	for (j = 0; j < ZoO_SEQUENCE_SIZE; ++j) {
-		if (sequence[j] < link.sequence[j]) {
-			return -1;
-		} else if (sequence[j] > link.sequence[j]) {
-			return 1;
-		}
-	}
-
-	return 0;
+struct KnowledgeLinkSequence {
+	import std.algorithm.comparison : max;
+	enum Size = max(SentenceSequence.MarkovOrder - 1, 1);
+	size_t[Size] sequence;
+	alias sequence this;
 }
 
-size_t ZoO_knowledge_get_link(ref ZoO_knowledge_link[] links, const size_t[ZoO_SEQUENCE_SIZE] sequence) @safe {
+struct SentenceSequence {
+	enum MarkovOrder = 3;
+	enum Size = (MarkovOrder * 2) + 1;
+	size_t[Size] sequence;
+	alias sequence this;
+
+	const startPoint() @safe {
+		return sequence[MarkovOrder];
+	}
+	auto firstHalf() inout @safe {
+		return HalfSentenceSequence(sequence[0..MarkovOrder]);
+	}
+	auto secondHalf() inout @safe {
+		return HalfSentenceSequence(sequence[MarkovOrder + 1..$]);
+	}
+	auto getKnowledgeLink(ptrdiff_t relative) inout @safe {
+		return sequence[MarkovOrder + relative .. MarkovOrder + relative + KnowledgeLinkSequence.Size];
+	}
+}
+
+struct HalfSentenceSequence {
+	size_t[SentenceSequence.MarkovOrder] sequence;
+	alias sequence this;
+}
+
+
+size_t getKnowledgeLinks(ref KnowledgeLink[] links, const KnowledgeLinkSequence sequence) @safe {
+	static int cmpSeqLink(const size_t[] sequence, const KnowledgeLink link, const typeof(null)) @safe {
+		size_t j;
+		for (j = 0; j < KnowledgeLinkSequence.Size; ++j) {
+			if (sequence[j] < link.sequence[j]) {
+				return -1;
+			} else if (sequence[j] > link.sequence[j]) {
+				return 1;
+			}
+		}
+
+		return 0;
+	}
 	size_t result;
-	if (ZoO_sorted_list_index_of!cmp_seq_link(links, sequence, null, result) == 0) {
+	if (binarySearch!cmpSeqLink(links, sequence, null, result) == 0) {
 		return result;
 	}
 	links.length += 1;
@@ -33,14 +61,14 @@ size_t ZoO_knowledge_get_link(ref ZoO_knowledge_link[] links, const size_t[ZoO_S
 	}
 
 	links[result].sequence = sequence;
-	links[result].targets_occurrences = null;
+	links[result].targetsOccurrences = null;
 	links[result].targets = null;
 	return result;
 }
 
 @safe unittest {
-	ZoO_knowledge_link[] links =[ZoO_knowledge_link([10, 11], [1], [0]), ZoO_knowledge_link([10, 11], [1], [0])];
+	KnowledgeLink[] links =[KnowledgeLink(KnowledgeLinkSequence([10, 11]), [1], [0]), KnowledgeLink(KnowledgeLinkSequence([10, 11]), [1], [0])];
 
-	assert(ZoO_knowledge_get_link(links, [1,1]) == 0);
-	assert(links == [ZoO_knowledge_link([1, 1], [], []), ZoO_knowledge_link([10, 11], [1], [0]), ZoO_knowledge_link([10, 11], [1], [0])]);
+	assert(getKnowledgeLinks(links, KnowledgeLinkSequence([1,1])) == 0);
+	assert(links == [KnowledgeLink(KnowledgeLinkSequence([1, 1]), [], []), KnowledgeLink(KnowledgeLinkSequence([10, 11]), [1], [0]), KnowledgeLink(KnowledgeLinkSequence([10, 11]), [1], [0])]);
 }

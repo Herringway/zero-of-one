@@ -1,24 +1,16 @@
 module zeroofone.core.knowledge;
 
+import std.algorithm.searching : countUntil;
 import std.conv;
 import std.experimental.logger;
 import std.string;
 
+import zeroofone.core.sequence;
 import zeroofone.tool.strings;
 import zeroofone.tool.sorted_list;
-import zeroofone.pervasive;
 
 
-enum ZoO_WORD_START_OF_LINE = 0;
-enum ZoO_WORD_END_OF_LINE = 1;
-
-static if (ZoO_MARKOV_ORDER == 1) {
-	enum ZoO_SEQUENCE_SIZE = 1;
-} else {
-	enum ZoO_SEQUENCE_SIZE = ZoO_MARKOV_ORDER - 1;
-}
-
-enum ZoO_knowledge_special_effect {
+enum SpecialEffect {
 	HAS_NO_EFFECT,
 	ENDS_SENTENCE,
 	STARTS_SENTENCE,
@@ -26,44 +18,63 @@ enum ZoO_knowledge_special_effect {
 	REMOVES_RIGHT_SPACE
 }
 
-struct ZoO_knowledge_link {
-	size_t[ZoO_SEQUENCE_SIZE] sequence;
-	size_t[] targets_occurrences;
+struct KnowledgeLink {
+	KnowledgeLinkSequence sequence;
+	size_t[] targetsOccurrences;
 	size_t[] targets;
 }
 
-struct ZoO_knowledge_word {
+struct KnowledgeWord {
 	string word;
-	ZoO_knowledge_special_effect special = ZoO_knowledge_special_effect.HAS_NO_EFFECT;
+	SpecialEffect special = SpecialEffect.HAS_NO_EFFECT;
 	size_t occurrences = 1;
-	ZoO_knowledge_link[] forward_links;
-	ZoO_knowledge_link[] backward_links;
+	KnowledgeLink[] forwardLinks;
+	KnowledgeLink[] backwardLinks;
 }
 
-struct ZoO_knowledge {
-	size_t[] sorted_indices = [9, 2, 3, 4, 5, 6, 7, 1, 0, 8];
-	ZoO_knowledge_word[] words = [
-		ZoO_knowledge_word("START OF LINE", ZoO_knowledge_special_effect.STARTS_SENTENCE, 0, [], []),
-		ZoO_knowledge_word("END OF LINE", ZoO_knowledge_special_effect.ENDS_SENTENCE, 0, [], []),
-		ZoO_knowledge_word("!", ZoO_knowledge_special_effect.REMOVES_LEFT_SPACE, 0, [], []),
-		ZoO_knowledge_word(",", ZoO_knowledge_special_effect.REMOVES_LEFT_SPACE, 0, [], []),
-		ZoO_knowledge_word(".", ZoO_knowledge_special_effect.REMOVES_LEFT_SPACE, 0, [], []),
-		ZoO_knowledge_word(":", ZoO_knowledge_special_effect.REMOVES_LEFT_SPACE, 0, [], []),
-		ZoO_knowledge_word(";", ZoO_knowledge_special_effect.REMOVES_LEFT_SPACE, 0, [], []),
-		ZoO_knowledge_word("?", ZoO_knowledge_special_effect.REMOVES_LEFT_SPACE, 0, [], []),
-		ZoO_knowledge_word("~", ZoO_knowledge_special_effect.REMOVES_LEFT_SPACE, 0, [], []),
-		ZoO_knowledge_word("\x01", ZoO_knowledge_special_effect.REMOVES_LEFT_SPACE, 0, [], [])
-	];
+/// Generate a default array of KnowledgeWords, mostly punctuation
+auto generateDefaultWords() @safe pure {
+	KnowledgeWord[] result;
+	// The start of line entry, used as a stopping point when extending a sentence leftward
+	result ~= KnowledgeWord("START OF LINE", SpecialEffect.STARTS_SENTENCE, 0, [], []);
+	// The end of line entry, used as a stopping point when extending a sentence rightward
+	result ~= KnowledgeWord("END OF LINE", SpecialEffect.ENDS_SENTENCE, 0, [], []);
+	// Add punctuation that removes spaces on the left side
+	foreach (chr; knowledgePunctuationChars) {
+		result ~= KnowledgeWord([chr], SpecialEffect.REMOVES_LEFT_SPACE, 0, [], []);
+	}
+
+	return result;
+}
+
+/// Generate a sorted index from an array of KnowledgeWords
+auto generateDefaultSort(KnowledgeWord[] input) @safe pure {
+	import std.algorithm.sorting : makeIndex;
+	size_t[] index = new size_t[](input.length);
+	makeIndex!((x,y) => x.word < y.word)(input, index);
+	return index;
+}
+
+// Avoid circular reference (dmd bug?)
+// These should be moved inside Knowledge if possible
+private enum defaultWords = generateDefaultWords();
+enum startOfLine = defaultWords.countUntil!((x,y) => x.word == y)("START OF LINE");
+enum endOfLine = defaultWords.countUntil!((x,y) => x.word == y)("END OF LINE");
+struct Knowledge {
+	KnowledgeWord[] words = defaultWords;
+	size_t[] sortedIndices = defaultWords.generateDefaultSort();
+	public alias startOfLine = .startOfLine;
+	public alias endOfLine = .endOfLine;
 
 	/*
-	 * When returning 0:
+	 * When returning true:
 	 *    {word} is in {k}.
 	 *    {word} is located at {k.words[*result]}.
 	 *
-	 * When returning -1:
+	 * When returning false:
 	 *    {word} is not in {k}.
 	 *    {*result} is where {word} was expected to be found in
-	 *    {k.sorted_indices}.
+	 *    {k.sortedIndices}.
 	 */
 	bool find(const string word, out size_t result) const @safe pure
 	in(words.length > 0)
@@ -71,8 +82,13 @@ struct ZoO_knowledge {
 	{
 		size_t r;
 
-		if (ZoO_sorted_list_index_of!cmp_word(sorted_indices, word, this, r) == 0) {
-			result = sorted_indices[r];
+		static int cmpWord(const string word, const size_t sorted_index, const Knowledge other) @safe pure {
+			import std.algorithm.comparison : cmp;
+			return cmp(word, other.words[sorted_index].word);
+		}
+
+		if (binarySearch!cmpWord(sortedIndices, word, this, r) == 0) {
+			result = sortedIndices[r];
 
 			return true;
 		}
@@ -95,7 +111,7 @@ struct ZoO_knowledge {
 
 		words.length++;
 
-		sorted_indices.insertInPlace(result, [words.length-1]);
+		sortedIndices.insertInPlace(result, [words.length-1]);
 
 		debug(learning) tracef("Learned word {'%s', id: %u, rank: %u}", word, words.length, result);
 
@@ -106,13 +122,30 @@ struct ZoO_knowledge {
 		return result;
 	}
 	void learnString(const string str) @safe {
-		assimilate(ZoO_strings(str));
+		assimilate(Strings(str));
 	}
 
-	void assimilate(const ZoO_strings string) @safe {
-		size_t[(ZoO_MARKOV_ORDER * 2) + 1] sequence;
-		size_t next_word, new_word;
-		size_t new_word_id;
+	void assimilate(const Strings string) @safe {
+		import zeroofone.core.sequence : getKnowledgeLinks;
+		void addWordOccurrence(const SentenceSequence sequence) @safe {
+			static void addSequence(ref KnowledgeLink[] links, const KnowledgeLinkSequence sequence, const size_t targetWord) @safe {
+				const linkIndex = getKnowledgeLinks(links, sequence);
+				auto link = &links[linkIndex];
+
+				foreach (i, target; link.targets) {
+					if (target == targetWord) {
+						link.targetsOccurrences[i] += 1;
+						return;
+					}
+				}
+
+				link.targets.length += 1;
+				link.targets[$ - 1] = targetWord;
+				link.targetsOccurrences ~= 1;
+			}
+			addSequence(words[sequence.startPoint].forwardLinks, KnowledgeLinkSequence(sequence.secondHalf[0 .. $-1]), sequence.secondHalf[$-1]);
+			addSequence(words[sequence.startPoint].backwardLinks, KnowledgeLinkSequence(sequence.firstHalf[1 .. $]), sequence.firstHalf[0]);
+		}
 
 		debug(learning) trace("Learning phrase ", string);
 
@@ -120,89 +153,63 @@ struct ZoO_knowledge {
 			return;
 		}
 
-		init_sequence(string, sequence);
+		auto sequence = initSequence(string);
 
-		add_word_occurrence(sequence);
+		addWordOccurrence(sequence);
 
-		next_word = 0;
-		new_word = ZoO_MARKOV_ORDER;
+		size_t nextWord = 0;
+		size_t newWord = SentenceSequence.MarkovOrder;
 
-		while (next_word <= (string.words.length + ZoO_MARKOV_ORDER)) {
-			if (new_word < string.words.length) {
-				new_word_id = learn(string.words[new_word]);
-			} else {
-				new_word_id = ZoO_WORD_END_OF_LINE;
-			}
+		while (nextWord <= (string.words.length + SentenceSequence.MarkovOrder)) {
+			const isValidWord = newWord < string.words.length;
+			const size_t newWordID = isValidWord ? learn(string.words[newWord]) : endOfLine;
 
-			sequence = sequence[1..$]~0;
+			sequence = sequence[1..$]~newWordID;
 
-			sequence[ZoO_MARKOV_ORDER * 2] = new_word_id;
+			addWordOccurrence(sequence);
 
-			add_word_occurrence(sequence);
-
-			next_word += 1;
-			new_word += 1;
+			nextWord += 1;
+			newWord += 1;
 		}
 	}
 
-	void add_word_occurrence(const size_t[(ZoO_MARKOV_ORDER * 2) + 1] sequence) @safe {
-		import zeroofone.core.sequence : ZoO_knowledge_get_link;
-		static void add_sequence(ref ZoO_knowledge_link[] links, const size_t[ZoO_MARKOV_ORDER] sequence, const size_t target_i, const size_t offset) @safe {
-			const size_t[ZoO_SEQUENCE_SIZE] searchSeq = sequence[offset..offset+ZoO_SEQUENCE_SIZE];
-			auto link_index = ZoO_knowledge_get_link(links, searchSeq);
-			auto link = &links[link_index];
+	auto initSequence(const Strings strings) @safe {
+		SentenceSequence sequence;
+		// We are going to link this sequence to startOfLine
+		sequence[] = startOfLine;
 
-			foreach (i, target; link.targets) {
-				if (target == sequence[target_i]) {
-					link.targets_occurrences[i] += 1;
-
-					return;
-				}
-			}
-
-			link.targets.length += 1;
-			link.targets[$ - 1] = sequence[target_i];
-			link.targets_occurrences ~= 1;
+		foreach (i; 1..SentenceSequence.MarkovOrder+1) {
+			const validWord = i <= strings.words.length;
+			sequence[SentenceSequence.MarkovOrder + i] = validWord ? learn(strings.words[i - 1]) : endOfLine;
 		}
-		auto word = &words[sequence[ZoO_MARKOV_ORDER]];
-
-		add_sequence(word.forward_links, sequence[ZoO_MARKOV_ORDER + 1..$], ZoO_MARKOV_ORDER - 1, 0);
-		add_sequence(word.backward_links, sequence[0..ZoO_MARKOV_ORDER], 0, 1);
-	}
-
-
-	void init_sequence(const ZoO_strings string, ref size_t[(ZoO_MARKOV_ORDER * 2) + 1] sequence) @safe {
-		/* We are going to link this sequence to ZoO_WORD_START_OF_LINE */
-		sequence[ZoO_MARKOV_ORDER] = ZoO_WORD_START_OF_LINE;
-
-		foreach (i; 1..ZoO_MARKOV_ORDER+1) {
-			sequence[ZoO_MARKOV_ORDER - i] = ZoO_WORD_START_OF_LINE;
-
-			if (i <= string.words.length) {
-				sequence[ZoO_MARKOV_ORDER + i] = learn(string.words[i - 1]);
-			} else {
-				sequence[ZoO_MARKOV_ORDER + i] = ZoO_WORD_END_OF_LINE;
-			}
-		}
+		return sequence;
 	}
 }
 @safe unittest {
-	ZoO_knowledge k;
-	ZoO_strings str;
-	size_t[(ZoO_MARKOV_ORDER * 2) + 1] seq;
-	k.init_sequence(str, seq);
-	assert(seq[0] == ZoO_WORD_START_OF_LINE);
-	assert(seq[$-1] == ZoO_WORD_END_OF_LINE);
+	import std.algorithm.iteration : map;
+	import std.range : enumerate, iota;
+	enum words = iota(0, SentenceSequence.MarkovOrder).map!(x => x.text);
+	Knowledge k;
+	const str = Strings(format!"%-(%s %)"(words));
+	const seq = k.initSequence(str);
+	foreach (word; seq.firstHalf) {
+		assert(word == Knowledge.startOfLine);
+	}
+	size_t[6] w;
+	foreach (idx, word; words.enumerate) {
+		k.find(word, w[idx]);
+	}
+	assert(seq.secondHalf == w[0 .. SentenceSequence.MarkovOrder]);
 }
 @safe unittest {
-	ZoO_knowledge k;
-	k.assimilate(ZoO_strings());
+	Knowledge k;
+	k.assimilate(Strings());
 }
 
 @safe pure unittest {
-	ZoO_knowledge knowledge;
-	assert(knowledge.words[0].word == "START OF LINE");
-	assert(knowledge.words[$-1].word == [ZoO_knowledge_punctuation_chars[$-1]]);
+	Knowledge knowledge;
+	assert(knowledge.words[Knowledge.startOfLine].word == "START OF LINE");
+	assert(knowledge.words[$-1].word == [knowledgePunctuationChars[$-1]]);
 	size_t i = knowledge.learn("hello");
 	assert(knowledge.words[i].word == "hello");
 	assert(knowledge.words[i].occurrences == 1);
@@ -219,10 +226,5 @@ struct ZoO_knowledge {
 	assert(!knowledge.find("hellp", i));
 	assert(knowledge.words[i].word == "hello");
 
-	assert(knowledge.sorted_indices == [9, 2, 3, 4, 5, 6, 7, 1, 0, 10, 11, 8]);
-}
-
-int cmp_word(const string word, const size_t sorted_index, const ZoO_knowledge other) @safe pure {
-	import std.algorithm.comparison : cmp;
-	return cmp(word, other.words[sorted_index].word);
+	assert(knowledge.sortedIndices == [9, 2, 3, 4, 5, 6, 7, 1, 0, 10, 11, 8]);
 }
