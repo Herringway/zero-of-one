@@ -11,15 +11,13 @@ import zeroofone.core.sequence;
 import zeroofone.core.knowledge;
 import zeroofone.tool.strings;
 
-enum maximumReplyWords = 64;
-
 /// Create sentences based on existing Knowledge
 
-string extendLeft(const Knowledge k, HalfSentenceSequence sequence, ref string currentSentence, ref size_t credits) @safe {
+string extendLeft(const Knowledge k, HalfSentenceSequence sequence, ref string currentSentence) @safe {
 	auto nextSentence = currentSentence;
-	debug(create) tracef("extendLeft: sequence: %s (%s), credits: %s, sentence: %s", sequence, sequence[].map!(x => k.words[x].word), credits, currentSentence);
+	debug(create) tracef("extendLeft: sequence: %s (%s), sentence: %s", sequence, sequence[].map!(x => k.words[x].word), currentSentence);
 
-	while (credits--) {
+	while (true) {
 		const w = k.words[sequence[$ - 1]];
 
 		nextSentence = currentSentence;
@@ -52,26 +50,24 @@ string extendLeft(const Knowledge k, HalfSentenceSequence sequence, ref string c
 		/* prevents currentSentence [const] */
 		currentSentence = nextSentence;
 	}
-	return currentSentence;
 }
 
 @safe unittest {
 	Knowledge k;
 	string str;
-	size_t credits = 3;
 	k.learnString("hello world 3");
 	HalfSentenceSequence seq;
 	assert(k.find("hello", seq[0]));
 	assert(k.find("world", seq[1]));
 	assert(k.find("3", seq[2]));
-	assert(extendLeft(k, seq, str, credits) == " hello world 3");
+	assert(extendLeft(k, seq, str) == " hello world 3");
 }
 
-string extendRight(const Knowledge k, HalfSentenceSequence sequence, ref string currentSentence, ref size_t credits) @safe {
+string extendRight(const Knowledge k, HalfSentenceSequence sequence, ref string currentSentence) @safe {
 	auto nextSentence = currentSentence;
-	debug(create) tracef("extendRight: sequence: %s (%s), credits: %s, sentence: %s", sequence, sequence[].map!(x => k.words[x].word), credits, currentSentence);
+	debug(create) tracef("extendRight: sequence: %s (%s), sentence: %s", sequence, sequence[].map!(x => k.words[x].word), currentSentence);
 
-	while (credits--) {
+	while (true) {
 		const w = k.words[sequence[0]];
 
 		nextSentence = currentSentence;
@@ -99,19 +95,17 @@ string extendRight(const Knowledge k, HalfSentenceSequence sequence, ref string 
 
 		sequence[$ - 1] = found.front.targets[dice(found.front.targetsOccurrences)];
 	}
-	return currentSentence;
 }
 
 @safe unittest {
 	Knowledge k;
 	string str;
-	size_t credits = 3;
 	k.learnString("hello world 3");
 	HalfSentenceSequence seq;
 	assert(k.find("hello", seq[0]));
 	assert(k.find("world", seq[1]));
 	assert(k.find("3", seq[2]));
-	auto result = extendRight(k, seq, str, credits);
+	auto result = extendRight(k, seq, str);
 	assert(result == "hello world 3 ");
 }
 
@@ -220,10 +214,9 @@ out(result; !isWhite(result[$-1]))
 
 	debug(create) tracef("start of sentence: %s", result);
 
-	size_t credits = maximumReplyWords;
-	result = extendRight(k, sequence.secondHalf, result, credits);
+	result = extendRight(k, sequence.secondHalf, result);
 
-	result = extendLeft(k, sequence.firstHalf, result, credits);
+	result = extendLeft(k, sequence.firstHalf, result);
 
 	return result.strip();
 }
