@@ -207,6 +207,8 @@ struct Knowledge {
 }
 
 @safe pure unittest {
+	import std.algorithm.sorting : isSorted;
+	import std.range : indexed;
 	Knowledge knowledge;
 	assert(knowledge.words[Knowledge.startOfLine].word == "START OF LINE");
 	assert(knowledge.words[$-1].word == [knowledgePunctuationChars[$-1]]);
@@ -226,5 +228,5 @@ struct Knowledge {
 	assert(!knowledge.find("hellp", i));
 	assert(knowledge.words[i].word == "hello");
 
-	assert(knowledge.sortedIndices == [9, 2, 3, 4, 5, 6, 7, 1, 0, 10, 11, 8]);
+	assert(indexed(knowledge.words, knowledge.sortedIndices).isSorted!((x,y) => x.word < y.word));
 }
