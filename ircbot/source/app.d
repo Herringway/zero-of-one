@@ -40,7 +40,7 @@ mixin template Client() {
 		}
 		if (msg.isCTCP) {
 			if (msg.ctcpCommand == "ACTION") {
-				tryReply(target, format!"\001ACTION %s %s\001"(user.nickname, msg.ctcpArgs));
+				tryReply(target, format!"%s %s"(user.nickname, msg.ctcpArgs));
 			} else if (msg.ctcpCommand == "VERSION") {
 				ctcpReply(Target(user), "VERSION", "zero-of-one");
 			}
