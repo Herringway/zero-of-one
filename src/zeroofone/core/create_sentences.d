@@ -164,7 +164,7 @@ auto newSequence(const Knowledge k, const Strings string, const bool randomStart
 	/* Copies the forward link data into the sequence. */
 	/* This adds (SentenceSequence.MarkovOrder - 1) words, as the ZoO_SentenceSequence.MarkovOrderth word */
 	/* is chosen aftewards. */
-	sequence[SentenceSequence.MarkovOrder + 1..SentenceSequence.MarkovOrder + 3] = selectedLinks.sequence.sequence;
+	sequence[SentenceSequence.MarkovOrder + 1..SentenceSequence.MarkovOrder + 1 + KnowledgeLinkSequence.Size] = selectedLinks.sequence.sequence;
 
 	/* selects the last word */
 	sequence[$ - 1] = selectedLinks.targets[dice(selectedLinks.targetsOccurrences)];
