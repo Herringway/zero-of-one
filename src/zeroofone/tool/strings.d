@@ -68,7 +68,7 @@ auto withPunctuationSplit(string str) {
 		i += size-1;
 	}
 	if (last < str.length && !str[last..$].front.isWhite) {
-		result ~= str[last..$];
+		result ~= str[last..$].toLower();
 	}
 	return result;
 }
