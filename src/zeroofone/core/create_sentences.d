@@ -17,20 +17,24 @@ string extendLeft(const Knowledge k, HalfSentenceSequence sequence, ref string c
 	auto nextSentence = currentSentence;
 	debug(create) tracef("extendLeft: sequence: %s (%s), sentence: %s", sequence, sequence[].map!(x => k.words[x].word), currentSentence);
 
+	string nextSpace = "";
 	while (true) {
 		const w = k.words[sequence[$ - 1]];
-
+		debug(create) tracef("Current word: %s - %s", w.word, w.special);
 		nextSentence = currentSentence;
 
 		final switch(w.special) {
 			case SpecialEffect.HAS_NO_EFFECT:
-				nextSentence = format!" %s%s"(w.word, currentSentence);
+				nextSentence = format!"%s%s%s"(w.word, nextSpace, currentSentence);
+				nextSpace = " ";
 				break;
 			case SpecialEffect.REMOVES_LEFT_SPACE:
-				nextSentence = format!"%s%s"(w.word, currentSentence);
+				nextSentence = format!"%s%s%s"(w.word, nextSpace, currentSentence);
+				nextSpace = "";
 				break;
 			case SpecialEffect.REMOVES_RIGHT_SPACE:
 				nextSentence = format!"%s%s"(w.word, currentSentence[1..$]);
+				nextSpace = " ";
 				break;
 			case SpecialEffect.STARTS_SENTENCE:
 				return currentSentence;
@@ -55,7 +59,7 @@ string extendLeft(const Knowledge k, HalfSentenceSequence sequence, ref string c
 @safe unittest {
 	Knowledge k;
 	string str;
-	k.learnString("hello world 3");
+	k.assimilate(Strings(["hello", "world", "3"]));
 	HalfSentenceSequence seq;
 	assert(k.find("hello", seq[0]));
 	assert(k.find("world", seq[1]));
@@ -64,29 +68,31 @@ string extendLeft(const Knowledge k, HalfSentenceSequence sequence, ref string c
 }
 
 string extendRight(const Knowledge k, HalfSentenceSequence sequence, ref string currentSentence) @safe {
-	auto nextSentence = currentSentence;
 	debug(create) tracef("extendRight: sequence: %s (%s), sentence: %s", sequence, sequence[].map!(x => k.words[x].word), currentSentence);
 
+	string nextSpace = "";
 	while (true) {
 		const w = k.words[sequence[0]];
-
-		nextSentence = currentSentence;
+		debug(create) tracef("Current word: %s - %s", w.word, w.special);
 
 		final switch (w.special) {
 			case SpecialEffect.HAS_NO_EFFECT:
+				currentSentence = format!"%s%s%s"(currentSentence, nextSpace, w.word);
+				nextSpace = " ";
+				break;
 			case SpecialEffect.REMOVES_LEFT_SPACE:
-				nextSentence = format!"%s%s "(currentSentence, w.word);
+				currentSentence = format!"%s%s"(currentSentence, w.word);
+				nextSpace = " ";
 				break;
 			case SpecialEffect.REMOVES_RIGHT_SPACE:
-				nextSentence = format!"%s%s"(currentSentence, w.word);
+				currentSentence = format!"%s%s%s"(currentSentence, nextSpace, w.word);
+				nextSpace = "";
 				break;
 			case SpecialEffect.ENDS_SENTENCE:
 				return currentSentence;
 			case SpecialEffect.STARTS_SENTENCE:
 				assert(0);
 		}
-
-		currentSentence = nextSentence;
 
 		sequence = sequence[1..$]~0;
 
