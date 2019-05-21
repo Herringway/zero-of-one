@@ -3,6 +3,7 @@ module zeroofone.core.create_sentences;
 import std.algorithm;
 import std.array;
 import std.random;
+import std.range;
 import std.string;
 import std.uni;
 import std.experimental.logger;
@@ -13,36 +14,15 @@ import zeroofone.tool.strings;
 
 /// Create sentences based on existing Knowledge
 
-string extendLeft(const Knowledge k, HalfSentenceSequence sequence, ref string currentSentence) @safe {
-	auto nextSentence = currentSentence;
+auto extendLeft(const Knowledge k, HalfSentenceSequence sequence) @safe {
 	debug(create) tracef("extendLeft: sequence: %s (%s), sentence: %s", sequence, sequence[].map!(x => k.words[x].word), currentSentence);
 
-	string nextSpace = "";
-	while (true) {
+	size_t[] sentence;
+	while (k.words[sequence[$-1]].special != SpecialEffect.STARTS_SENTENCE) {
+		sentence = sequence[$ - 1] ~ sentence;
+
 		const w = k.words[sequence[$ - 1]];
 		debug(create) tracef("Current word: %s - %s", w.word, w.special);
-		nextSentence = currentSentence;
-
-		final switch(w.special) {
-			case SpecialEffect.HAS_NO_EFFECT:
-				nextSentence = format!"%s%s%s"(w.word, nextSpace, currentSentence);
-				nextSpace = " ";
-				break;
-			case SpecialEffect.REMOVES_LEFT_SPACE:
-				nextSentence = format!"%s%s%s"(w.word, nextSpace, currentSentence);
-				nextSpace = "";
-				break;
-			case SpecialEffect.REMOVES_RIGHT_SPACE:
-				nextSentence = format!"%s%s"(w.word, currentSentence[1..$]);
-				nextSpace = " ";
-				break;
-			case SpecialEffect.STARTS_SENTENCE:
-				return currentSentence;
-			case SpecialEffect.ENDS_SENTENCE:
-				assert(0);
-		}
-
-		currentSentence = nextSentence;
 
 		sequence = 0~sequence[0..$-1];
 
@@ -50,10 +30,8 @@ string extendLeft(const Knowledge k, HalfSentenceSequence sequence, ref string c
 		assert(!found.empty, "Unexpectedly, no backtracking link was found.");
 
 		sequence[0] = found.front.targets[dice(found.front.targetsOccurrences)];
-
-		/* prevents currentSentence [const] */
-		currentSentence = nextSentence;
 	}
+	return sentence;
 }
 
 @safe unittest {
@@ -64,35 +42,17 @@ string extendLeft(const Knowledge k, HalfSentenceSequence sequence, ref string c
 	assert(k.find("hello", seq[0]));
 	assert(k.find("world", seq[1]));
 	assert(k.find("3", seq[2]));
-	assert(extendLeft(k, seq, str) == " hello world 3");
+	assert(extendLeft(k, seq) == [seq[0], seq[1], seq[2]]);
 }
 
-string extendRight(const Knowledge k, HalfSentenceSequence sequence, ref string currentSentence) @safe {
+auto extendRight(const Knowledge k, HalfSentenceSequence sequence) @safe {
 	debug(create) tracef("extendRight: sequence: %s (%s), sentence: %s", sequence, sequence[].map!(x => k.words[x].word), currentSentence);
 
-	string nextSpace = "";
-	while (true) {
+	size_t[] sentence;
+	while (k.words[sequence[0]].special != SpecialEffect.ENDS_SENTENCE) {
+		sentence ~= sequence[0];
 		const w = k.words[sequence[0]];
 		debug(create) tracef("Current word: %s - %s", w.word, w.special);
-
-		final switch (w.special) {
-			case SpecialEffect.HAS_NO_EFFECT:
-				currentSentence = format!"%s%s%s"(currentSentence, nextSpace, w.word);
-				nextSpace = " ";
-				break;
-			case SpecialEffect.REMOVES_LEFT_SPACE:
-				currentSentence = format!"%s%s"(currentSentence, w.word);
-				nextSpace = " ";
-				break;
-			case SpecialEffect.REMOVES_RIGHT_SPACE:
-				currentSentence = format!"%s%s%s"(currentSentence, nextSpace, w.word);
-				nextSpace = "";
-				break;
-			case SpecialEffect.ENDS_SENTENCE:
-				return currentSentence;
-			case SpecialEffect.STARTS_SENTENCE:
-				assert(0);
-		}
 
 		sequence = sequence[1..$]~0;
 
@@ -101,18 +61,17 @@ string extendRight(const Knowledge k, HalfSentenceSequence sequence, ref string 
 
 		sequence[$ - 1] = found.front.targets[dice(found.front.targetsOccurrences)];
 	}
+	return sentence;
 }
 
 @safe unittest {
 	Knowledge k;
-	string str;
 	k.learnString("hello world 3");
 	HalfSentenceSequence seq;
 	assert(k.find("hello", seq[0]));
 	assert(k.find("world", seq[1]));
 	assert(k.find("3", seq[2]));
-	auto result = extendRight(k, seq, str);
-	assert(result == "hello world 3 ");
+	assert(extendRight(k, seq) == [seq[0], seq[1], seq[2]]);
 }
 
 size_t selectFirstWord(const Knowledge k, const Strings string, const bool useRandomWord) @safe {
@@ -196,33 +155,37 @@ out(result; result.length > 0)
 out(result; !isWhite(result[0]))
 out(result; !isWhite(result[$-1]))
 {
+	import std.range : chain, only;
 	const sequence = newSequence(k, str, randomStart);
 
 	debug(create) tracef("initial sequence: sequence: %s (%s)", sequence, sequence[].map!(x => k.words[x].word));
 
-	const firstWord = sequence.startPoint;
+	auto rightSide = extendRight(k, sequence.secondHalf);
+
+	auto leftSide = extendLeft(k, sequence.firstHalf);
 
 	string result;
-	final switch (k.words[firstWord].special) {
-		case SpecialEffect.REMOVES_LEFT_SPACE:
-			result = format!"%s "(k.words[firstWord].word);
-			break;
-		case SpecialEffect.REMOVES_RIGHT_SPACE:
-			result = format!" %s"(k.words[firstWord].word);
-			break;
-		case SpecialEffect.HAS_NO_EFFECT:
-			result = format!" %s "(k.words[firstWord].word);
-			break;
-		case SpecialEffect.STARTS_SENTENCE:
-		case SpecialEffect.ENDS_SENTENCE:
-			assert(0, "START OF LINE or END OF LINE was unexpectedly selected as pillar.");
+	string nextSpace = "";
+	foreach (word; chain(leftSide, only(sequence.startPoint), rightSide)) {
+		const wordData = k.words[word];
+		final switch (wordData.special) {
+			case SpecialEffect.REMOVES_LEFT_SPACE:
+				result ~= format!"%s"(wordData.word);
+				nextSpace = " ";
+				break;
+			case SpecialEffect.REMOVES_RIGHT_SPACE:
+				result ~= format!"%s%s"(nextSpace, wordData.word);
+				nextSpace = "";
+				break;
+			case SpecialEffect.HAS_NO_EFFECT:
+				result ~= format!"%s%s"(nextSpace, wordData.word);
+				nextSpace = " ";
+				break;
+			case SpecialEffect.STARTS_SENTENCE:
+			case SpecialEffect.ENDS_SENTENCE:
+				assert(0, "START OF LINE or END OF LINE was unexpectedly found in sentence.");
+		}
 	}
-
-	debug(create) tracef("start of sentence: %s", result);
-
-	result = extendRight(k, sequence.secondHalf, result);
-
-	result = extendLeft(k, sequence.firstHalf, result);
 
 	return result.strip();
 }
