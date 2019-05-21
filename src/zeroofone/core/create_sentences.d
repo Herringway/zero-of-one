@@ -166,20 +166,30 @@ out(result; !isWhite(result[$-1]))
 
 	string result;
 	string nextSpace = "";
+	// First word should be capitalized
+	bool shouldCapitalize = true;
 	foreach (word; chain(leftSide, only(sequence.startPoint), rightSide)) {
 		const wordData = k.words[word];
 		final switch (wordData.special) {
 			case SpecialEffect.REMOVES_LEFT_SPACE:
-				result ~= format!"%s"(wordData.word);
+				result ~= format!"%s"(autoCapitalize(wordData.word, shouldCapitalize));
 				nextSpace = " ";
+				shouldCapitalize = false;
+				break;
+			case SpecialEffect.REMOVES_LEFT_SPACE_CAPITALIZES_NEXT_WORD:
+				result ~= format!"%s"(autoCapitalize(wordData.word, shouldCapitalize));
+				nextSpace = " ";
+				shouldCapitalize = true;
 				break;
 			case SpecialEffect.REMOVES_RIGHT_SPACE:
-				result ~= format!"%s%s"(nextSpace, wordData.word);
+				result ~= format!"%s%s"(nextSpace, autoCapitalize(wordData.word, shouldCapitalize));
 				nextSpace = "";
+				shouldCapitalize = false;
 				break;
 			case SpecialEffect.HAS_NO_EFFECT:
-				result ~= format!"%s%s"(nextSpace, wordData.word);
+				result ~= format!"%s%s"(nextSpace, autoCapitalize(wordData.word, shouldCapitalize));
 				nextSpace = " ";
+				shouldCapitalize = false;
 				break;
 			case SpecialEffect.STARTS_SENTENCE:
 			case SpecialEffect.ENDS_SENTENCE:
@@ -188,4 +198,19 @@ out(result; !isWhite(result[$-1]))
 	}
 
 	return result.strip();
+}
+
+auto autoCapitalize(const string word, const bool cap) @safe {
+	static struct Result {
+		const string word;
+		const bool capitalize;
+		void toString(T)(T sink) const if (isOutputRange!(T, const(char))) {
+			if (capitalize) {
+				put(sink, word.asCapitalized);
+			} else {
+				put(sink, word);
+			}
+		}
+	}
+	return Result(word, cap);
 }

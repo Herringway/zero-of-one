@@ -15,15 +15,20 @@ struct Strings {
 	}
 }
 
-immutable string knowledgePunctuationChars = [
-	'!',
+immutable string knowledgePunctuationCharsRemovesRightSpace = [
 	',',
-	'.',
 	':',
 	';',
-	'?',
 	'~'
 ];
+
+immutable string knowledgePunctuationCharsNextCapitalized = [
+	'?',
+	'!',
+	'.'
+];
+
+immutable string knowledgePunctuationChars = knowledgePunctuationCharsRemovesRightSpace~knowledgePunctuationCharsNextCapitalized;
 
 @safe pure unittest {
 	import std.algorithm.searching : canFind;

@@ -15,6 +15,7 @@ enum SpecialEffect {
 	ENDS_SENTENCE,
 	STARTS_SENTENCE,
 	REMOVES_LEFT_SPACE,
+	REMOVES_LEFT_SPACE_CAPITALIZES_NEXT_WORD,
 	REMOVES_RIGHT_SPACE
 }
 
@@ -40,8 +41,12 @@ auto generateDefaultWords() @safe pure {
 	// The end of line entry, used as a stopping point when extending a sentence rightward
 	result ~= KnowledgeWord("END OF LINE", SpecialEffect.ENDS_SENTENCE, 0, [], []);
 	// Add punctuation that removes spaces on the left side
-	foreach (chr; knowledgePunctuationChars) {
+	foreach (chr; knowledgePunctuationCharsRemovesRightSpace) {
 		result ~= KnowledgeWord([chr], SpecialEffect.REMOVES_LEFT_SPACE, 0, [], []);
+	}
+	// Ditto, but also capitalizes next word
+	foreach (chr; knowledgePunctuationCharsNextCapitalized) {
+		result ~= KnowledgeWord([chr], SpecialEffect.REMOVES_LEFT_SPACE_CAPITALIZES_NEXT_WORD, 0, [], []);
 	}
 
 	return result;
