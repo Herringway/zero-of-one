@@ -11,7 +11,29 @@ struct Strings {
 	}
 
 	void parse(string input) @safe pure {
-		words ~= withPunctuationSplit(input);
+		import std.algorithm : canFind;
+		import std.array : front;
+		import std.uni : isPunctuation, isWhite, toLower;
+		import std.utf : codeLength;
+		size_t last;
+		for (int i; i < input.length; i++) {
+			const chr = input[i..$].front;
+			const size = chr.codeLength!char;
+			const isWhitespace = chr.isWhite;
+			if (isWhitespace || chr.isPunctuation) {
+				if (i > last) {
+					words ~= input[last..i].toLower();
+				}
+				if (!isWhitespace) {
+					words ~= input[i..i+size];
+				}
+				last = i+size;
+			}
+			i += size-1;
+		}
+		if (last < input.length && !input[last..$].front.isWhite) {
+			words ~= input[last..$].toLower();
+		}
 	}
 }
 
@@ -37,7 +59,7 @@ immutable string knowledgePunctuationChars = knowledgePunctuationCharsRemovesRig
 	str.parse("test 1 2 3");
 	assert(str.words.canFind("test", "1", "2", "3"));
 	str.parse("7, 8, 9");
-	assert(str.words.canFind("7", "8", "9"));
+	assert(str.words.canFind("7", "8", "9", ","));
 	str.parse("HELLO WORLD");
 	assert(str.words.canFind("hello", "world"));
 	str.parse("                   yeah                        ");
@@ -48,36 +70,4 @@ immutable string knowledgePunctuationChars = knowledgePunctuationCharsRemovesRig
 	assert(str.words.canFind("a"));
 	str.parse("def");
 	assert(str.words.canFind("def"));
-}
-
-auto withPunctuationSplit(string str) {
-	import std.algorithm : canFind;
-	import std.array : front;
-	import std.uni : isWhite, toLower;
-	import std.utf : codeLength;
-	string[] result;
-	size_t last;
-	for (int i; i < str.length; i++) {
-		const chr = str[i..$].front;
-		const size = chr.codeLength!char;
-		const isWhitespace = chr.isWhite;
-		if (isWhitespace || knowledgePunctuationChars.canFind(chr)) {
-			if (i > last) {
-				result ~= str[last..i].toLower();
-			}
-			if (!isWhitespace) {
-				result ~= str[i..i+size];
-			}
-			last = i+size;
-		}
-		i += size-1;
-	}
-	if (last < str.length && !str[last..$].front.isWhite) {
-		result ~= str[last..$].toLower();
-	}
-	return result;
-}
-
-@safe unittest {
-	assert("yep".withPunctuationSplit == ["yep"]);
 }
