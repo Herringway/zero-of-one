@@ -95,6 +95,15 @@ struct Knowledge {
 		return false;
 	}
 
+	auto findWord(const string word) const @safe pure
+	in(words.length > 0)
+	{
+		import std.exception : enforce;
+		size_t r;
+		enforce(find(word, r), "Word not found");
+		return words[r];
+	}
+
 	size_t learn(const string word) @safe pure {
 		import std.array : insertInPlace;
 		import std.range : front;
@@ -206,25 +215,24 @@ struct Knowledge {
 }
 
 @safe pure unittest {
+	import std.exception : assertThrown;
 	import std.algorithm.sorting : isSorted;
 	import std.range : indexed;
 	Knowledge knowledge;
 	assert(knowledge.words[Knowledge.startOfLine].word == "START OF LINE");
-	size_t i = knowledge.learn("hello");
-	assert(knowledge.words[i].word == "hello");
-	assert(knowledge.words[i].occurrences == 1);
+	knowledge.learn("hello");
+	with (knowledge.findWord("hello")) {
+		assert(word == "hello");
+		assert(occurrences == 1);
+	}
 	knowledge.learn("word");
 	knowledge.learn("hello");
-	assert(knowledge.words[i].word == "hello");
-	assert(knowledge.words[i].occurrences == 2);
-	assert(i > 0);
-	assert(knowledge.words[i-1].word != "hello");
+	with (knowledge.findWord("hello")) {
+		assert(word == "hello");
+		assert(occurrences == 2);
+	}
 
-	assert(knowledge.find("hello", i));
-	assert(knowledge.words[i].word == "hello");
-
-	assert(!knowledge.find("hellp", i));
-	assert(knowledge.words[i].word == "hello");
+	assertThrown(knowledge.findWord("hellp"));
 
 	assert(indexed(knowledge.words, knowledge.sortedIndices).isSorted!((x,y) => x.word < y.word));
 }
