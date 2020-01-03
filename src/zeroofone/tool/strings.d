@@ -1,5 +1,7 @@
 module zeroofone.tool.strings;
 
+import zeroofone.core.knowledge;
+
 struct Strings {
 	string[] words;
 
@@ -49,6 +51,18 @@ immutable string knowledgePunctuationCharsNextCapitalized = [
 	'!',
 	'.'
 ];
+
+SpecialEffect specialEffect(dchar c) @safe pure {
+	import std.algorithm.searching : canFind;
+	import std.uni : isPunctuation;
+	if (c.isPunctuation) {
+		if (knowledgePunctuationCharsNextCapitalized.canFind(c)) {
+			return SpecialEffect.REMOVES_LEFT_SPACE_CAPITALIZES_NEXT_WORD;
+		}
+		return SpecialEffect.REMOVES_LEFT_SPACE;
+	}
+	return SpecialEffect.HAS_NO_EFFECT;
+}
 
 immutable string knowledgePunctuationChars = knowledgePunctuationCharsRemovesRightSpace~knowledgePunctuationCharsNextCapitalized;
 

@@ -40,14 +40,6 @@ auto generateDefaultWords() @safe pure {
 	result ~= KnowledgeWord("START OF LINE", SpecialEffect.STARTS_SENTENCE, 0, [], []);
 	// The end of line entry, used as a stopping point when extending a sentence rightward
 	result ~= KnowledgeWord("END OF LINE", SpecialEffect.ENDS_SENTENCE, 0, [], []);
-	// Add punctuation that removes spaces on the left side
-	foreach (chr; knowledgePunctuationCharsRemovesRightSpace) {
-		result ~= KnowledgeWord([chr], SpecialEffect.REMOVES_LEFT_SPACE, 0, [], []);
-	}
-	// Ditto, but also capitalizes next word
-	foreach (chr; knowledgePunctuationCharsNextCapitalized) {
-		result ~= KnowledgeWord([chr], SpecialEffect.REMOVES_LEFT_SPACE_CAPITALIZES_NEXT_WORD, 0, [], []);
-	}
 
 	return result;
 }
@@ -105,6 +97,7 @@ struct Knowledge {
 
 	size_t learn(const string word) @safe pure {
 		import std.array : insertInPlace;
+		import std.range : front;
 		size_t result;
 
 		if (find(word, result)) {
@@ -123,6 +116,7 @@ struct Knowledge {
 		result = words.length-1;
 
 		words[$-1].word = word;
+		words[$-1].special = word.front.specialEffect;
 
 		return result;
 	}
@@ -216,7 +210,6 @@ struct Knowledge {
 	import std.range : indexed;
 	Knowledge knowledge;
 	assert(knowledge.words[Knowledge.startOfLine].word == "START OF LINE");
-	assert(knowledge.words[$-1].word == [knowledgePunctuationChars[$-1]]);
 	size_t i = knowledge.learn("hello");
 	assert(knowledge.words[i].word == "hello");
 	assert(knowledge.words[i].occurrences == 1);
