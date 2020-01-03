@@ -45,33 +45,41 @@ auto extendLeft(const Knowledge k, HalfSentenceSequence sequence) @safe {
 	assert(extendLeft(k, seq) == [seq[0], seq[1], seq[2]]);
 }
 
-auto extendRight(const Knowledge k, HalfSentenceSequence sequence) @safe {
+auto extendRight(const Knowledge k, HalfSentenceSequence sequence) @safe pure @nogc {
 	debug(create) tracef("extendRight: sequence: %s (%s), sentence: %s", sequence, sequence[].map!(x => k.words[x].word), currentSentence);
 
-	size_t[] sentence;
-	while (k.words[sequence[0]].special != SpecialEffect.ENDS_SENTENCE) {
-		sentence ~= sequence[0];
-		const w = k.words[sequence[0]];
-		debug(create) tracef("Current word: %s - %s", w.word, w.special);
+	static struct Result {
+		HalfSentenceSequence chain;
+		const Knowledge knowledge;
+		bool empty() const @safe pure {
+			return knowledge.words[front].special == SpecialEffect.ENDS_SENTENCE;
+		}
+		auto front() const @safe pure {
+			return chain[0];
+		}
+		void popFront() @safe {
+			const w = knowledge.words[front];
+			debug(create) tracef("Current word: %s - %s", w.word, w.special);
 
-		sequence = sequence[1..$]~0;
+			chain = chain[1..$] ~ 0;
 
-		auto found = w.forwardLinks.find!((x,y) => x.sequence == y)(sequence[0..$-1]);
-		assert(!found.empty, "Unexpectedly, no forward link was found.");
+			auto found = w.forwardLinks.find!((x,y) => x.sequence == y)(chain[0..$-1]);
+			assert(!found.empty, "Unexpectedly, no forward link was found.");
 
-		sequence[$ - 1] = found.front.targets[dice(found.front.targetsOccurrences)];
+			chain[$ - 1] = found.front.targets[dice(found.front.targetsOccurrences)];
+		}
 	}
-	return sentence;
+	return Result(sequence, k);
 }
 
-@safe unittest {
+@safe /+pure @nogc+/ unittest {
 	Knowledge k;
 	k.learnString("hello world 3");
 	HalfSentenceSequence seq;
 	assert(k.find("hello", seq[0]));
 	assert(k.find("world", seq[1]));
 	assert(k.find("3", seq[2]));
-	assert(extendRight(k, seq) == [seq[0], seq[1], seq[2]]);
+	assert(extendRight(k, seq).equal(only(seq[0], seq[1], seq[2])));
 }
 
 size_t selectFirstWord(const Knowledge k, const Strings string, const bool useRandomWord) @safe {
