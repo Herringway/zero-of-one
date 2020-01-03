@@ -75,7 +75,7 @@ struct Knowledge {
 	 */
 	bool find(const string word, out size_t result) const @safe pure
 	in(words.length > 0)
-	out(; result <= words.length, text(result, " > ", words.length))
+	out(; result <= words.length)
 	{
 		size_t r;
 
