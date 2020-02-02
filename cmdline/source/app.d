@@ -15,6 +15,10 @@ void main(string[] args) {
 	auto help = getopt(args,
 		"readonly|r", "Don't write to memory file", &readonly
 	);
+	if (help.helpWanted) {
+		defaultGetoptPrinter("Zero-of-One markov chain bot, Herringway edition.", help.options);
+		return;
+	}
 	sharedLog = new FileLogger("log.txt");
 	infof("Memory file: %s (read-only: %s)", memoryFile, readonly);
 	Knowledge knowledge;
