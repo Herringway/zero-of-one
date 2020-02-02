@@ -39,11 +39,15 @@ struct Strings {
 	}
 }
 
-immutable string knowledgePunctuationCharsRemovesRightSpace = [
+immutable string knowledgePunctuationCharsRemovesLeftSpace = [
 	',',
 	':',
 	';',
-	'~'
+	'~',
+	')'
+];
+immutable string knowledgePunctuationCharsRemovesRightSpace = [
+	'('
 ];
 
 immutable string knowledgePunctuationCharsNextCapitalized = [
@@ -59,12 +63,15 @@ SpecialEffect specialEffect(dchar c) @safe pure {
 		if (knowledgePunctuationCharsNextCapitalized.canFind(c)) {
 			return SpecialEffect.REMOVES_LEFT_SPACE_CAPITALIZES_NEXT_WORD;
 		}
-		return SpecialEffect.REMOVES_LEFT_SPACE;
+		if (knowledgePunctuationCharsRemovesLeftSpace.canFind(c)) {
+			return SpecialEffect.REMOVES_LEFT_SPACE;
+		}
+		if (knowledgePunctuationCharsRemovesRightSpace.canFind(c)) {
+			return SpecialEffect.REMOVES_RIGHT_SPACE;
+		}
 	}
 	return SpecialEffect.HAS_NO_EFFECT;
 }
-
-immutable string knowledgePunctuationChars = knowledgePunctuationCharsRemovesRightSpace~knowledgePunctuationCharsNextCapitalized;
 
 @safe pure unittest {
 	import std.algorithm.searching : canFind;

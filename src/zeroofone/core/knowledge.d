@@ -19,6 +19,52 @@ enum SpecialEffect {
 	REMOVES_RIGHT_SPACE
 }
 
+bool capitalizesNext(const SpecialEffect effect) @safe pure {
+	final switch (effect) {
+		case SpecialEffect.REMOVES_LEFT_SPACE:
+			return false;
+		case SpecialEffect.REMOVES_LEFT_SPACE_CAPITALIZES_NEXT_WORD:
+			return true;
+		case SpecialEffect.REMOVES_RIGHT_SPACE:
+			return false;
+		case SpecialEffect.HAS_NO_EFFECT:
+			return false;
+		case SpecialEffect.STARTS_SENTENCE:
+		case SpecialEffect.ENDS_SENTENCE:
+			assert(0, "START OF LINE or END OF LINE should not be found in sentences.");
+	}
+}
+bool hasTrailingSpace(const SpecialEffect effect) @safe pure {
+	final switch (effect) {
+		case SpecialEffect.REMOVES_LEFT_SPACE:
+			return true;
+		case SpecialEffect.REMOVES_LEFT_SPACE_CAPITALIZES_NEXT_WORD:
+			return true;
+		case SpecialEffect.REMOVES_RIGHT_SPACE:
+			return false;
+		case SpecialEffect.HAS_NO_EFFECT:
+			return true;
+		case SpecialEffect.STARTS_SENTENCE:
+		case SpecialEffect.ENDS_SENTENCE:
+			assert(0, "START OF LINE or END OF LINE should not be found in sentences.");
+	}
+}
+bool useTrailingSpace(const SpecialEffect effect) @safe pure {
+	final switch (effect) {
+		case SpecialEffect.REMOVES_LEFT_SPACE:
+			return false;
+		case SpecialEffect.REMOVES_LEFT_SPACE_CAPITALIZES_NEXT_WORD:
+			return false;
+		case SpecialEffect.REMOVES_RIGHT_SPACE:
+			return true;
+		case SpecialEffect.HAS_NO_EFFECT:
+			return true;
+		case SpecialEffect.STARTS_SENTENCE:
+		case SpecialEffect.ENDS_SENTENCE:
+			assert(0, "START OF LINE or END OF LINE should not be found in sentences.");
+	}
+}
+
 struct KnowledgeLink {
 	KnowledgeLinkSequence sequence;
 	size_t[] targetsOccurrences;

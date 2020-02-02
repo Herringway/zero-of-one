@@ -173,36 +173,11 @@ out(result; !isWhite(result[$-1]))
 	auto leftSide = extendLeft(k, sequence.firstHalf);
 
 	string result;
-	string nextSpace = "";
-	// First word should be capitalized
-	bool shouldCapitalize = true;
-	foreach (word; chain(leftSide, only(sequence.startPoint), rightSide)) {
-		const wordData = k[word];
-		final switch (wordData.special) {
-			case SpecialEffect.REMOVES_LEFT_SPACE:
-				result ~= format!"%s"(autoCapitalize(wordData.word, shouldCapitalize));
-				nextSpace = " ";
-				shouldCapitalize = false;
-				break;
-			case SpecialEffect.REMOVES_LEFT_SPACE_CAPITALIZES_NEXT_WORD:
-				result ~= format!"%s"(autoCapitalize(wordData.word, shouldCapitalize));
-				nextSpace = " ";
-				shouldCapitalize = true;
-				break;
-			case SpecialEffect.REMOVES_RIGHT_SPACE:
-				result ~= format!"%s%s"(nextSpace, autoCapitalize(wordData.word, shouldCapitalize));
-				nextSpace = "";
-				shouldCapitalize = false;
-				break;
-			case SpecialEffect.HAS_NO_EFFECT:
-				result ~= format!"%s%s"(nextSpace, autoCapitalize(wordData.word, shouldCapitalize));
-				nextSpace = " ";
-				shouldCapitalize = false;
-				break;
-			case SpecialEffect.STARTS_SENTENCE:
-			case SpecialEffect.ENDS_SENTENCE:
-				assert(0, "START OF LINE or END OF LINE was unexpectedly found in sentence.");
-		}
+	// Start with something that'll capitalize the first word
+	SpecialEffect lastEffect = SpecialEffect.REMOVES_LEFT_SPACE_CAPITALIZES_NEXT_WORD;
+	foreach (const word; chain(leftSide, only(sequence.startPoint), rightSide).map!(x => k[x])) {
+		result ~= format!"%s%s"(word.special.useTrailingSpace ? " " : "", autoCapitalize(word.word, lastEffect.capitalizesNext));
+		lastEffect = word.special;
 	}
 
 	return result.strip();
