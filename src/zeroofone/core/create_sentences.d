@@ -15,13 +15,13 @@ import zeroofone.tool.strings;
 /// Create sentences based on existing Knowledge
 
 auto extendLeft(const Knowledge k, HalfSentenceSequence sequence) @safe {
-	debug(create) tracef("extendLeft: sequence: %s (%s), sentence: %s", sequence, sequence[].map!(x => k.words[x].word), currentSentence);
+	debug(create) tracef("extendLeft: sequence: %s (%s), sentence: %s", sequence, sequence[].map!(x => k[x].word), currentSentence);
 
 	size_t[] sentence;
-	while (k.words[sequence[$-1]].special != SpecialEffect.STARTS_SENTENCE) {
+	while (k[sequence[$-1]].special != SpecialEffect.STARTS_SENTENCE) {
 		sentence = sequence[$ - 1] ~ sentence;
 
-		const w = k.words[sequence[$ - 1]];
+		const w = k[sequence[$ - 1]];
 		debug(create) tracef("Current word: %s - %s", w.word, w.special);
 
 		sequence = 0~sequence[0..$-1];
@@ -46,19 +46,19 @@ auto extendLeft(const Knowledge k, HalfSentenceSequence sequence) @safe {
 }
 
 auto extendRight(const Knowledge k, HalfSentenceSequence sequence) @safe pure @nogc {
-	debug(create) tracef("extendRight: sequence: %s (%s), sentence: %s", sequence, sequence[].map!(x => k.words[x].word), currentSentence);
+	debug(create) tracef("extendRight: sequence: %s (%s), sentence: %s", sequence, sequence[].map!(x => k[x].word), currentSentence);
 
 	static struct Result {
 		HalfSentenceSequence chain;
 		const Knowledge knowledge;
 		bool empty() const @safe pure {
-			return knowledge.words[front].special == SpecialEffect.ENDS_SENTENCE;
+			return knowledge[front].special == SpecialEffect.ENDS_SENTENCE;
 		}
 		auto front() const @safe pure {
 			return chain[0];
 		}
 		void popFront() @safe {
-			const w = knowledge.words[front];
+			const w = knowledge[front];
 			debug(create) tracef("Current word: %s - %s", w.word, w.special);
 
 			chain = chain[1..$] ~ 0;
@@ -87,7 +87,7 @@ size_t selectFirstWord(const Knowledge k, const Strings string, const bool useRa
 	bool wordFound;
 
 	if (useRandomWord) {
-		return uniform(0, k.words.length);
+		return uniform(0, k.length);
 	}
 
 	wordFound = false;
@@ -96,20 +96,20 @@ size_t selectFirstWord(const Knowledge k, const Strings string, const bool useRa
 	foreach (word; string.words) {
 		if (k.find(word, wordMinID)) {
 			wordFound = true;
-			wordMinScore = k.words[wordMinID].occurrences;
+			wordMinScore = k[wordMinID].occurrences;
 
 			break;
 		}
 	}
 
 	if (!wordFound) {
-		return uniform(0, k.words.length);
+		return uniform(0, k.length);
 	}
 
 	size_t wordID;
 	foreach (word; string.words) {
-		if (k.find(word, wordID) && (k.words[wordID].occurrences < wordMinScore)) {
-			wordMinScore = k.words[wordID].occurrences;
+		if (k.find(word, wordID) && (k[wordID].occurrences < wordMinScore)) {
+			wordMinScore = k[wordID].occurrences;
 			wordMinID = wordID;
 		}
 	}
@@ -123,7 +123,7 @@ auto newSequence(const Knowledge k, const Strings string, const bool randomStart
 
 	sequence[SentenceSequence.MarkovOrder] = selectFirstWord(k, string, randomStart);
 
-	const anchor = k.words[sequence.startPoint];
+	const anchor = k[sequence.startPoint];
 
 	sequence[0..SentenceSequence.MarkovOrder] = Knowledge.startOfLine;
 	sequence[SentenceSequence.MarkovOrder+1..$] = Knowledge.endOfLine;
@@ -147,7 +147,7 @@ auto newSequence(const Knowledge k, const Strings string, const bool randomStart
 	/* build the left one, one word at a time. */
 	foreach (i; 0..SentenceSequence.MarkovOrder) {
 		/* temporary pillar (starts on the right side, minus one so we don't */
-		const fiw = k.words[sequence[$ - i - 2]];
+		const fiw = k[sequence[$ - i - 2]];
 
 		// finds the backward link corresponding to the words left of the temporary pillar.
 		const link = sequence.getKnowledgeLink(-i);
@@ -166,7 +166,7 @@ out(result; !isWhite(result[$-1]))
 	import std.range : chain, only;
 	const sequence = newSequence(k, str, randomStart);
 
-	debug(create) tracef("initial sequence: sequence: %s (%s)", sequence, sequence[].map!(x => k.words[x].word));
+	debug(create) tracef("initial sequence: sequence: %s (%s)", sequence, sequence[].map!(x => k[x].word));
 
 	auto rightSide = extendRight(k, sequence.secondHalf);
 
@@ -177,7 +177,7 @@ out(result; !isWhite(result[$-1]))
 	// First word should be capitalized
 	bool shouldCapitalize = true;
 	foreach (word; chain(leftSide, only(sequence.startPoint), rightSide)) {
-		const wordData = k.words[word];
+		const wordData = k[word];
 		final switch (wordData.special) {
 			case SpecialEffect.REMOVES_LEFT_SPACE:
 				result ~= format!"%s"(autoCapitalize(wordData.word, shouldCapitalize));

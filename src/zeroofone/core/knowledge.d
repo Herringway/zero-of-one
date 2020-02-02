@@ -58,8 +58,8 @@ private enum defaultWords = generateDefaultWords();
 enum startOfLine = defaultWords.countUntil!((x,y) => x.word == y)("START OF LINE");
 enum endOfLine = defaultWords.countUntil!((x,y) => x.word == y)("END OF LINE");
 struct Knowledge {
-	KnowledgeWord[] words = defaultWords;
-	size_t[] sortedIndices = defaultWords.generateDefaultSort();
+	private KnowledgeWord[] words = defaultWords;
+	private size_t[] sortedIndices = defaultWords.generateDefaultSort();
 	public alias startOfLine = .startOfLine;
 	public alias endOfLine = .endOfLine;
 
@@ -191,6 +191,12 @@ struct Knowledge {
 			sequence[SentenceSequence.MarkovOrder + i] = validWord ? learn(strings.words[i - 1]) : endOfLine;
 		}
 		return sequence;
+	}
+	auto opIndex(size_t i) @safe const {
+		return words[i];
+	}
+	auto length() @safe const {
+		return words.length;
 	}
 }
 @safe unittest {
