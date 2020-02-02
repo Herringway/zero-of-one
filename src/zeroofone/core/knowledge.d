@@ -133,7 +133,7 @@ struct Knowledge {
 		assimilate(Strings(str));
 	}
 
-	void assimilate(const Strings string) @safe {
+	void assimilate(const Strings strings) @safe {
 		import zeroofone.core.sequence : getKnowledgeLinks;
 		void addWordOccurrence(const SentenceSequence sequence) @safe {
 			static void addSequence(ref KnowledgeLink[] links, const KnowledgeLinkSequence sequence, const size_t targetWord) @safe {
@@ -155,22 +155,22 @@ struct Knowledge {
 			addSequence(words[sequence.startPoint].backwardLinks, KnowledgeLinkSequence(sequence.firstHalf[1 .. $]), sequence.firstHalf[0]);
 		}
 
-		debug(learning) trace("Learning phrase ", string);
+		debug(learning) trace("Learning phrase ", strings);
 
-		if (string.words.length == 0) {
+		if (strings.words.length == 0) {
 			return;
 		}
 
-		auto sequence = initSequence(string);
+		auto sequence = initSequence(strings);
 
 		addWordOccurrence(sequence);
 
 		size_t nextWord = 0;
 		size_t newWord = SentenceSequence.MarkovOrder;
 
-		while (nextWord <= (string.words.length + SentenceSequence.MarkovOrder)) {
-			const isValidWord = newWord < string.words.length;
-			const size_t newWordID = isValidWord ? learn(string.words[newWord]) : endOfLine;
+		while (nextWord <= (strings.words.length + SentenceSequence.MarkovOrder)) {
+			const isValidWord = newWord < strings.words.length;
+			const size_t newWordID = isValidWord ? learn(strings.words[newWord]) : endOfLine;
 
 			sequence = sequence[1..$]~newWordID;
 
