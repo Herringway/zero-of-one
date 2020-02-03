@@ -15,8 +15,6 @@ import zeroofone.tool.strings;
 /// Create sentences based on existing Knowledge
 
 auto extendLeft(const Knowledge k, HalfSentenceSequence sequence) @safe {
-	debug(create) tracef("extendLeft: sequence: %s (%s), sentence: %s", sequence, sequence[].map!(x => k[x].word), currentSentence);
-
 	size_t[] sentence;
 	while (k[sequence[$-1]].special != SpecialEffect.STARTS_SENTENCE) {
 		sentence = sequence[$ - 1] ~ sentence;
@@ -46,8 +44,6 @@ auto extendLeft(const Knowledge k, HalfSentenceSequence sequence) @safe {
 }
 
 auto extendRight(const Knowledge k, HalfSentenceSequence sequence) @safe pure @nogc {
-	debug(create) tracef("extendRight: sequence: %s (%s), sentence: %s", sequence, sequence[].map!(x => k[x].word), currentSentence);
-
 	static struct Result {
 		HalfSentenceSequence chain;
 		const Knowledge knowledge;
@@ -168,8 +164,10 @@ out(result; !isWhite(result[$-1]))
 
 	debug(create) tracef("initial sequence: sequence: %s (%s)", sequence, sequence[].map!(x => k[x].word));
 
+	debug(create) tracef("extendRight: sequence: %s (%s)", sequence.secondHalf, sequence.secondHalf[].map!(x => k[x].word));
 	auto rightSide = extendRight(k, sequence.secondHalf);
 
+	debug(create) tracef("extendLeft: sequence: %s (%s)", sequence.firstHalf, sequence.firstHalf[].map!(x => k[x].word));
 	auto leftSide = extendLeft(k, sequence.firstHalf);
 
 	string result;
