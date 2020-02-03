@@ -16,7 +16,8 @@ enum SpecialEffect {
 	STARTS_SENTENCE,
 	REMOVES_LEFT_SPACE,
 	REMOVES_LEFT_SPACE_CAPITALIZES_NEXT_WORD,
-	REMOVES_RIGHT_SPACE
+	REMOVES_RIGHT_SPACE,
+	NO_SPACES
 }
 
 bool capitalizesNext(const SpecialEffect effect) @safe pure {
@@ -26,6 +27,8 @@ bool capitalizesNext(const SpecialEffect effect) @safe pure {
 		case SpecialEffect.REMOVES_LEFT_SPACE_CAPITALIZES_NEXT_WORD:
 			return true;
 		case SpecialEffect.REMOVES_RIGHT_SPACE:
+			return false;
+		case SpecialEffect.NO_SPACES:
 			return false;
 		case SpecialEffect.HAS_NO_EFFECT:
 			return false;
@@ -42,6 +45,8 @@ bool hasTrailingSpace(const SpecialEffect effect) @safe pure {
 			return true;
 		case SpecialEffect.REMOVES_RIGHT_SPACE:
 			return false;
+		case SpecialEffect.NO_SPACES:
+			return false;
 		case SpecialEffect.HAS_NO_EFFECT:
 			return true;
 		case SpecialEffect.STARTS_SENTENCE:
@@ -57,6 +62,8 @@ bool useTrailingSpace(const SpecialEffect effect) @safe pure {
 			return false;
 		case SpecialEffect.REMOVES_RIGHT_SPACE:
 			return true;
+		case SpecialEffect.NO_SPACES:
+			return false;
 		case SpecialEffect.HAS_NO_EFFECT:
 			return true;
 		case SpecialEffect.STARTS_SENTENCE:
@@ -95,6 +102,7 @@ SpecialEffect specialEffect(dchar c) @safe pure {
 		if (knowledgePunctuationCharsRemovesRightSpace.canFind(c)) {
 			return SpecialEffect.REMOVES_RIGHT_SPACE;
 		}
+		return SpecialEffect.NO_SPACES;
 	}
 	return SpecialEffect.HAS_NO_EFFECT;
 }
