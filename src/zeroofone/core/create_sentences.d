@@ -34,13 +34,12 @@ auto extendLeft(const Knowledge k, HalfSentenceSequence sequence) @safe {
 
 @safe unittest {
 	Knowledge k;
-	string str;
 	k.assimilate(Strings(["hello", "world", "3"]));
 	HalfSentenceSequence seq;
 	assert(k.find("hello", seq[0]));
 	assert(k.find("world", seq[1]));
 	assert(k.find("3", seq[2]));
-	assert(extendLeft(k, seq) == [seq[0], seq[1], seq[2]]);
+	assert(extendLeft(k, seq).equal(only(seq[0], seq[1], seq[2])));
 }
 
 auto extendRight(const Knowledge k, HalfSentenceSequence sequence) @safe pure @nogc {
