@@ -119,11 +119,10 @@ struct KnowledgeWord {
 
 /// Generate a default array of KnowledgeWords, mostly punctuation
 auto generateDefaultWords() @safe pure {
-	KnowledgeWord[] result;
-	// The start/end of line entry, used as a stopping point when extending a sentence
-	result ~= KnowledgeWord("TERMINATOR", SpecialEffect.SENTENCE_TERMINATOR, 0, [], []);
-
-	return result;
+	return [
+		// The start/end of line entry, used as a stopping point when extending a sentence
+		KnowledgeWord("TERMINATOR", SpecialEffect.SENTENCE_TERMINATOR, 0, [], [])
+	];
 }
 
 /// Generate a sorted index from an array of KnowledgeWords
