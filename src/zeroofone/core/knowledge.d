@@ -12,8 +12,7 @@ import zeroofone.tool.sorted_list;
 
 enum SpecialEffect {
 	HAS_NO_EFFECT,
-	ENDS_SENTENCE,
-	STARTS_SENTENCE,
+	SENTENCE_TERMINATOR,
 	REMOVES_LEFT_SPACE,
 	REMOVES_LEFT_SPACE_CAPITALIZES_NEXT_WORD,
 	REMOVES_RIGHT_SPACE,
@@ -32,9 +31,8 @@ bool capitalizesNext(const SpecialEffect effect) @safe pure {
 			return false;
 		case SpecialEffect.HAS_NO_EFFECT:
 			return false;
-		case SpecialEffect.STARTS_SENTENCE:
-		case SpecialEffect.ENDS_SENTENCE:
-			assert(0, "START OF LINE or END OF LINE should not be found in sentences.");
+		case SpecialEffect.SENTENCE_TERMINATOR:
+			assert(0, "SENTENCE_TERMINATOR should not be found in sentences.");
 	}
 }
 bool hasTrailingSpace(const SpecialEffect effect) @safe pure {
@@ -49,9 +47,8 @@ bool hasTrailingSpace(const SpecialEffect effect) @safe pure {
 			return false;
 		case SpecialEffect.HAS_NO_EFFECT:
 			return true;
-		case SpecialEffect.STARTS_SENTENCE:
-		case SpecialEffect.ENDS_SENTENCE:
-			assert(0, "START OF LINE or END OF LINE should not be found in sentences.");
+		case SpecialEffect.SENTENCE_TERMINATOR:
+			assert(0, "SENTENCE_TERMINATOR should not be found in sentences.");
 	}
 }
 bool useTrailingSpace(const SpecialEffect effect) @safe pure {
@@ -66,9 +63,8 @@ bool useTrailingSpace(const SpecialEffect effect) @safe pure {
 			return false;
 		case SpecialEffect.HAS_NO_EFFECT:
 			return true;
-		case SpecialEffect.STARTS_SENTENCE:
-		case SpecialEffect.ENDS_SENTENCE:
-			assert(0, "START OF LINE or END OF LINE should not be found in sentences.");
+		case SpecialEffect.SENTENCE_TERMINATOR:
+			assert(0, "SENTENCE_TERMINATOR should not be found in sentences.");
 	}
 }
 
@@ -124,10 +120,8 @@ struct KnowledgeWord {
 /// Generate a default array of KnowledgeWords, mostly punctuation
 auto generateDefaultWords() @safe pure {
 	KnowledgeWord[] result;
-	// The start of line entry, used as a stopping point when extending a sentence leftward
-	result ~= KnowledgeWord("START OF LINE", SpecialEffect.STARTS_SENTENCE, 0, [], []);
-	// The end of line entry, used as a stopping point when extending a sentence rightward
-	result ~= KnowledgeWord("END OF LINE", SpecialEffect.ENDS_SENTENCE, 0, [], []);
+	// The start/end of line entry, used as a stopping point when extending a sentence
+	result ~= KnowledgeWord("TERMINATOR", SpecialEffect.SENTENCE_TERMINATOR, 0, [], []);
 
 	return result;
 }
@@ -143,13 +137,11 @@ auto generateDefaultSort(KnowledgeWord[] input) @safe pure {
 // Avoid circular reference (dmd bug?)
 // These should be moved inside Knowledge if possible
 private enum defaultWords = generateDefaultWords();
-enum startOfLine = defaultWords.countUntil!((x,y) => x.word == y)("START OF LINE");
-enum endOfLine = defaultWords.countUntil!((x,y) => x.word == y)("END OF LINE");
+enum terminator = defaultWords.countUntil!((x,y) => x.word == y)("TERMINATOR");
 struct Knowledge {
 	private KnowledgeWord[] words = defaultWords;
 	private size_t[] sortedIndices = defaultWords.generateDefaultSort();
-	public alias startOfLine = .startOfLine;
-	public alias endOfLine = .endOfLine;
+	public alias terminator = .terminator;
 
 	/*
 	 * When returning true:
@@ -258,7 +250,7 @@ struct Knowledge {
 
 		while (nextWord <= (strings.words.length + SentenceSequence.MarkovOrder)) {
 			const isValidWord = newWord < strings.words.length;
-			const size_t newWordID = isValidWord ? learn(strings.words[newWord]) : endOfLine;
+			const size_t newWordID = isValidWord ? learn(strings.words[newWord]) : terminator;
 
 			sequence = sequence[1..$]~newWordID;
 
@@ -271,12 +263,12 @@ struct Knowledge {
 
 	auto initSequence(const Strings strings) @safe {
 		SentenceSequence sequence;
-		// We are going to link this sequence to startOfLine
-		sequence[] = startOfLine;
+		// We are going to link this sequence to terminator
+		sequence[] = terminator;
 
 		foreach (i; 1..SentenceSequence.MarkovOrder+1) {
 			const validWord = i <= strings.words.length;
-			sequence[SentenceSequence.MarkovOrder + i] = validWord ? learn(strings.words[i - 1]) : endOfLine;
+			sequence[SentenceSequence.MarkovOrder + i] = validWord ? learn(strings.words[i - 1]) : terminator;
 		}
 		return sequence;
 	}
@@ -295,7 +287,7 @@ struct Knowledge {
 	const str = Strings(format!"%-(%s %)"(words));
 	const seq = k.initSequence(str);
 	foreach (word; seq.firstHalf) {
-		assert(word == Knowledge.startOfLine);
+		assert(word == Knowledge.terminator);
 	}
 	size_t[6] w;
 	foreach (idx, word; words.enumerate) {
@@ -313,7 +305,7 @@ struct Knowledge {
 	import std.algorithm.sorting : isSorted;
 	import std.range : indexed;
 	Knowledge knowledge;
-	assert(knowledge.words[Knowledge.startOfLine].word == "START OF LINE");
+	assert(knowledge.words[Knowledge.terminator].word == "TERMINATOR");
 	knowledge.learn("hello");
 	with (knowledge.findWord("hello")) {
 		assert(word == "hello");

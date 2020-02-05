@@ -16,7 +16,7 @@ import zeroofone.tool.strings;
 
 auto extendLeft(const Knowledge k, HalfSentenceSequence sequence) @safe {
 	size_t[] sentence;
-	while (k[sequence[$-1]].special != SpecialEffect.STARTS_SENTENCE) {
+	while (k[sequence[$-1]].special != SpecialEffect.SENTENCE_TERMINATOR) {
 		sentence = sequence[$ - 1] ~ sentence;
 
 		const w = k[sequence[$ - 1]];
@@ -48,7 +48,7 @@ auto extendRight(const Knowledge k, HalfSentenceSequence sequence) @safe pure @n
 		HalfSentenceSequence chain;
 		const Knowledge knowledge;
 		bool empty() const @safe pure {
-			return knowledge[front].special == SpecialEffect.ENDS_SENTENCE;
+			return knowledge[front].special == SpecialEffect.SENTENCE_TERMINATOR;
 		}
 		auto front() const @safe pure {
 			return chain[0];
@@ -121,8 +121,7 @@ auto newSequence(const Knowledge k, const Strings string, const bool randomStart
 
 	const anchor = k[sequence.startPoint];
 
-	sequence[0..SentenceSequence.MarkovOrder] = Knowledge.startOfLine;
-	sequence[SentenceSequence.MarkovOrder+1..$] = Knowledge.endOfLine;
+	sequence[] = Knowledge.terminator;
 
 	assert(anchor.forwardLinks.length > 0, "First word has no forward links.");
 
