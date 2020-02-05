@@ -262,12 +262,10 @@ struct Knowledge {
 
 	auto initSequence(const Strings strings) @safe {
 		SentenceSequence sequence;
-		// We are going to link this sequence to terminator
-		sequence[] = terminator;
 
-		foreach (i; 1..SentenceSequence.MarkovOrder+1) {
-			const validWord = i <= strings.words.length;
-			sequence[SentenceSequence.MarkovOrder + i] = validWord ? learn(strings.words[i - 1]) : terminator;
+		foreach (i, ref word; sequence[SentenceSequence.MarkovOrder + 1..$]) {
+			const validWord = i < strings.words.length;
+			word = validWord ? learn(strings.words[i]) : terminator;
 		}
 		return sequence;
 	}
