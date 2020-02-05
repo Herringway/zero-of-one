@@ -120,8 +120,6 @@ auto newSequence(const Knowledge k, const Strings string, const bool randomStart
 
 	const anchor = k[sequence.startPoint];
 
-	sequence[] = Knowledge.terminator;
-
 	assert(anchor.forwardLinks.length > 0, "First word has no forward links.");
 
 	/* Chooses a likely forward link for the pillar. */

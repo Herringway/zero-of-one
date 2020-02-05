@@ -14,7 +14,7 @@ struct KnowledgeLinkSequence {
 struct SentenceSequence {
 	enum MarkovOrder = 3;
 	enum Size = (MarkovOrder * 2) + 1;
-	size_t[Size] sequence;
+	size_t[Size] sequence = Knowledge.terminator;
 	alias sequence this;
 
 	const startPoint() @safe {
