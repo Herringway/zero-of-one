@@ -71,7 +71,7 @@ auto extendRight(const Knowledge k, HalfSentenceSequence sequence) @safe pure @n
 	assert(extendRight(k, seq).map!(x => k[x].word).equal(only("hello", "world", "3")));
 }
 
-size_t selectFirstWord(const Knowledge k, const Strings string, const bool useRandomWord) @safe {
+size_t selectFirstWord(const Knowledge k, const Strings strings, const bool useRandomWord) @safe {
 	size_t wordMinScore = size_t.max;
 	bool wordFound;
 	size_t wordMinID;
@@ -81,7 +81,7 @@ size_t selectFirstWord(const Knowledge k, const Strings string, const bool useRa
 	}
 
 	// We want the rarest word in the sequence.
-	foreach (word; string.words) {
+	foreach (word; strings.words) {
 		const foundWord = k.findNew(word);
 		if (!foundWord.isNull && (k[foundWord.get].occurrences < wordMinScore)) {
 			wordFound = true;
@@ -105,11 +105,11 @@ size_t selectFirstWord(const Knowledge k, const Strings string, const bool useRa
 	assert(selectFirstWord(k, Strings(["hello", "world", "3"]), false).among(k.findNew("hello").get, k.findNew("world").get, k.findNew("3").get));
 }
 
-auto newSequence(const Knowledge k, const Strings string, const bool randomStart) @safe {
+auto newSequence(const Knowledge k, const Strings strings, const bool randomStart) @safe {
 	SentenceSequence sequence;
 
 	// Put the anchor word in the middle of the sequence
-	sequence[SentenceSequence.MarkovOrder] = selectFirstWord(k, string, randomStart);
+	sequence[SentenceSequence.MarkovOrder] = selectFirstWord(k, strings, randomStart);
 
 	const anchor = k[sequence.startPoint];
 
