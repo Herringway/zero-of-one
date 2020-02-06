@@ -108,6 +108,7 @@ size_t selectFirstWord(const Knowledge k, const Strings string, const bool useRa
 auto newSequence(const Knowledge k, const Strings string, const bool randomStart) @safe {
 	SentenceSequence sequence;
 
+	// Put the anchor word in the middle of the sequence
 	sequence[SentenceSequence.MarkovOrder] = selectFirstWord(k, string, randomStart);
 
 	const anchor = k[sequence.startPoint];
