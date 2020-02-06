@@ -35,11 +35,8 @@ auto extendLeft(const Knowledge k, HalfSentenceSequence sequence) @safe {
 @safe unittest {
 	Knowledge k;
 	k.assimilate(Strings(["hello", "world", "3"]));
-	HalfSentenceSequence seq;
-	assert(k.find("hello", seq[0]));
-	assert(k.find("world", seq[1]));
-	assert(k.find("3", seq[2]));
-	assert(extendLeft(k, seq).equal(only(seq[0], seq[1], seq[2])));
+	auto seq = HalfSentenceSequence([k.findNew("hello").get, k.findNew("world").get, k.findNew("3").get]);
+	assert(extendLeft(k, seq).map!(x => k[x].word).equal(only("hello", "world", "3")));
 }
 
 auto extendRight(const Knowledge k, HalfSentenceSequence sequence) @safe pure @nogc {
@@ -70,11 +67,8 @@ auto extendRight(const Knowledge k, HalfSentenceSequence sequence) @safe pure @n
 @safe /+pure @nogc+/ unittest {
 	Knowledge k;
 	k.learnString("hello world 3");
-	HalfSentenceSequence seq;
-	assert(k.find("hello", seq[0]));
-	assert(k.find("world", seq[1]));
-	assert(k.find("3", seq[2]));
-	assert(extendRight(k, seq).equal(only(seq[0], seq[1], seq[2])));
+	auto seq = HalfSentenceSequence([k.findNew("hello").get, k.findNew("world").get, k.findNew("3").get]);
+	assert(extendRight(k, seq).map!(x => k[x].word).equal(only("hello", "world", "3")));
 }
 
 size_t selectFirstWord(const Knowledge k, const Strings string, const bool useRandomWord) @safe {
@@ -112,6 +106,13 @@ size_t selectFirstWord(const Knowledge k, const Strings string, const bool useRa
 	return wordMinID;
 }
 
+@safe unittest {
+	Knowledge k;
+	k.learnString("hello world 3");
+	assert(selectFirstWord(k, Strings("hello"), false) == k.findNew("hello").get);
+	assert(selectFirstWord(k, Strings("hellp"), false) != Knowledge.terminator);
+	assert(selectFirstWord(k, Strings(["hello", "world", "3"]), false).among(k.findNew("hello").get, k.findNew("world").get, k.findNew("3").get));
+}
 
 auto newSequence(const Knowledge k, const Strings string, const bool randomStart) @safe {
 	SentenceSequence sequence;
