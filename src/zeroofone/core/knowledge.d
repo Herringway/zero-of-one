@@ -136,7 +136,7 @@ auto generateDefaultSort(KnowledgeWord[] input) @safe pure {
 // Avoid circular reference (dmd bug?)
 // These should be moved inside Knowledge if possible
 private enum defaultWords = generateDefaultWords();
-enum terminator = defaultWords.countUntil!((x,y) => x.word == y)("TERMINATOR");
+enum terminator = defaultWords.countUntil!((x,y) => x.special == y)(SpecialEffect.SENTENCE_TERMINATOR);
 struct Knowledge {
 	private KnowledgeWord[] words = defaultWords;
 	private size_t[] sortedIndices = defaultWords.generateDefaultSort();
