@@ -121,7 +121,7 @@ struct KnowledgeWord {
 auto generateDefaultWords() @safe pure {
 	return [
 		// The start/end of line entry, used as a stopping point when extending a sentence
-		KnowledgeWord("TERMINATOR", SpecialEffect.SENTENCE_TERMINATOR, 0, [], [])
+		KnowledgeWord("", SpecialEffect.SENTENCE_TERMINATOR, 0, [], [])
 	];
 }
 
@@ -319,7 +319,7 @@ struct Knowledge {
 	import std.algorithm.sorting : isSorted;
 	import std.range : indexed;
 	Knowledge knowledge;
-	assert(knowledge.words[Knowledge.terminator].word == "TERMINATOR");
+	assert(knowledge.words[Knowledge.terminator].word == "");
 	knowledge.learn("hello");
 	with (knowledge[knowledge.findNew("hello").get]) {
 		assert(word == "hello");
