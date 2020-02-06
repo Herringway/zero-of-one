@@ -284,6 +284,14 @@ struct Knowledge {
 	auto length() @safe const {
 		return words.length;
 	}
+	auto pickRandom() @safe const
+	in(words.length > 0)
+	{
+		import std.algorithm.iteration : filter;
+		import std.random : randomCover;
+		import std.range : iota;
+		return iota(0, words.length - 1).randomCover().filter!(x => x != terminator).front;
+	}
 }
 @safe unittest {
 	import std.algorithm.iteration : map;

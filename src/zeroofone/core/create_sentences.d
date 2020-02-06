@@ -76,7 +76,7 @@ size_t selectFirstWord(const Knowledge k, const Strings string, const bool useRa
 	bool wordFound;
 
 	if (useRandomWord) {
-		return uniform(0, k.length);
+		return k.pickRandom();
 	}
 
 	wordFound = false;
@@ -92,7 +92,7 @@ size_t selectFirstWord(const Knowledge k, const Strings string, const bool useRa
 	}
 
 	if (!wordFound) {
-		return uniform(0, k.length);
+		return k.pickRandom();
 	}
 
 	size_t wordID;
