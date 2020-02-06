@@ -174,13 +174,22 @@ struct Knowledge {
 		return false;
 	}
 
-	auto findWord(const string word) const @safe pure
+	auto findNew(const string word) const @safe pure
 	in(words.length > 0)
+	out(result; result.isNull || result.get() <= words.length)
 	{
-		import std.exception : enforce;
+		import std.typecons : nullable;
+		static int cmpWord(const string word, const size_t sortedIndex, const Knowledge other) @safe pure {
+			import std.algorithm.comparison : cmp;
+			return cmp(word, other.words[sortedIndex].word);
+		}
+
 		size_t r;
-		enforce(find(word, r), "Word not found");
-		return words[r];
+		if (binarySearch!cmpWord(sortedIndices, word, this, r) == 0) {
+			return nullable(sortedIndices[r]);
+		}
+
+		return typeof(return).init;
 	}
 
 	size_t learn(const string word) @safe pure {
@@ -288,7 +297,7 @@ struct Knowledge {
 	}
 	size_t[6] w;
 	foreach (idx, word; words.enumerate) {
-		k.find(word, w[idx]);
+		w[idx] = k.findNew(word).get;
 	}
 	assert(seq.secondHalf == w[0 .. SentenceSequence.MarkovOrder]);
 }
@@ -304,18 +313,18 @@ struct Knowledge {
 	Knowledge knowledge;
 	assert(knowledge.words[Knowledge.terminator].word == "TERMINATOR");
 	knowledge.learn("hello");
-	with (knowledge.findWord("hello")) {
+	with (knowledge[knowledge.findNew("hello").get]) {
 		assert(word == "hello");
 		assert(occurrences == 1);
 	}
 	knowledge.learn("word");
 	knowledge.learn("hello");
-	with (knowledge.findWord("hello")) {
+	with (knowledge[knowledge.findNew("hello").get]) {
 		assert(word == "hello");
 		assert(occurrences == 2);
 	}
 
-	assertThrown(knowledge.findWord("hellp"));
+	assert(knowledge.findNew("hellp").isNull);
 
 	assert(indexed(knowledge.words, knowledge.sortedIndices).isSorted!((x,y) => x.word < y.word));
 }
