@@ -51,7 +51,7 @@ size_t getKnowledgeLinks(ref KnowledgeLink[] links, const KnowledgeLinkSequence 
 		return 0;
 	}
 	size_t result;
-	if (binarySearch!cmpSeqLink(links, sequence, null, result) == 0) {
+	if (binarySearch!cmpSeqLink(links, sequence, null, result)) {
 		return result;
 	}
 	links.length += 1;

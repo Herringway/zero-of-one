@@ -163,7 +163,7 @@ struct Knowledge {
 			return cmp(word, other.words[sortedIndex].word);
 		}
 
-		if (binarySearch!cmpWord(sortedIndices, word, this, r) == 0) {
+		if (binarySearch!cmpWord(sortedIndices, word, this, r)) {
 			result = sortedIndices[r];
 
 			return true;
@@ -185,7 +185,7 @@ struct Knowledge {
 		}
 
 		size_t r;
-		if (binarySearch!cmpWord(sortedIndices, word, this, r) == 0) {
+		if (binarySearch!cmpWord(sortedIndices, word, this, r)) {
 			return nullable(sortedIndices[r]);
 		}
 
