@@ -49,7 +49,7 @@ void main(string[] args) {
 }
 
 void learnFile(ref Knowledge knowledge, string file) {
-	write("Learning line #");
+	write("Learning line 0");
 	ulong digits = 1;
 	ulong tens = 1;
 	foreach (i, str; File(file, "r").byLineCopy().enumerate) {
@@ -58,7 +58,9 @@ void learnFile(ref Knowledge knowledge, string file) {
 			tens *= 10;
 		}
 		knowledge.learnString(str);
-		writef!"%-(%s%)%s"("\b".repeat(digits), i);
+		if (i%2 == 0) {
+			writef!"%-(%s%)%s"("\b".repeat(digits), i);
+		}
 	}
 	writeln();
 }
