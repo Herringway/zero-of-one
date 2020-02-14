@@ -26,7 +26,7 @@ void main(string[] args) {
 
 	auto stopWatch = StopWatch(AutoStart.yes);
 	foreach (file; args[1..$].chain(only(memoryFile))) {
-		writeln("Learning ", file);
+		write("Learning ", file, ", ");
 		learnFile(knowledge, file);
 	}
 	stopWatch.stop();
@@ -52,7 +52,7 @@ void main(string[] args) {
 }
 
 void learnFile(ref Knowledge knowledge, string file) {
-	write("Learning line 0");
+	write("line 0");
 	ulong digits = 1;
 	ulong tens = 1;
 	foreach (i, str; File(file, "r").byLineCopy().enumerate) {
