@@ -31,6 +31,9 @@ void main(string[] args) {
 	}
 	stopWatch.stop();
 	writeln("Learning completed in ", stopWatch.peek, ".");
+	writeln("Optimizing knowledge...");
+
+	knowledge.optimize();
 
 	while(true) {
 		write("> ");

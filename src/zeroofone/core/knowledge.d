@@ -129,6 +129,9 @@ struct KnowledgeLinks {
 		values.popFrontN(uniform(0, links.length));
 		return values.front;
 	}
+	void optimize() /*@safe*/ {
+		links.rehash();
+	}
 }
 
 @safe unittest {
@@ -257,6 +260,13 @@ struct Knowledge {
 		import std.random : randomCover;
 		import std.range : iota;
 		return iota(0, words.length - 1).randomCover().filter!(x => x != terminator).front;
+	}
+	void optimize() /*@safe*/ {
+		foreach (ref word; words) {
+			word.forwardLinks.optimize();
+			word.backwardLinks.optimize();
+		}
+		wordMap.rehash();
 	}
 }
 @safe unittest {
