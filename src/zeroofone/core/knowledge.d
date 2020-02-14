@@ -160,19 +160,16 @@ struct KnowledgeWord {
 }
 
 /// Generate a default array of KnowledgeWords, mostly punctuation
-auto generateDefaultWords() @safe pure {
-	return [
-		// The start/end of line entry, used as a stopping point when extending a sentence
-		KnowledgeWord("", SpecialEffect.SENTENCE_TERMINATOR)
-	];
-}
+enum defaultWords = [
+	// The start/end of line entry, used as a stopping point when extending a sentence
+	KnowledgeWord("", SpecialEffect.SENTENCE_TERMINATOR)
+];
 
 // Avoid circular reference (dmd bug?)
 // These should be moved inside Knowledge if possible
-private enum defaultWords = generateDefaultWords();
 enum terminator = defaultWords.countUntil!((x,y) => x.special == y)(SpecialEffect.SENTENCE_TERMINATOR);
 struct Knowledge {
-	private KnowledgeWord[] words = generateDefaultWords();
+	private KnowledgeWord[] words = defaultWords;
 	private size_t[string] wordMap;
 	public alias terminator = .terminator;
 
