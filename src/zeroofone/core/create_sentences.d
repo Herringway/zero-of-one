@@ -16,7 +16,7 @@ import zeroofone.tool.strings;
 
 auto extendLeft(const Knowledge k, HalfSentenceSequence sequence) @safe {
 	size_t[] sentence;
-	while (k[sequence[$-1]].special != SpecialEffect.SENTENCE_TERMINATOR) {
+	while (!k[sequence[$-1]].isTerminator) {
 		sentence = sequence[$ - 1] ~ sentence;
 
 		const w = k[sequence[$ - 1]];
@@ -44,7 +44,7 @@ auto extendRight(const Knowledge k, HalfSentenceSequence sequence) @safe pure @n
 		HalfSentenceSequence chain;
 		const Knowledge knowledge;
 		bool empty() const @safe pure {
-			return knowledge[front].special == SpecialEffect.SENTENCE_TERMINATOR;
+			return knowledge[front].isTerminator;
 		}
 		auto front() const @safe pure {
 			return chain[0];

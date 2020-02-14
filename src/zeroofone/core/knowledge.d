@@ -115,6 +115,9 @@ struct KnowledgeWord {
 	size_t occurrences = 1;
 	KnowledgeLink[] forwardLinks;
 	KnowledgeLink[] backwardLinks;
+	bool isTerminator() const @safe pure {
+		return special == SpecialEffect.SENTENCE_TERMINATOR;
+	}
 }
 
 /// Generate a default array of KnowledgeWords, mostly punctuation
