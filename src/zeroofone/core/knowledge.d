@@ -190,7 +190,7 @@ struct Knowledge {
 
 		debug(learning) trace("Learning phrase ", strings);
 
-		if (strings.words.length == 0) {
+		if (strings.length == 0) {
 			return;
 		}
 
@@ -201,9 +201,9 @@ struct Knowledge {
 		size_t nextWord = 0;
 		size_t newWord = SentenceSequence.MarkovOrder;
 
-		while (nextWord <= (strings.words.length + SentenceSequence.MarkovOrder)) {
-			const isValidWord = newWord < strings.words.length;
-			const size_t newWordID = isValidWord ? learn(strings.words[newWord]) : terminator;
+		while (nextWord <= (strings.length + SentenceSequence.MarkovOrder)) {
+			const isValidWord = newWord < strings.length;
+			const size_t newWordID = isValidWord ? learn(strings[newWord]) : terminator;
 
 			sequence = sequence[1..$]~newWordID;
 
@@ -212,14 +212,24 @@ struct Knowledge {
 			nextWord += 1;
 			newWord += 1;
 		}
+		//const newWord = SentenceSequence.MarkovOrder;
+
+		//foreach (i; 0..strings.words.length + SentenceSequence.MarkovOrder + 1) {
+		//	const isValidWord = newWord + i < strings.words.length;
+		//	const size_t newWordID = isValidWord ? learn(strings.words[newWord + i]) : terminator;
+
+		//	sequence = sequence[1..$]~newWordID;
+
+		//	addWordOccurrence(sequence);
+		//}
 	}
 
 	auto initSequence(const Strings strings) @safe {
 		SentenceSequence sequence;
 
 		foreach (i, ref word; sequence[SentenceSequence.MarkovOrder + 1..$]) {
-			const validWord = i < strings.words.length;
-			word = validWord ? learn(strings.words[i]) : terminator;
+			const validWord = i < strings.length;
+			word = validWord ? learn(strings[i]) : terminator;
 		}
 		return sequence;
 	}

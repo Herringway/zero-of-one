@@ -77,7 +77,7 @@ size_t selectFirstWord(const Knowledge k, const Strings strings) @safe {
 	size_t wordMinID;
 
 	// We want the rarest word in the sequence.
-	foreach (word; strings.words) {
+	foreach (word; strings) {
 		const foundWord = k.findNew(word);
 		if (!foundWord.isNull && (k[foundWord.get].occurrences < wordMinScore)) {
 			wordFound = true;

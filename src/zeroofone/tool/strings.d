@@ -3,7 +3,7 @@ module zeroofone.tool.strings;
 import zeroofone.core.knowledge;
 
 struct Strings {
-	string[] words;
+	private string[] words;
 
 	this(string[] strings) @safe pure {
 		words = strings;
@@ -36,6 +36,23 @@ struct Strings {
 		if (last < input.length && !input[last..$].front.isWhite) {
 			words ~= input[last..$].toLower();
 		}
+	}
+	auto length() const @safe pure {
+		return words.length;
+	}
+	auto opIndex(size_t i) const @safe pure {
+		return words[i];
+	}
+	int opApply(scope int delegate(const string) @safe dg) const @safe {
+		int result = 0;
+
+		for (int i = 0; i < words.length; i++) {
+			result = dg(words[i]);
+			if (result) {
+				break;
+			}
+		}
+		return result;
 	}
 }
 
