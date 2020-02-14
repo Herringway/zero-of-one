@@ -112,7 +112,7 @@ struct KnowledgeLink {
 }
 
 struct KnowledgeLinks {
-	KnowledgeLink[KnowledgeLinkSequence] links;
+	private KnowledgeLink[KnowledgeLinkSequence] links;
 	auto ref learn(const KnowledgeLinkSequence sequence) @safe pure {
 		return links.require(sequence, KnowledgeLink(sequence));
 	}
