@@ -21,12 +21,12 @@ auto extendLeft(const Knowledge k, HalfSentenceSequence sequence) @safe {
 		const w = k[sequence[$ - 1]];
 		debug(create) tracef("Current word: %s - %s", w.word, w.special);
 
-		sequence = 0~sequence[0..$-1];
+		sequence.pushRight(0);
 
-		auto found = w.backwardLinks.find!((x,y) => x.sequence == y)(sequence[1..$]);
-		assert(!found.empty, "Unexpectedly, no backtracking link was found.");
+		auto found = w.backwardLinks.findSequence(sequence[1..$]);
+		assert(!found.isNull, "Unexpectedly, no backtracking link was found.");
 
-		sequence[0] = found.front.targets[dice(found.front.targetsOccurrences)];
+		sequence[0] = found.get.targets[dice(found.get.targetsOccurrences)];
 	}
 	return sentence;
 }
@@ -52,12 +52,12 @@ auto extendRight(const Knowledge k, HalfSentenceSequence sequence) @safe pure @n
 			const w = knowledge[front];
 			debug(create) tracef("Current word: %s - %s", w.word, w.special);
 
-			chain = chain[1..$] ~ 0;
+			chain.pushLeft(0);
 
-			auto found = w.forwardLinks.find!((x,y) => x.sequence == y)(chain[0..$-1]);
-			assert(!found.empty, "Unexpectedly, no forward link was found.");
+			auto found = w.forwardLinks.findSequence(chain[0..$-1]);
+			assert(!found.isNull, "Unexpectedly, no forward link was found.");
 
-			chain[$ - 1] = found.front.targets[dice(found.front.targetsOccurrences)];
+			chain[$ - 1] = found.get.targets[dice(found.get.targetsOccurrences)];
 		}
 	}
 	return Result(sequence, k);
@@ -112,7 +112,7 @@ auto newSequence(const Knowledge k, const string[] strings, const bool randomSta
 
 	/* Chooses a likely forward link for the pillar. */
 
-	const selectedLinks = anchor.forwardLinks[uniform(0, anchor.forwardLinks.length)];
+	const selectedLinks = anchor.forwardLinks.randomLink;
 
 	/* Copies the forward link data into the sequence. */
 	/* This adds (SentenceSequence.MarkovOrder - 1) words, as the ZoO_SentenceSequence.MarkovOrderth word */
@@ -131,10 +131,10 @@ auto newSequence(const Knowledge k, const string[] strings, const bool randomSta
 
 		// finds the backward link corresponding to the words left of the temporary pillar.
 		const link = sequence.getKnowledgeLink(-i);
-		const found = fiw.backwardLinks.find!((x,y) => x.sequence == y)(link);
-		assert(!found.empty, format!"No back link found for %s"(link));
+		const found = fiw.backwardLinks.findSequence(link);
+		assert(!found.isNull, format!"No back link found for %s"(link));
 
-		sequence[SentenceSequence.MarkovOrder - i - 1] = found.front.targets[dice(found.front.targetsOccurrences)];
+		sequence[SentenceSequence.MarkovOrder - i - 1] = found.get.targets[dice(found.get.targetsOccurrences)];
 	}
 	return sequence;
 }

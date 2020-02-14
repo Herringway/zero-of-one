@@ -6,8 +6,6 @@ import std.experimental.logger;
 import std.string;
 
 import zeroofone.core.sequence;
-import zeroofone.tool.sorted_list;
-
 
 enum SpecialEffect {
 	HAS_NO_EFFECT,
@@ -108,12 +106,46 @@ struct KnowledgeLink {
 	size_t[] targets;
 }
 
+struct KnowledgeLinks {
+	KnowledgeLink[KnowledgeLinkSequence] links;
+	auto ref learn(const KnowledgeLinkSequence sequence) @safe pure {
+		return links.require(sequence, KnowledgeLink(sequence));
+	}
+	auto findSequence(const size_t[] sequence) const @safe pure {
+		import std.typecons : nullable;
+		if (auto foundSeq = KnowledgeLinkSequence(sequence[0 .. 2]) in links) {
+			return nullable(*foundSeq);
+		}
+
+		return typeof(return).init;
+	}
+	auto length() const @safe pure {
+		return links.length;
+	}
+	auto randomLink() const @safe {
+		import std.random : uniform;
+		import std.range : popFrontN;
+		auto values = links.byValue;
+		values.popFrontN(uniform(0, links.length));
+		return values.front;
+	}
+}
+
+@safe unittest {
+	with(KnowledgeLinks()) {
+		assert(learn(KnowledgeLinkSequence([10, 11])) == KnowledgeLink(KnowledgeLinkSequence([10,11])));
+		assert(learn(KnowledgeLinkSequence([1,1])) == KnowledgeLink(KnowledgeLinkSequence([1,1])));
+		assert(!findSequence(KnowledgeLinkSequence([1, 1])).isNull);
+		assert(!findSequence(KnowledgeLinkSequence([10, 11])).isNull);
+	}
+}
+
 struct KnowledgeWord {
 	string word;
 	SpecialEffect special = SpecialEffect.HAS_NO_EFFECT;
 	size_t occurrences = 0;
-	KnowledgeLink[] forwardLinks;
-	KnowledgeLink[] backwardLinks;
+	KnowledgeLinks forwardLinks;
+	KnowledgeLinks backwardLinks;
 	bool isTerminator() const @safe pure {
 		return special == SpecialEffect.SENTENCE_TERMINATOR;
 	}
@@ -123,7 +155,7 @@ struct KnowledgeWord {
 auto generateDefaultWords() @safe pure {
 	return [
 		// The start/end of line entry, used as a stopping point when extending a sentence
-		KnowledgeWord("", SpecialEffect.SENTENCE_TERMINATOR, 0, [], [])
+		KnowledgeWord("", SpecialEffect.SENTENCE_TERMINATOR)
 	];
 }
 
@@ -167,12 +199,8 @@ struct Knowledge {
 	}
 
 	void assimilate(const string[] strings) @safe {
-		import zeroofone.core.sequence : getKnowledgeLinks;
 		void addWordOccurrence(const SentenceSequence sequence) @safe {
-			static void addSequence(ref KnowledgeLink[] links, const KnowledgeLinkSequence sequence, const size_t targetWord) @safe {
-				const linkIndex = getKnowledgeLinks(links, sequence);
-				auto link = &links[linkIndex];
-
+			static void addSequence(ref KnowledgeLink link, const size_t targetWord) @safe {
 				foreach (i, target; link.targets) {
 					if (target == targetWord) {
 						link.targetsOccurrences[i] += 1;
@@ -183,8 +211,8 @@ struct Knowledge {
 				link.targets ~= targetWord;
 				link.targetsOccurrences ~= 1;
 			}
-			addSequence(words[sequence.startPoint].forwardLinks, KnowledgeLinkSequence(sequence.secondHalf[0 .. $-1]), sequence.secondHalf[$-1]);
-			addSequence(words[sequence.startPoint].backwardLinks, KnowledgeLinkSequence(sequence.firstHalf[1 .. $]), sequence.firstHalf[0]);
+			addSequence(words[sequence.startPoint].forwardLinks.learn(KnowledgeLinkSequence(sequence.secondHalf[0 .. $-1])), sequence.secondHalf[$-1]);
+			addSequence(words[sequence.startPoint].backwardLinks.learn(KnowledgeLinkSequence(sequence.firstHalf[1 .. $])), sequence.firstHalf[0]);
 		}
 
 		debug(learning) trace("Learning phrase ", strings);
@@ -197,19 +225,13 @@ struct Knowledge {
 
 		addWordOccurrence(sequence);
 
-		size_t nextWord = 0;
-		size_t newWord = SentenceSequence.MarkovOrder;
+		foreach (i; 0..strings.length + SentenceSequence.MarkovOrder + 1) {
+			const isValidWord = SentenceSequence.MarkovOrder + i < strings.length;
+			const size_t newWordID = isValidWord ? learn(strings[SentenceSequence.MarkovOrder + i]) : terminator;
 
-		while (nextWord <= (strings.length + SentenceSequence.MarkovOrder)) {
-			const isValidWord = newWord < strings.length;
-			const size_t newWordID = isValidWord ? learn(strings[newWord]) : terminator;
-
-			sequence = sequence[1..$]~newWordID;
+			sequence.pushLeft(newWordID);
 
 			addWordOccurrence(sequence);
-
-			nextWord += 1;
-			newWord += 1;
 		}
 	}
 
@@ -278,6 +300,8 @@ struct Knowledge {
 
 	assert(knowledge.findNew("hellp").isNull);
 }
+
+
 string[] parse(string input) @safe pure {
 	import std.algorithm : canFind;
 	import std.array : front;

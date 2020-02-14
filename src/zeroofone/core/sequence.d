@@ -2,8 +2,6 @@ module zeroofone.core.sequence;
 
 import zeroofone.core.knowledge;
 
-import zeroofone.tool.sorted_list;
-
 struct KnowledgeLinkSequence {
 	import std.algorithm.comparison : max;
 	enum Size = max(SentenceSequence.MarkovOrder - 1, 1);
@@ -29,46 +27,45 @@ struct SentenceSequence {
 	auto getKnowledgeLink(ptrdiff_t relative) inout @safe {
 		return sequence[MarkovOrder + relative .. MarkovOrder + relative + KnowledgeLinkSequence.Size];
 	}
+	void pushLeft(size_t id) @safe pure @nogc nothrow {
+		foreach (i; 0 .. Size - 1) {
+			sequence[i] = sequence[i + 1];
+		}
+		sequence[$ - 1] = id;
+	}
+}
+
+@safe pure unittest {
+	with(SentenceSequence([1, 2, 3, 4, 5, 6, 7])) {
+		pushLeft(0);
+		assert(sequence == [2, 3, 4, 5, 6, 7, 0]);
+	}
 }
 
 struct HalfSentenceSequence {
 	size_t[SentenceSequence.MarkovOrder] sequence;
 	alias sequence this;
-}
-
-
-size_t getKnowledgeLinks(ref KnowledgeLink[] links, const KnowledgeLinkSequence sequence) @safe {
-	static int cmpSeqLink(const size_t[] sequence, const KnowledgeLink link, const typeof(null)) @safe {
-		size_t j;
-		for (j = 0; j < KnowledgeLinkSequence.Size; ++j) {
-			if (sequence[j] < link.sequence[j]) {
-				return -1;
-			} else if (sequence[j] > link.sequence[j]) {
-				return 1;
-			}
+	void pushLeft(size_t id) @safe pure @nogc nothrow {
+		foreach (i; 0 .. SentenceSequence.MarkovOrder - 1) {
+			sequence[i] = sequence[i + 1];
 		}
-
-		return 0;
+		sequence[$ - 1] = id;
 	}
-	size_t result;
-	if (binarySearch!cmpSeqLink(links, sequence, null, result)) {
-		return result;
+	void pushRight(size_t id) @safe pure @nogc nothrow {
+		foreach_reverse (i; 1 .. SentenceSequence.MarkovOrder) {
+			sequence[i] = sequence[i - 1];
+		}
+		sequence[0] = id;
 	}
-	links.length += 1;
-
-	if (result < (links.length - 1)) {
-		links = links[0..result+1]~links[result..$-1];
-	}
-
-	links[result].sequence = sequence;
-	links[result].targetsOccurrences = null;
-	links[result].targets = null;
-	return result;
 }
 
-@safe unittest {
-	KnowledgeLink[] links =[KnowledgeLink(KnowledgeLinkSequence([10, 11]), [1], [0]), KnowledgeLink(KnowledgeLinkSequence([10, 11]), [1], [0])];
-
-	assert(getKnowledgeLinks(links, KnowledgeLinkSequence([1,1])) == 0);
-	assert(links == [KnowledgeLink(KnowledgeLinkSequence([1, 1]), [], []), KnowledgeLink(KnowledgeLinkSequence([10, 11]), [1], [0]), KnowledgeLink(KnowledgeLinkSequence([10, 11]), [1], [0])]);
+@safe pure unittest {
+	with(HalfSentenceSequence([1, 2, 3])) {
+		pushLeft(0);
+		assert(sequence == [2, 3, 0]);
+	}
+	with(HalfSentenceSequence([1, 2, 3])) {
+		pushRight(0);
+		assert(sequence == [0, 1, 2]);
+	}
 }
