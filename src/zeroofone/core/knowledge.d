@@ -70,10 +70,15 @@ immutable string knowledgePunctuationCharsRemovesLeftSpace = [
 	':',
 	';',
 	'~',
-	')'
+	')',
+	']',
+	'}'
 ];
 immutable string knowledgePunctuationCharsRemovesRightSpace = [
-	'('
+	'(',
+	'[',
+	'{',
+	'#'
 ];
 
 immutable string knowledgePunctuationCharsNextCapitalized = [
