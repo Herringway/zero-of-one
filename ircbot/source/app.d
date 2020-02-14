@@ -71,7 +71,7 @@ mixin template Client() {
 	void tryReply(const Target target, const string message) @safe {
 		writefln!"Attempting to learn/reply to %s for: %s"(target, message);
 
-		const string_ = Strings(message);
+		const string_ = parse(message);
 
 		if (string_.words.length == 0) {
 			return;
@@ -90,11 +90,11 @@ mixin template Client() {
 		}
 	}
 
-	auto shouldLearnAndReply(const Strings str) @safe {
+	auto shouldLearnAndReply(const string[] str) @safe {
 		import std.random : uniform;
 		import std.typecons : tuple;
 		foreach (alias_; aliases) {
-			foreach (idx, word; str.words) {
+			foreach (idx, word; str) {
 				if (alias_ == word) {
 					return tuple!("learn", "reply")(idx != 0, true);
 				}

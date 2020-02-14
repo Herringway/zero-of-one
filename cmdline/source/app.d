@@ -32,9 +32,9 @@ void main(string[] args) {
 	while(true) {
 		write("> ");
 		auto input = readln().strip();
-		auto str = Strings(input.dup);
+		auto str = parse(input.dup);
 
-		if (str.words.length == 0) {
+		if (str.length == 0) {
 			continue;
 		}
 		if (!readonly) {

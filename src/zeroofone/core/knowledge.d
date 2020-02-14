@@ -6,7 +6,6 @@ import std.experimental.logger;
 import std.string;
 
 import zeroofone.core.sequence;
-import zeroofone.tool.strings;
 import zeroofone.tool.sorted_list;
 
 
@@ -164,10 +163,10 @@ struct Knowledge {
 		return index;
 	}
 	void learnString(const string str) @safe {
-		assimilate(Strings(str));
+		assimilate(parse(str));
 	}
 
-	void assimilate(const Strings strings) @safe {
+	void assimilate(const string[] strings) @safe {
 		import zeroofone.core.sequence : getKnowledgeLinks;
 		void addWordOccurrence(const SentenceSequence sequence) @safe {
 			static void addSequence(ref KnowledgeLink[] links, const KnowledgeLinkSequence sequence, const size_t targetWord) @safe {
@@ -212,19 +211,9 @@ struct Knowledge {
 			nextWord += 1;
 			newWord += 1;
 		}
-		//const newWord = SentenceSequence.MarkovOrder;
-
-		//foreach (i; 0..strings.words.length + SentenceSequence.MarkovOrder + 1) {
-		//	const isValidWord = newWord + i < strings.words.length;
-		//	const size_t newWordID = isValidWord ? learn(strings.words[newWord + i]) : terminator;
-
-		//	sequence = sequence[1..$]~newWordID;
-
-		//	addWordOccurrence(sequence);
-		//}
 	}
 
-	auto initSequence(const Strings strings) @safe {
+	auto initSequence(const string[] strings) @safe {
 		SentenceSequence sequence;
 
 		foreach (i, ref word; sequence[SentenceSequence.MarkovOrder + 1..$]) {
@@ -253,7 +242,7 @@ struct Knowledge {
 	import std.range : enumerate, iota;
 	enum words = iota(0, SentenceSequence.MarkovOrder).map!(x => x.text);
 	Knowledge k;
-	const str = Strings(format!"%-(%s %)"(words));
+	const str = parse(format!"%-(%s %)"(words));
 	const seq = k.initSequence(str);
 	foreach (word; seq.firstHalf) {
 		assert(word == Knowledge.terminator);
@@ -266,7 +255,7 @@ struct Knowledge {
 }
 @safe unittest {
 	Knowledge k;
-	k.assimilate(Strings());
+	k.assimilate([]);
 }
 
 @safe pure unittest {
@@ -288,4 +277,40 @@ struct Knowledge {
 	}
 
 	assert(knowledge.findNew("hellp").isNull);
+}
+string[] parse(string input) @safe pure {
+	import std.algorithm : canFind;
+	import std.array : front;
+	import std.uni : isPunctuation, isWhite, toLower;
+	import std.utf : codeLength;
+	string[] output;
+	size_t last;
+	for (int i; i < input.length; i++) {
+		const chr = input[i..$].front;
+		const size = chr.codeLength!char;
+		const isWhitespace = chr.isWhite;
+		if (isWhitespace || chr.isPunctuation) {
+			if (i > last) {
+				output ~= input[last..i].toLower();
+			}
+			if (!isWhitespace) {
+				output ~= input[i..i+size];
+			}
+			last = i+size;
+		}
+		i += size-1;
+	}
+	if (last < input.length && !input[last..$].front.isWhite) {
+		output ~= input[last..$].toLower();
+	}
+	return output;
+}
+@safe pure unittest {
+	import std.algorithm.searching : canFind;
+	assert(parse("") == []);
+	assert(parse("test 1 2 3") == ["test", "1", "2", "3"]);
+	assert(parse("7, 8, 9") == ["7", ",", "8", ",", "9"]);
+	assert(parse("HELLO WORLD") == ["hello", "world"]);
+	assert(parse("                   yeah                        ") == ["yeah"]);
+	assert(parse("a") == ["a"]);
 }

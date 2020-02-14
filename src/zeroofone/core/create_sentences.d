@@ -10,7 +10,6 @@ import std.experimental.logger;
 
 import zeroofone.core.sequence;
 import zeroofone.core.knowledge;
-import zeroofone.tool.strings;
 
 /// Create sentences based on existing Knowledge
 
@@ -34,7 +33,7 @@ auto extendLeft(const Knowledge k, HalfSentenceSequence sequence) @safe {
 
 @safe unittest {
 	Knowledge k;
-	k.assimilate(Strings(["hello", "world", "3"]));
+	k.assimilate(["hello", "world", "3"]);
 	auto seq = HalfSentenceSequence([k.findNew("hello").get, k.findNew("world").get, k.findNew("3").get]);
 	assert(extendLeft(k, seq).map!(x => k[x].word).equal(only("hello", "world", "3")));
 }
@@ -71,7 +70,7 @@ auto extendRight(const Knowledge k, HalfSentenceSequence sequence) @safe pure @n
 	assert(extendRight(k, seq).map!(x => k[x].word).equal(only("hello", "world", "3")));
 }
 
-size_t selectFirstWord(const Knowledge k, const Strings strings) @safe {
+size_t selectFirstWord(const Knowledge k, const string[] strings) @safe {
 	size_t wordMinScore = size_t.max;
 	bool wordFound;
 	size_t wordMinID;
@@ -96,12 +95,12 @@ size_t selectFirstWord(const Knowledge k, const Strings strings) @safe {
 @safe unittest {
 	Knowledge k;
 	k.learnString("hello world 3");
-	assert(selectFirstWord(k, Strings("hello")) == k.findNew("hello").get);
-	assert(selectFirstWord(k, Strings("hellp")) != Knowledge.terminator);
-	assert(selectFirstWord(k, Strings(["hello", "world", "3"])).among(k.findNew("hello").get, k.findNew("world").get, k.findNew("3").get));
+	assert(selectFirstWord(k, ["hello"]) == k.findNew("hello").get);
+	assert(selectFirstWord(k, ["hellp"]) != Knowledge.terminator);
+	assert(selectFirstWord(k, ["hello", "world", "3"]).among(k.findNew("hello").get, k.findNew("world").get, k.findNew("3").get));
 }
 
-auto newSequence(const Knowledge k, const Strings strings, const bool randomStart) @safe {
+auto newSequence(const Knowledge k, const string[] strings, const bool randomStart) @safe {
 	SentenceSequence sequence;
 
 	// Put the anchor word in the middle of the sequence
@@ -139,7 +138,7 @@ auto newSequence(const Knowledge k, const Strings strings, const bool randomStar
 	}
 	return sequence;
 }
-string knowledgeExtend(const Knowledge k, const Strings str, const bool randomStart) @safe
+string knowledgeExtend(const Knowledge k, const string[] str, const bool randomStart) @safe
 out(result; result.length > 0)
 out(result; !isWhite(result[0]))
 out(result; !isWhite(result[$-1]))
