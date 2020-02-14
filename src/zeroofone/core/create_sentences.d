@@ -158,7 +158,7 @@ out(result; !isWhite(result[$-1]))
 	// Start with something that'll capitalize the first word
 	SpecialEffect lastEffect = SpecialEffect.REMOVES_LEFT_SPACE_CAPITALIZES_NEXT_WORD;
 	foreach (const word; chain(leftSide, only(sequence.startPoint), rightSide).map!(x => k[x])) {
-		result ~= format!"%s%s"(word.special.useTrailingSpace ? " " : "", autoCapitalize(word.word, lastEffect.capitalizesNext));
+		result ~= format!"%s%s"(word.special.useTrailingSpace ? (lastEffect.hasTrailingSpace ? " " : "") : "", autoCapitalize(word.word, lastEffect.capitalizesNext));
 		lastEffect = word.special;
 	}
 
