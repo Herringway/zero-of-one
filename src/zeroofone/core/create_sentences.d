@@ -153,16 +153,29 @@ out(result; !isWhite(result[$-1]))
 
 	debug(create) tracef("extendLeft: sequence: %s (%s)", sequence.firstHalf, sequence.firstHalf[].map!(x => k[x].word));
 	auto leftSide = extendLeft(k, sequence.firstHalf);
+	return createSentence(chain(leftSide, only(sequence.startPoint), rightSide).map!(x => k[x]));
+}
 
+string createSentence(T)(T words) {
 	string result;
 	// Start with something that'll capitalize the first word
 	SpecialEffect lastEffect = SpecialEffect.REMOVES_LEFT_SPACE_CAPITALIZES_NEXT_WORD;
-	foreach (const word; chain(leftSide, only(sequence.startPoint), rightSide).map!(x => k[x])) {
+	foreach (const word; words) {
 		result ~= format!"%s%s"(word.special.useTrailingSpace ? (lastEffect.hasTrailingSpace ? " " : "") : "", autoCapitalize(word.word, lastEffect.capitalizesNext));
 		lastEffect = word.special;
 	}
 
 	return result.strip();
+}
+@safe pure unittest {
+	assert(createSentence(KnowledgeWord[].init) == "");
+	assert(createSentence([KnowledgeWord(".", SpecialEffect.NO_SPACES)]) == ".");
+	assert(createSentence([KnowledgeWord(".", SpecialEffect.REMOVES_LEFT_SPACE)]) == ".");
+	assert(createSentence([KnowledgeWord(".", SpecialEffect.REMOVES_LEFT_SPACE_CAPITALIZES_NEXT_WORD)]) == ".");
+	assert(createSentence([KnowledgeWord(".", SpecialEffect.REMOVES_RIGHT_SPACE)]) == ".");
+	assert(createSentence([KnowledgeWord(".", SpecialEffect.HAS_NO_EFFECT)]) == ".");
+	assert(createSentence([KnowledgeWord("hello"), KnowledgeWord("world"), KnowledgeWord("!", SpecialEffect.REMOVES_LEFT_SPACE_CAPITALIZES_NEXT_WORD)]) == "Hello world!");
+	assert(createSentence([KnowledgeWord("hello"), KnowledgeWord("\"", SpecialEffect.REMOVES_RIGHT_SPACE), KnowledgeWord("world"), KnowledgeWord("\"", SpecialEffect.REMOVES_LEFT_SPACE), KnowledgeWord("!", SpecialEffect.REMOVES_LEFT_SPACE_CAPITALIZES_NEXT_WORD)]) == "Hello \"world\"!");
 }
 
 auto autoCapitalize(const string word, const bool cap) @safe {
