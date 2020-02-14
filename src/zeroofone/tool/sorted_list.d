@@ -1,52 +1,39 @@
 module zeroofone.tool.sorted_list;
 
-bool binarySearch(alias compare, T, U, V)(const T[] sortedList, const U elem, const V other, out size_t result) @safe {
-	int cmp;
+bool binarySearch(alias compare, T, U, V)(const T[] sortedList, const U elem, const V other, out size_t result) @safe
+out(; result <= sortedList.length)
+{
 	size_t currentMin, currentMax;
 
 	if (sortedList.length == 0) {
 		result = 0;
-
 		return false;
 	}
 
 	currentMax = sortedList.length - 1;
 
 	for (;;) {
-		/* FIXME: overflow-safe? */
-		/* No: (and (> currentMin (/ Max 2)) (> currentMax (/ Max 2))) */
-		const size_t i = ((currentMin + currentMax) / 2);
+		result = ((currentMin + currentMax) / 2);
 
-		if (i == sortedList.length) {
-			/* FIXME: I don't see how this one can be true */
-			result = sortedList.length;
-
+		if (result == sortedList.length) {
 			return false;
 		}
 
-		cmp = compare(elem, sortedList[i], other);
+		const cmp = compare(elem, sortedList[result], other);
 
 		if (cmp > 0) {
 			if ((currentMin > currentMax)) {
-				result = (i + 1);
+				result++;
 
 				return false;
 			}
-
-			/* FIXME: overflow-safe? */
-			currentMin = (i + 1);
+			currentMin = (result + 1);
 		} else if (cmp < 0) {
-			if ((currentMin > currentMax) || (i == 0)) {
-				result = i;
-
+			if ((currentMin > currentMax) || (result == 0)) {
 				return false;
 			}
-
-			/* overflow-safe */
-			currentMax = (i - 1);
+			currentMax = (result - 1);
 		} else {
-			result = i;
-
 			return true;
 		}
 	}
