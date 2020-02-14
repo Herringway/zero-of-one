@@ -181,8 +181,7 @@ struct Knowledge {
 					}
 				}
 
-				link.targets.length += 1;
-				link.targets[$ - 1] = targetWord;
+				link.targets ~= targetWord;
 				link.targetsOccurrences ~= 1;
 			}
 			addSequence(words[sequence.startPoint].forwardLinks, KnowledgeLinkSequence(sequence.secondHalf[0 .. $-1]), sequence.secondHalf[$-1]);
