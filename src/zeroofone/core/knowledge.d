@@ -112,7 +112,7 @@ struct KnowledgeLink {
 struct KnowledgeWord {
 	string word;
 	SpecialEffect special = SpecialEffect.HAS_NO_EFFECT;
-	size_t occurrences = 1;
+	size_t occurrences = 0;
 	KnowledgeLink[] forwardLinks;
 	KnowledgeLink[] backwardLinks;
 	bool isTerminator() const @safe pure {
@@ -128,97 +128,40 @@ auto generateDefaultWords() @safe pure {
 	];
 }
 
-/// Generate a sorted index from an array of KnowledgeWords
-auto generateDefaultSort(KnowledgeWord[] input) @safe pure {
-	import std.algorithm.sorting : makeIndex;
-	size_t[] index = new size_t[](input.length);
-	makeIndex!((x,y) => x.word < y.word)(input, index);
-	return index;
-}
-
 // Avoid circular reference (dmd bug?)
 // These should be moved inside Knowledge if possible
 private enum defaultWords = generateDefaultWords();
 enum terminator = defaultWords.countUntil!((x,y) => x.special == y)(SpecialEffect.SENTENCE_TERMINATOR);
 struct Knowledge {
-	private KnowledgeWord[] words = defaultWords;
-	private size_t[] sortedIndices = defaultWords.generateDefaultSort();
+	private KnowledgeWord[] words = generateDefaultWords();
+	private size_t[string] wordMap;
 	public alias terminator = .terminator;
-
-	/*
-	 * When returning true:
-	 *    {word} is in {k}.
-	 *    {word} is located at {k.words[*result]}.
-	 *
-	 * When returning false:
-	 *    {word} is not in {k}.
-	 *    {*result} is where {word} was expected to be found in
-	 *    {k.sortedIndices}.
-	 */
-	bool find(const string word, out size_t result) const @safe pure
-	in(words.length > 0)
-	out(; result <= words.length)
-	{
-		size_t r;
-
-		static int cmpWord(const string word, const size_t sortedIndex, const Knowledge other) @safe pure {
-			import std.algorithm.comparison : cmp;
-			return cmp(word, other.words[sortedIndex].word);
-		}
-
-		if (binarySearch!cmpWord(sortedIndices, word, this, r)) {
-			result = sortedIndices[r];
-
-			return true;
-		}
-
-		result = r;
-
-		return false;
-	}
 
 	auto findNew(const string word) const @safe pure
 	in(words.length > 0)
 	out(result; result.isNull || result.get() <= words.length)
 	{
 		import std.typecons : nullable;
-		static int cmpWord(const string word, const size_t sortedIndex, const Knowledge other) @safe pure {
-			import std.algorithm.comparison : cmp;
-			return cmp(word, other.words[sortedIndex].word);
-		}
-
-		size_t r;
-		if (binarySearch!cmpWord(sortedIndices, word, this, r)) {
-			return nullable(sortedIndices[r]);
+		if (auto foundWord = word in wordMap) {
+			return nullable(*foundWord);
 		}
 
 		return typeof(return).init;
 	}
 
 	size_t learn(const string word) @safe pure {
-		import std.array : insertInPlace;
 		import std.range : front;
-		size_t result;
 
-		if (find(word, result)) {
-			words[result].occurrences += 1;
-
-			debug(learning) tracef("Increased occurrences for word {'%s', occurrences: %s}", word, words[result].occurrences);
-			return result;
+		const index = wordMap.require(word, words.length);
+		if (index == words.length) {
+			debug(learning) tracef("Learned word {'%s', id: %u, rank: %u}", word, words.length, index);
+			words ~= KnowledgeWord(word, word.front.specialEffect);
 		}
 
-		words.length++;
+		words[index].occurrences += 1;
 
-		sortedIndices.insertInPlace(result, [words.length-1]);
-
-		debug(learning) tracef("Learned word {'%s', id: %u, rank: %u}", word, words.length, result);
-
-		result = words.length-1;
-
-		words[$-1].word = word;
-		words[$-1].special = word.front.specialEffect;
-
-		return result;
+		debug(learning) tracef("Increased occurrences for word {'%s', occurrences: %s}", word, words[index].occurrences);
+		return index;
 	}
 	void learnString(const string str) @safe {
 		assimilate(Strings(str));
@@ -336,6 +279,4 @@ struct Knowledge {
 	}
 
 	assert(knowledge.findNew("hellp").isNull);
-
-	assert(indexed(knowledge.words, knowledge.sortedIndices).isSorted!((x,y) => x.word < y.word));
 }
