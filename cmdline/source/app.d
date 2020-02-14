@@ -1,5 +1,6 @@
 module app;
 
+import std.datetime.stopwatch;
 import std.experimental.logger;
 import std.getopt;
 import std.range;
@@ -23,11 +24,13 @@ void main(string[] args) {
 	infof("Memory file: %s (read-only: %s)", memoryFile, readonly);
 	Knowledge knowledge;
 
+	auto stopWatch = StopWatch(AutoStart.yes);
 	foreach (file; args[1..$].chain(only(memoryFile))) {
 		writeln("Learning ", file);
 		learnFile(knowledge, file);
 	}
-	writeln("Learning complete.");
+	stopWatch.stop();
+	writeln("Learning completed in ", stopWatch.peek, ".");
 
 	while(true) {
 		write("> ");
