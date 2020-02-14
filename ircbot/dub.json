@@ -5,7 +5,7 @@
 	{
 		"zero-of-one": "*",
 		"virc": "*",
-		"siryul": "~>0.5.1",
+		"siryul": "~>0.6.0",
 		"vibe-d:core": "~>0.8.4",
 		"vibe-d:stream": "~>0.8.4",
 		"vibe-d:tls": "~>0.8.4"
