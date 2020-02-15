@@ -186,7 +186,7 @@ struct Knowledge {
 		return typeof(return).init;
 	}
 
-	size_t learn(const string word) @safe pure {
+	size_t learn(const string word, size_t factor = 1) @safe pure {
 		import std.range : front;
 
 		const index = wordMap.require(word, words.length);
@@ -195,30 +195,30 @@ struct Knowledge {
 			words ~= KnowledgeWord(word, word.front.specialEffect);
 		}
 
-		words[index].occurrences += 1;
+		words[index].occurrences += factor;
 
 		debug(learning) tracef("Increased occurrences for word {'%s', occurrences: %s}", word, words[index].occurrences);
 		return index;
 	}
-	void learnString(const string str) @safe pure {
-		assimilate(parse(str));
+	void learnString(const string str, size_t factor = 1) @safe pure {
+		assimilate(parse(str), factor);
 	}
 
-	void assimilate(const string[] strings) @safe pure {
+	void assimilate(const string[] strings, size_t factor = 1) @safe pure {
 		void addWordOccurrence(const SentenceSequence sequence) @safe {
-			static void addSequence(ref KnowledgeLink link, const size_t targetWord) @safe {
+			static void addSequence(ref KnowledgeLink link, const size_t targetWord, size_t factor) @safe {
 				foreach (i, target; link.targets) {
 					if (target == targetWord) {
-						link.targetsOccurrences[i] += 1;
+						link.targetsOccurrences[i] += factor;
 						return;
 					}
 				}
 
 				link.targets ~= targetWord;
-				link.targetsOccurrences ~= 1;
+				link.targetsOccurrences ~= factor;
 			}
-			addSequence(words[sequence.startPoint].forwardLinks.learn(KnowledgeLinkSequence(sequence.secondHalf[0 .. $-1])), sequence.secondHalf[$-1]);
-			addSequence(words[sequence.startPoint].backwardLinks.learn(KnowledgeLinkSequence(sequence.firstHalf[1 .. $])), sequence.firstHalf[0]);
+			addSequence(words[sequence.startPoint].forwardLinks.learn(KnowledgeLinkSequence(sequence.secondHalf[0 .. $-1])), sequence.secondHalf[$-1], factor);
+			addSequence(words[sequence.startPoint].backwardLinks.learn(KnowledgeLinkSequence(sequence.firstHalf[1 .. $])), sequence.firstHalf[0], factor);
 		}
 
 		debug(learning) trace("Learning phrase ", strings);
@@ -233,7 +233,7 @@ struct Knowledge {
 
 		foreach (i; 0..strings.length + SentenceSequence.MarkovOrder + 1) {
 			const isValidWord = SentenceSequence.MarkovOrder + i < strings.length;
-			const size_t newWordID = isValidWord ? learn(strings[SentenceSequence.MarkovOrder + i]) : terminator;
+			const size_t newWordID = isValidWord ? learn(strings[SentenceSequence.MarkovOrder + i], factor) : terminator;
 
 			sequence.pushLeft(newWordID);
 
