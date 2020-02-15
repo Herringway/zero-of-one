@@ -24,8 +24,9 @@ struct SentenceSequence {
 	auto secondHalf() inout @safe {
 		return HalfSentenceSequence(sequence[MarkovOrder + 1..$]);
 	}
-	auto getKnowledgeLink(ptrdiff_t relative) inout @safe {
-		return sequence[MarkovOrder + relative .. MarkovOrder + relative + KnowledgeLinkSequence.Size];
+	auto getKnowledgeLink(ptrdiff_t relative) const @safe pure {
+		ulong[KnowledgeLinkSequence.Size] tmp = sequence[MarkovOrder + relative .. MarkovOrder + relative + KnowledgeLinkSequence.Size];
+		return KnowledgeLinkSequence(tmp);
 	}
 	void pushLeft(size_t id) @safe pure @nogc nothrow {
 		foreach (i; 0 .. Size - 1) {
@@ -56,6 +57,12 @@ struct HalfSentenceSequence {
 			sequence[i] = sequence[i - 1];
 		}
 		sequence[0] = id;
+	}
+	auto asKnowledgeLinkSequenceLeft() const @safe pure {
+		return KnowledgeLinkSequence(sequence[1 .. $]);
+	}
+	auto asKnowledgeLinkSequenceRight() const @safe pure {
+		return KnowledgeLinkSequence(sequence[0 .. $ - 1]);
 	}
 }
 

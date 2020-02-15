@@ -23,7 +23,7 @@ auto extendLeft(const Knowledge k, HalfSentenceSequence sequence) @safe {
 
 		sequence.pushRight(0);
 
-		auto found = w.backwardLinks.findSequence(sequence[1..$]);
+		auto found = w.backwardLinks.findSequence(sequence.asKnowledgeLinkSequenceLeft);
 		assert(!found.isNull, "Unexpectedly, no backtracking link was found.");
 
 		sequence[0] = found.get.targets[dice(found.get.targetsOccurrences)];
@@ -54,7 +54,7 @@ auto extendRight(const Knowledge k, HalfSentenceSequence sequence) @safe pure @n
 
 			chain.pushLeft(0);
 
-			auto found = w.forwardLinks.findSequence(chain[0..$-1]);
+			auto found = w.forwardLinks.findSequence(chain.asKnowledgeLinkSequenceRight);
 			assert(!found.isNull, "Unexpectedly, no forward link was found.");
 
 			chain[$ - 1] = found.get.targets[dice(found.get.targetsOccurrences)];

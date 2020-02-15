@@ -116,9 +116,9 @@ struct KnowledgeLinks {
 	auto ref learn(const KnowledgeLinkSequence sequence) @safe pure {
 		return links.require(sequence, KnowledgeLink(sequence));
 	}
-	auto findSequence(const size_t[] sequence) const @safe pure {
+	auto findSequence(const KnowledgeLinkSequence sequence) const @safe pure {
 		import std.typecons : nullable;
-		if (auto foundSeq = KnowledgeLinkSequence(sequence[0 .. 2]) in links) {
+		if (auto foundSeq = sequence in links) {
 			return nullable(*foundSeq);
 		}
 
