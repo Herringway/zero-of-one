@@ -253,9 +253,6 @@ struct Knowledge {
 	auto opIndex(size_t i) const @safe pure {
 		return words[i];
 	}
-	auto length() const @safe pure {
-		return words.length;
-	}
 	auto pickRandom() const @safe
 	in(words.length > 0)
 	{
