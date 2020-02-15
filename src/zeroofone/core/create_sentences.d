@@ -71,25 +71,18 @@ auto extendRight(const Knowledge k, HalfSentenceSequence sequence) @safe pure @n
 }
 
 size_t selectFirstWord(const Knowledge k, const string[] strings) @safe {
-	size_t wordMinScore = size_t.max;
-	bool wordFound;
-	size_t wordMinID;
-
-	// We want the rarest word in the sequence.
-	foreach (word; strings) {
-		const foundWord = k.find(word);
-		if (!foundWord.isNull && (k[foundWord.get].occurrences < wordMinScore)) {
-			wordFound = true;
-			wordMinScore = k[foundWord.get].occurrences;
-			wordMinID = foundWord.get;
-		}
-	}
-
-	if (!wordFound) {
+	// Filter out all the words we don't know
+	auto foundWords = strings
+		.map!(x => k.find(x))
+		.filter!(x => !x.isNull)
+		.map!(x => x.get);
+	// Pick a random word if none found
+	if (foundWords.empty) {
 		return k.pickRandom();
 	}
-
-	return wordMinID;
+	// Find and return the rarest word
+	return foundWords
+		.minElement!(x => k[x].occurrences);
 }
 
 @safe unittest {
