@@ -299,13 +299,13 @@ struct Knowledge {
 	import std.range : indexed;
 	Knowledge knowledge;
 	assert(knowledge.words[Knowledge.terminator].word == "");
-	knowledge.learn("hello");
+	knowledge.learnString("hello");
 	with (knowledge[knowledge.find("hello").get]) {
 		assert(word == "hello");
 		assert(occurrences == 1);
 	}
-	knowledge.learn("word");
-	knowledge.learn("hello");
+	knowledge.learnString("word");
+	knowledge.learnString("hello");
 	with (knowledge[knowledge.find("hello").get]) {
 		assert(word == "hello");
 		assert(occurrences == 2);
