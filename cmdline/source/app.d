@@ -56,17 +56,25 @@ void main(string[] args) {
 
 void learnFile(ref Knowledge knowledge, string file) {
 	write("line 0");
-	ulong digits = 1;
+	ulong digitsPrinted = 1;
+	ulong digitsToPrint = 1;
+	ulong count = 0;
 	ulong tens = 1;
-	foreach (i, str; File(file, "r").byLineCopy().enumerate) {
-		if (tens*10 < i) {
-			digits++;
+	void printNumber(ulong num) {
+		writef!"%-(%s%)%s"("\b".repeat(digitsPrinted), num);
+		digitsPrinted = digitsToPrint;
+	}
+	foreach (str; File(file, "r").byLineCopy()) {
+		count++;
+		if (tens*10 < count) {
 			tens *= 10;
+			digitsToPrint++;
 		}
 		knowledge.learnString(str);
-		if (i%2 == 0) {
-			writef!"%-(%s%)%s"("\b".repeat(digits), i);
+		if (count%128 == 0) {
+			printNumber(count);
 		}
 	}
+	printNumber(count);
 	writeln();
 }
