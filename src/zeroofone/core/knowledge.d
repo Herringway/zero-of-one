@@ -186,7 +186,7 @@ struct Knowledge {
 		return typeof(return).init;
 	}
 
-	size_t learn(const string word, size_t factor = 1) @safe pure {
+	private size_t learnWord(const string word, size_t factor = 1) @safe pure {
 		import std.range : front;
 
 		const index = wordMap.require(word, words.length);
@@ -233,7 +233,7 @@ struct Knowledge {
 
 		foreach (i; 0..strings.length + SentenceSequence.MarkovOrder + 1) {
 			const isValidWord = SentenceSequence.MarkovOrder + i < strings.length;
-			const size_t newWordID = isValidWord ? learn(strings[SentenceSequence.MarkovOrder + i], factor) : terminator;
+			const size_t newWordID = isValidWord ? learnWord(strings[SentenceSequence.MarkovOrder + i], factor) : terminator;
 
 			sequence.pushLeft(newWordID);
 
@@ -246,7 +246,7 @@ struct Knowledge {
 
 		foreach (i, ref word; sequence[SentenceSequence.MarkovOrder + 1..$]) {
 			const validWord = i < strings.length;
-			word = validWord ? learn(strings[i]) : terminator;
+			word = validWord ? learnWord(strings[i]) : terminator;
 		}
 		return sequence;
 	}
