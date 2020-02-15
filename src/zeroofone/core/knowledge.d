@@ -241,7 +241,7 @@ struct Knowledge {
 		}
 	}
 
-	auto initSequence(const string[] strings) @safe pure {
+	private auto initSequence(const string[] strings) @safe pure {
 		SentenceSequence sequence;
 
 		foreach (i, ref word; sequence[SentenceSequence.MarkovOrder + 1..$]) {
