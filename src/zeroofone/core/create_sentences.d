@@ -178,7 +178,7 @@ string createSentence(T)(T words) {
 	assert(createSentence([KnowledgeWord("hello"), KnowledgeWord("\"", SpecialEffect.REMOVES_RIGHT_SPACE), KnowledgeWord("world"), KnowledgeWord("\"", SpecialEffect.REMOVES_LEFT_SPACE), KnowledgeWord("!", SpecialEffect.REMOVES_LEFT_SPACE_CAPITALIZES_NEXT_WORD)]) == "Hello \"world\"!");
 }
 
-auto autoCapitalize(const string word, const bool cap) @safe {
+auto autoCapitalize(const string word, const bool cap) @safe pure {
 	static struct Result {
 		const string word;
 		const bool capitalize;

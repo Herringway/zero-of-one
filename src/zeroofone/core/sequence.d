@@ -15,13 +15,13 @@ struct SentenceSequence {
 	size_t[Size] sequence = Knowledge.terminator;
 	alias sequence this;
 
-	const startPoint() @safe {
+	const startPoint() @safe pure {
 		return sequence[MarkovOrder];
 	}
-	auto firstHalf() inout @safe {
+	auto firstHalf() inout @safe pure {
 		return HalfSentenceSequence(sequence[0..MarkovOrder]);
 	}
-	auto secondHalf() inout @safe {
+	auto secondHalf() inout @safe pure {
 		return HalfSentenceSequence(sequence[MarkovOrder + 1..$]);
 	}
 	auto getKnowledgeLink(ptrdiff_t relative) const @safe pure {

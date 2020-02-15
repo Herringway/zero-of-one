@@ -134,7 +134,7 @@ struct KnowledgeLinks {
 		values.popFrontN(uniform(0, links.length));
 		return values.front;
 	}
-	void optimize() /*@safe*/ {
+	void optimize() /*@safe*/ pure {
 		links.rehash();
 	}
 }
@@ -199,11 +199,11 @@ struct Knowledge {
 		debug(learning) tracef("Increased occurrences for word {'%s', occurrences: %s}", word, words[index].occurrences);
 		return index;
 	}
-	void learnString(const string str) @safe {
+	void learnString(const string str) @safe pure {
 		assimilate(parse(str));
 	}
 
-	void assimilate(const string[] strings) @safe {
+	void assimilate(const string[] strings) @safe pure {
 		void addWordOccurrence(const SentenceSequence sequence) @safe {
 			static void addSequence(ref KnowledgeLink link, const size_t targetWord) @safe {
 				foreach (i, target; link.targets) {
@@ -240,7 +240,7 @@ struct Knowledge {
 		}
 	}
 
-	auto initSequence(const string[] strings) @safe {
+	auto initSequence(const string[] strings) @safe pure {
 		SentenceSequence sequence;
 
 		foreach (i, ref word; sequence[SentenceSequence.MarkovOrder + 1..$]) {
@@ -249,13 +249,13 @@ struct Knowledge {
 		}
 		return sequence;
 	}
-	auto opIndex(size_t i) @safe const {
+	auto opIndex(size_t i) const @safe pure {
 		return words[i];
 	}
-	auto length() @safe const {
+	auto length() const @safe pure {
 		return words.length;
 	}
-	auto pickRandom() @safe const
+	auto pickRandom() const @safe
 	in(words.length > 0)
 	{
 		import std.algorithm.iteration : filter;
@@ -263,7 +263,7 @@ struct Knowledge {
 		import std.range : iota;
 		return iota(0, words.length - 1).randomCover().filter!(x => x != terminator).front;
 	}
-	void optimize() /*@safe*/ {
+	void optimize() /*@safe*/ pure {
 		foreach (ref word; words) {
 			word.forwardLinks.optimize();
 			word.backwardLinks.optimize();
@@ -271,7 +271,7 @@ struct Knowledge {
 		wordMap.rehash();
 	}
 }
-@safe unittest {
+@safe pure unittest {
 	import std.algorithm.iteration : map;
 	import std.range : enumerate, iota;
 	enum words = iota(0, SentenceSequence.MarkovOrder).map!(x => x.text);
@@ -287,7 +287,7 @@ struct Knowledge {
 	}
 	assert(seq.secondHalf == w[0 .. SentenceSequence.MarkovOrder]);
 }
-@safe unittest {
+@safe pure unittest {
 	Knowledge k;
 	k.assimilate([]);
 }
