@@ -176,7 +176,6 @@ struct Knowledge {
 	public alias terminator = .terminator;
 
 	auto find(const string word) const @safe pure
-	in(words.length > 0)
 	out(result; result.isNull || result.get() <= words.length)
 	{
 		import std.typecons : nullable;
