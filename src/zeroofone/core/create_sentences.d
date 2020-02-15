@@ -34,7 +34,7 @@ auto extendLeft(const Knowledge k, HalfSentenceSequence sequence) @safe {
 @safe unittest {
 	Knowledge k;
 	k.assimilate(["hello", "world", "3"]);
-	auto seq = HalfSentenceSequence([k.findNew("hello").get, k.findNew("world").get, k.findNew("3").get]);
+	auto seq = HalfSentenceSequence([k.find("hello").get, k.find("world").get, k.find("3").get]);
 	assert(extendLeft(k, seq).map!(x => k[x].word).equal(only("hello", "world", "3")));
 }
 
@@ -66,7 +66,7 @@ auto extendRight(const Knowledge k, HalfSentenceSequence sequence) @safe pure @n
 @safe /+pure @nogc+/ unittest {
 	Knowledge k;
 	k.learnString("hello world 3");
-	auto seq = HalfSentenceSequence([k.findNew("hello").get, k.findNew("world").get, k.findNew("3").get]);
+	auto seq = HalfSentenceSequence([k.find("hello").get, k.find("world").get, k.find("3").get]);
 	assert(extendRight(k, seq).map!(x => k[x].word).equal(only("hello", "world", "3")));
 }
 
@@ -77,7 +77,7 @@ size_t selectFirstWord(const Knowledge k, const string[] strings) @safe {
 
 	// We want the rarest word in the sequence.
 	foreach (word; strings) {
-		const foundWord = k.findNew(word);
+		const foundWord = k.find(word);
 		if (!foundWord.isNull && (k[foundWord.get].occurrences < wordMinScore)) {
 			wordFound = true;
 			wordMinScore = k[foundWord.get].occurrences;
@@ -95,9 +95,9 @@ size_t selectFirstWord(const Knowledge k, const string[] strings) @safe {
 @safe unittest {
 	Knowledge k;
 	k.learnString("hello world 3");
-	assert(selectFirstWord(k, ["hello"]) == k.findNew("hello").get);
+	assert(selectFirstWord(k, ["hello"]) == k.find("hello").get);
 	assert(selectFirstWord(k, ["hellp"]) != Knowledge.terminator);
-	assert(selectFirstWord(k, ["hello", "world", "3"]).among(k.findNew("hello").get, k.findNew("world").get, k.findNew("3").get));
+	assert(selectFirstWord(k, ["hello", "world", "3"]).among(k.find("hello").get, k.find("world").get, k.find("3").get));
 }
 
 auto newSequence(const Knowledge k, const string[] strings, const bool randomStart) @safe {

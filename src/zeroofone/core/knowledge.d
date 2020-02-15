@@ -173,7 +173,7 @@ struct Knowledge {
 	private size_t[string] wordMap;
 	public alias terminator = .terminator;
 
-	auto findNew(const string word) const @safe pure
+	auto find(const string word) const @safe pure
 	in(words.length > 0)
 	out(result; result.isNull || result.get() <= words.length)
 	{
@@ -283,7 +283,7 @@ struct Knowledge {
 	}
 	size_t[6] w;
 	foreach (idx, word; words.enumerate) {
-		w[idx] = k.findNew(word).get;
+		w[idx] = k.find(word).get;
 	}
 	assert(seq.secondHalf == w[0 .. SentenceSequence.MarkovOrder]);
 }
@@ -299,18 +299,18 @@ struct Knowledge {
 	Knowledge knowledge;
 	assert(knowledge.words[Knowledge.terminator].word == "");
 	knowledge.learn("hello");
-	with (knowledge[knowledge.findNew("hello").get]) {
+	with (knowledge[knowledge.find("hello").get]) {
 		assert(word == "hello");
 		assert(occurrences == 1);
 	}
 	knowledge.learn("word");
 	knowledge.learn("hello");
-	with (knowledge[knowledge.findNew("hello").get]) {
+	with (knowledge[knowledge.find("hello").get]) {
 		assert(word == "hello");
 		assert(occurrences == 2);
 	}
 
-	assert(knowledge.findNew("hellp").isNull);
+	assert(knowledge.find("hellp").isNull);
 }
 
 
