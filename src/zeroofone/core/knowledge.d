@@ -65,23 +65,25 @@ bool useTrailingSpace(const SpecialEffect effect) @safe pure {
 	}
 }
 
-immutable string knowledgePunctuationCharsRemovesLeftSpace = [
+immutable wstring knowledgePunctuationCharsRemovesLeftSpace = [
 	',',
 	':',
 	';',
 	'~',
 	')',
 	']',
-	'}'
+	'}',
+	'”'
 ];
-immutable string knowledgePunctuationCharsRemovesRightSpace = [
+immutable wstring knowledgePunctuationCharsRemovesRightSpace = [
 	'(',
 	'[',
 	'{',
-	'#'
+	'#',
+	'“'
 ];
 
-immutable string knowledgePunctuationCharsNextCapitalized = [
+immutable wstring knowledgePunctuationCharsNextCapitalized = [
 	'?',
 	'!',
 	'.'
